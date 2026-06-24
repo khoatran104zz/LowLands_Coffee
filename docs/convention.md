@@ -1,0 +1,75 @@
+# Coding Convention - Lowlands Coffee
+
+Tài liệu hướng dẫn và quy định viết mã nguồn cho dự án Frontend Lowlands Coffee.
+
+## 1. Quy tắc Đặt tên (Naming Conventions)
+
+### 1.1 Thư mục (Folders)
+- Sử dụng **kebab-case** cho toàn bộ thư mục trong dự án.
+- Ví dụ:
+  - `product-card`
+  - `order-history`
+  - `coffee-menu`
+
+### 1.2 Thành phần React (Components)
+- Sử dụng **PascalCase** cho tên file và tên component.
+- Mỗi component tương ứng với một file riêng biệt.
+- Ví dụ:
+  - `ProductCard.tsx`
+  - `Navbar.tsx`
+  - `CartItem.tsx`
+
+### 1.3 Hàm & Biến (Functions & Variables)
+- Sử dụng **camelCase** cho tên hàm và tên biến.
+- Các hằng số (constants) phải được viết hoa toàn bộ và phân cách bằng dấu gạch dưới (**UPPER_SNAKE_CASE**).
+- Ví dụ:
+  - `getProducts()`
+  - `handleSubmit()`
+  - `const DEFAULT_PAGE_SIZE = 10;`
+
+---
+
+## 2. Quy tắc Đa ngôn ngữ (i18n Rules)
+
+- **CẤM** viết cứng (hardcode) bất kỳ chuỗi UI text nào trực tiếp trong component hoặc file constants.
+- Tất cả text hiển thị cho người dùng, nhãn nút (button labels), placeholders, thông báo lỗi (error messages), và SEO metadata phải được định nghĩa trong file dịch:
+  - `src/messages/vi.json` (Tiếng Việt - Mặc định)
+  - `src/messages/en.json` (Tiếng Anh)
+- **Cách sử dụng trong Component**:
+  ```tsx
+  import { useTranslations } from "next-intl";
+
+  export function AddCartButton() {
+    const t = useTranslations("common");
+    return <button>{t("addToCart")}</button>;
+  }
+  ```
+- **Hằng số hệ thống**: Khi định nghĩa các hằng số chứa thông tin hiển thị (ví dụ: Items của Navbar), sử dụng các mã định danh dịch (`labelKey`) thay vì text cứng.
+  ```typescript
+  export const MENU_ITEMS = [
+    {
+      labelKey: "menu.home",
+      href: "/"
+    }
+  ];
+  ```
+
+---
+
+## 3. Quy tắc ESLint & Kiểm tra Mã nguồn (ESLint Rules)
+
+Dự án áp dụng cấu hình ESLint nghiêm ngặt nhằm tránh các lỗi bảo trì sau này:
+- **Unused Imports**: Tự động cảnh báo/lỗi khi có import không được sử dụng.
+- **No any**: Cấm sử dụng kiểu `any` trong TypeScript. Mọi biến phải có kiểu dữ liệu rõ ràng (`interface` hoặc `type`).
+- **No magic numbers**: Không được viết các số trực tiếp không rõ nghĩa trong mã nguồn. Hãy khai báo hằng số.
+- **No hardcoded color**: Không được viết cứng mã màu Hex/RGB trong style. Phải sử dụng Tailwind tokens hoặc CSS variables.
+  - Sai: `const color = "#123456";`
+  - Đúng: Sử dụng Tailwind class như `text-primary` hoặc `bg-secondary`.
+
+---
+
+## 4. Kiến trúc Thư mục và Trách nhiệm (Folder Responsibility)
+- `components/base`: Các component nguyên tử độc lập (Button, Input, Modal, Table, Toast). Không chứa business logic.
+- `components/features`: Các component chứa nghiệp vụ cụ thể của sản phẩm (ví dụ: `ProductCard`, `CartList`).
+- `services`: Nơi định nghĩa các hàm gọi API bằng Axios. Không mock data.
+- `store`: Chứa logic quản lý state của Zustand. Không chứa mock data.
