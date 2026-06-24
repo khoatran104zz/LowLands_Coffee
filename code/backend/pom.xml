@@ -8,8 +8,8 @@
 		<version>4.1.0</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
-	<groupId>com.local</groupId>
-	<artifactId>Lowlands</artifactId>
+	<groupId>com.lowlands</groupId>
+	<artifactId>coffee</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<name/>
 	<description/>

@@ -1,10 +1,10 @@
-package com.local.Lowlands;
+package com.lowlands.coffee;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
-class LowlandsApplicationTests {
+class CoffeeApplicationTests {
 
 	@Test
 	void contextLoads() {
