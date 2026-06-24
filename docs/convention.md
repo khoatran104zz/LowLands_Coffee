@@ -73,3 +73,158 @@ Dự án áp dụng cấu hình ESLint nghiêm ngặt nhằm tránh các lỗi b
 - `components/features`: Các component chứa nghiệp vụ cụ thể của sản phẩm (ví dụ: `ProductCard`, `CartList`).
 - `services`: Nơi định nghĩa các hàm gọi API bằng Axios. Không mock data.
 - `store`: Chứa logic quản lý state của Zustand. Không chứa mock data.
+
+
+---
+
+# 5. Backend Architecture Convention
+
+## 5.1 Architecture Style
+
+Backend sử dụng:
+
+- Modular Layered Architecture
+- Spring Boot
+- PostgreSQL
+- JWT Authentication
+- RBAC Authorization
+
+Cấu trúc package chuẩn:
+
+src/main/java/com/lowlands/coffee/
+
+├── common/
+├── config/
+├── security/
+└── modules/
+
+## 5.2 Business Modules
+
+- auth
+- user
+- store
+- product
+- cart
+- order
+- payment
+- promotion
+- inventory
+
+## 5.3 Module Structure
+
+modules/{module}/
+
+├── controller/
+├── dto/request/
+├── dto/response/
+├── entity/
+├── repository/
+├── service/
+│   └── impl/
+└── mapper/
+
+## 5.4 Controller Rules
+
+Controller chỉ được:
+
+- Nhận request
+- Validate request
+- Gọi service
+- Trả response
+
+Không được:
+
+- Chứa business logic
+- Gọi repository trực tiếp
+
+## 5.5 Service Rules
+
+Service là nơi xử lý nghiệp vụ.
+
+## 5.6 Repository Rules
+
+Repository chỉ dùng để truy cập dữ liệu PostgreSQL.
+
+---
+
+# 6. Database Convention
+
+Database:
+
+- PostgreSQL
+
+Nguồn dữ liệu chuẩn:
+
+- docs/DB-erd/coffee-shop-management.dbml
+- docs/DB-erd/database-note.md
+
+Migration:
+
+src/main/resources/db/migration
+
+Ví dụ:
+
+- V1__create_roles.sql
+- V2__create_users.sql
+- V3__create_store_module.sql
+
+---
+
+# 7. Git Convention
+
+Branch:
+
+- main
+- develop
+- feature/*
+- fix/*
+- docs/*
+
+Commit:
+
+- feat: add product module
+- fix: fix login bug
+- docs: update database note
+- refactor: optimize order service
+
+---
+
+# 8. AI Agent Convention
+
+AI Agent phải đọc:
+
+- docs/srs.md
+- docs/convention.md
+- docs/DB-erd/database-note.md
+
+AI Agent không được:
+
+- Tự ý thay đổi kiến trúc
+- Chuyển sang Clean Architecture
+- Tự ý sửa database
+- Viết business logic trong controller
+
+---
+
+# 9. Development Workflow
+
+1. Đọc SRS
+2. Đọc Convention
+3. Đọc ERD và Database Note
+4. Thiết kế API
+5. Code theo module
+6. Review code
+7. Viết test
+8. Commit
+
+---
+
+# 10. Testing Convention
+
+Unit Test phải đặt tại:
+
+src/test/java
+
+Không đặt test trong:
+
+src/main/java
