@@ -1,0 +1,16 @@
+node_modules
+.next
+out
+.git
+.gitignore
+.dockerignore
+Dockerfile
+docker-compose.yml
+README.md
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+.husky
+test
+jest.config.js
+jest.setup.js
