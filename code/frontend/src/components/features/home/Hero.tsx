@@ -74,32 +74,32 @@ export function Hero() {
               {/* Steaming Coffee Cup Graphic */}
               <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-2xl">
                 {/* Steam lines */}
-                <path d="M75 50 Q 80 40, 75 30 T 75 10" stroke="url(#steam-grad)" stroke-width="3" stroke-linecap="round" opacity="0.7" />
-                <path d="M100 45 Q 105 32, 100 20 T 100 5" stroke="url(#steam-grad)" stroke-width="4" stroke-linecap="round" opacity="0.8" />
-                <path d="M125 50 Q 130 40, 125 30 T 125 10" stroke="url(#steam-grad)" stroke-width="3" stroke-linecap="round" opacity="0.7" />
+                <path d="M75 50 Q 80 40, 75 30 T 75 10" stroke="url(#steam-grad)" strokeWidth="3" strokeLinecap="round" opacity="0.7" />
+                <path d="M100 45 Q 105 32, 100 20 T 100 5" stroke="url(#steam-grad)" strokeWidth="4" strokeLinecap="round" opacity="0.8" />
+                <path d="M125 50 Q 130 40, 125 30 T 125 10" stroke="url(#steam-grad)" strokeWidth="3" strokeLinecap="round" opacity="0.7" />
 
                 {/* Cup Body */}
-                <path d="M 50 65 L 150 65 C 150 120, 135 150, 100 150 C 65 150, 50 120, 50 65 Z" fill="url(#cup-grad)" stroke="#C5A880" stroke-width="1.5" />
+                <path d="M 50 65 L 150 65 C 150 120, 135 150, 100 150 C 65 150, 50 120, 50 65 Z" fill="url(#cup-grad)" stroke="#C5A880" strokeWidth="1.5" />
                 
                 {/* Cup handle */}
-                <path d="M 150 80 C 175 80, 175 120, 150 120" fill="none" stroke="#C5A880" stroke-width="8" stroke-linecap="round" />
+                <path d="M 150 80 C 175 80, 175 120, 150 120" fill="none" stroke="#C5A880" strokeWidth="8" strokeLinecap="round" />
                 
                 {/* Plate / Saucer */}
-                <ellipse cx="100" cy="155" rx="75" ry="12" fill="url(#saucer-grad)" stroke="#C5A880" stroke-width="1.5" />
+                <ellipse cx="100" cy="155" rx="75" ry="12" fill="url(#saucer-grad)" stroke="#C5A880" strokeWidth="1.5" />
                 
                 {/* Gradients definitions */}
                 <defs>
                   <linearGradient id="cup-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#4A2C2A" />
-                    <stop offset="100%" stop-color="#2D1A19" />
+                    <stop offset="0%" stopColor="#4A2C2A" />
+                    <stop offset="100%" stopColor="#2D1A19" />
                   </linearGradient>
                   <linearGradient id="saucer-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stop-color="#C5A880" />
-                    <stop offset="100%" stop-color="#AA7C11" />
+                    <stop offset="0%" stopColor="#C5A880" />
+                    <stop offset="100%" stopColor="#AA7C11" />
                   </linearGradient>
                   <linearGradient id="steam-grad" x1="0%" y1="0%" x2="0%" y2="100%">
-                    <stop offset="0%" stop-color="rgba(247, 243, 233, 0.9)" />
-                    <stop offset="100%" stop-color="rgba(247, 243, 233, 0)" />
+                    <stop offset="0%" stopColor="rgba(247, 243, 233, 0.9)" />
+                    <stop offset="100%" stopColor="rgba(247, 243, 233, 0)" />
                   </linearGradient>
                 </defs>
               </svg>

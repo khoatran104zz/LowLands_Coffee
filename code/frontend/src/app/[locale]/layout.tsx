@@ -4,6 +4,7 @@ import { Header } from "@/components/features/layout/Header";
 import { Footer } from "@/components/features/layout/Footer";
 import { Toaster } from "@/components/ui/sonner";
 import { Inter, Outfit } from "next/font/google";
+import type { Metadata } from "next";
 import "../globals.css";
 
 const inter = Inter({
@@ -15,6 +16,10 @@ const outfit = Outfit({
   subsets: ["latin"],
   variable: "--font-outfit",
 });
+
+export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
+};
 
 export async function generateStaticParams() {
   return [{ locale: "vi" }, { locale: "en" }];

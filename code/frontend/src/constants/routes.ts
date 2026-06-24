@@ -5,11 +5,19 @@ export interface NavLink {
 
 export const NAV_LINKS: NavLink[] = [
   {
-    labelKey: "common.home",
-    href: "/",
-  },
-  {
     labelKey: "common.menu",
     href: "/menu",
+  },
+  {
+    labelKey: "common.about",
+    href: "/about",
+  },
+  {
+    labelKey: "common.careers",
+    href: "/careers",
+  },
+  {
+    labelKey: "common.support",
+    href: "/support",
   },
 ];

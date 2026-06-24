@@ -23,11 +23,18 @@ function VietnamFlag() {
 function UKFlag() {
   return (
     <svg viewBox="0 0 30 20" className="h-3.5 w-5 rounded-sm shadow-sm inline-block mr-2 shrink-0">
-      <rect width="30" height="20" fill="#012169"/>
-      <path d="M0,0 L30,20 M30,0 L0,20" stroke="#fff" stroke-width="3"/>
-      <path d="M0,0 L30,20 M30,0 L0,20" stroke="#C8102E" stroke-width="2"/>
-      <path d="M15,0 L15,20 M0,10 L30,10" stroke="#fff" stroke-width="5"/>
-      <path d="M15,0 L15,20 M0,10 L30,10" stroke="#C8102E" stroke-width="3"/>
+      <defs>
+        <clipPath id="flag-clip">
+          <rect width="30" height="20" rx="1" />
+        </clipPath>
+      </defs>
+      <g clipPath="url(#flag-clip)">
+        <rect width="30" height="20" fill="#012169"/>
+        <path d="M0,0 L30,20 M30,0 L0,20" stroke="#fff" strokeWidth="3"/>
+        <path d="M0,0 L30,20 M30,0 L0,20" stroke="#C8102E" strokeWidth="2"/>
+        <path d="M15,0 L15,20 M0,10 L30,10" stroke="#fff" strokeWidth="5"/>
+        <path d="M15,0 L15,20 M0,10 L30,10" stroke="#C8102E" strokeWidth="3"/>
+      </g>
     </svg>
   );
 }

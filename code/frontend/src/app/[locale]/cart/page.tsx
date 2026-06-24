@@ -55,8 +55,8 @@ export default function CartPage() {
       } else {
         toast.error(t("promoInvalid"));
       }
-    } catch (err) {
-      console.warn("Failed to apply promotion (API Offline):", err);
+    } catch {
+      console.warn("Failed to apply promotion (API Offline).");
       toast.error("Không thể kết nối API khuyến mãi. Vui lòng khởi động backend Spring Boot.");
     } finally {
       setPromoLoading(false);

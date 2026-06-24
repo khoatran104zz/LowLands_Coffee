@@ -11,6 +11,7 @@ export async function generateMetadata() {
   const tSeo = messages.seo;
 
   return {
+    metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
     title: tSeo?.homeTitle || "Lowlands Coffee",
     description: tSeo?.homeDesc || "",
     openGraph: {
