@@ -1,6 +1,8 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
+import { useRouter, usePathname } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -42,25 +44,15 @@ function UKFlag() {
 export function LanguageSwitcher() {
   const locale = useLocale();
   const t = useTranslations("common");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const handleLanguageChange = (value: string | null) => {
     if (!value) return;
-
-    if (typeof window !== "undefined") {
-      const currentPath = window.location.pathname;
-      const search = window.location.search;
-      
-      const parts = currentPath.split("/");
-      // Path format is /[locale]/path...
-      if (parts.length > 1 && (parts[1] === "vi" || parts[1] === "en")) {
-        parts[1] = value;
-      } else {
-        parts.splice(1, 0, value);
-      }
-      
-      const newPath = parts.join("/") + search;
-      window.location.href = newPath; // Perform full page reload to switch language and update HTML attributes
-    }
+    const search = searchParams.toString();
+    const targetPath = search ? `${pathname}?${search}` : pathname;
+    router.replace(targetPath, { locale: value });
   };
 
   return (
