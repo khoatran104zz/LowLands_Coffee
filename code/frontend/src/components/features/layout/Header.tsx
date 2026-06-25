@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Link } from "@/i18n/navigation";
+import { Link, usePathname } from "@/i18n/navigation";
 import { useTranslations, useLocale } from "next-intl";
 import { useCartStore } from "@/store/cart.store";
 import { useAuthStore } from "@/store/auth.store";
@@ -52,6 +52,7 @@ const MEGA_MENU_CATEGORIES = [
 export function Header() {
   const t = useTranslations();
   const locale = useLocale();
+  const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [megaMenuOpen, setMegaMenuOpen] = useState(false);
   
@@ -67,7 +68,16 @@ export function Header() {
         
         {/* Brand Logo & Navigation Group - Left aligned on Desktop */}
         <div className="flex items-center gap-4 xl:gap-6 h-full">
-          <Link href="/" className="flex items-center py-2 shrink-0">
+          <Link
+            href="/"
+            className="flex items-center py-2 shrink-0"
+            onClick={(e) => {
+              if (pathname === "/") {
+                e.preventDefault();
+                window.location.reload();
+              }
+            }}
+          >
             <div className="relative h-9 w-32 xl:w-36">
               <Image
                 src="/logo/logo.svg"

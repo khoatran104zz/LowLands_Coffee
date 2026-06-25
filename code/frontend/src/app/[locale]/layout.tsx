@@ -1,7 +1,5 @@
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
-import { Header } from "@/components/features/layout/Header";
-import { Footer } from "@/components/features/layout/Footer";
 import { Toaster } from "@/components/ui/sonner";
 import { Inter, Outfit } from "next/font/google";
 import type { Metadata } from "next";
@@ -42,9 +40,7 @@ export default async function LocaleLayout({
     <html lang={locale} className={`${inter.variable} ${outfit.variable}`}>
       <body className="font-sans antialiased bg-background text-foreground min-h-screen flex flex-col">
         <NextIntlClientProvider messages={messages}>
-          <Header />
-          <main className="flex-grow">{children}</main>
-          <Footer />
+          {children}
           <Toaster position="top-right" richColors />
         </NextIntlClientProvider>
       </body>

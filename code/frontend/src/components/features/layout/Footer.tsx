@@ -1,10 +1,13 @@
-import { Link } from "@/i18n/navigation";
+"use client";
+
+import { Link, usePathname } from "@/i18n/navigation";
 import { useTranslations } from "next-intl";
 import Image from "next/image";
 
 export function Footer() {
   const t = useTranslations();
   const currentYear = new Date().getFullYear();
+  const pathname = usePathname();
 
   return (
     <footer className="w-full border-t border-border bg-card text-card-foreground">
@@ -13,7 +16,16 @@ export function Footer() {
           
           {/* Brand Col */}
           <div className="md:col-span-2 flex flex-col gap-4">
-            <Link href="/" className="inline-block relative h-10 w-44">
+            <Link
+              href="/"
+              className="inline-block relative h-10 w-44"
+              onClick={(e) => {
+                if (pathname === "/") {
+                  e.preventDefault();
+                  window.location.reload();
+                }
+              }}
+            >
               <Image
                 src="/logo/logo.svg"
                 alt={t("common.brandName")}
