@@ -32,6 +32,7 @@ axiosInstance.interceptors.response.use(
     if (error.response && error.response.status === 401) {
       if (typeof window !== "undefined") {
         localStorage.removeItem("lowlands_token");
+        localStorage.removeItem("lowlands_refresh_token");
         localStorage.removeItem("lowlands_user");
         // Optional redirect logic
       }

@@ -11,19 +11,18 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useRouter } from "@/i18n/navigation";
 import { toast } from "sonner";
-import { AlertCircle, LogIn } from "lucide-react";
+import { LogIn } from "lucide-react";
 
 export default function LoginPage() {
   const t = useTranslations("auth");
   const tCommon = useTranslations("common");
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
-  
   const [loading, setLoading] = useState(false);
 
   const formSchema = zod.object({
-    email: zod.string().email({ message: "Email không đúng định dạng" }),
-    password: zod.string().min(6, { message: "Mật khẩu tối thiểu 6 ký tự" }),
+    email: zod.string().email({ message: "Invalid email" }),
+    password: zod.string().min(6, { message: "Password must be at least 6 characters" }),
   });
 
   type FormData = zod.infer<typeof formSchema>;
@@ -43,27 +42,14 @@ export default function LoginPage() {
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
-      // Attempt login via backend API
       const res = await loginUser({ email: data.email, password: data.password });
-      login(res.user, res.token);
-      toast.success(tCommon("login") + " thành công!");
+      login(res.user, res.accessToken);
+      localStorage.setItem("lowlands_refresh_token", res.refreshToken);
+      toast.success(tCommon("login") + " success");
       router.push("/profile");
     } catch (err) {
-      console.warn("Backend authentication offline. Logging in with client-side preview session.", err);
-      
-      // Simulate client-side session login for preview purposes
-      login(
-        {
-          id: 1,
-          fullName: "Đoàn Minh Quân",
-          email: data.email,
-          phone: "0987654321",
-          status: "active",
-        },
-        "preview-jwt-token-id-12345"
-      );
-      toast.success(tCommon("login") + " thành công! (Chế độ Xem thử)");
-      router.push("/profile");
+      console.warn("Login failed", err);
+      toast.error(t("loginFailed"));
     } finally {
       setLoading(false);
     }
@@ -86,7 +72,7 @@ export default function LoginPage() {
               <Input
                 type="email"
                 {...register("email")}
-                placeholder="quan.doan@example.com"
+                placeholder="admin@lowlands.coffee"
                 className="border-border text-xs sm:text-sm h-10"
               />
               {errors.email && (
@@ -113,17 +99,10 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <div className="text-center text-xs text-muted-foreground border-t border-border/50 pt-4 flex flex-col gap-3">
+          <div className="text-center text-xs text-muted-foreground border-t border-border/50 pt-4">
             <Link href="/register" className="hover:text-primary hover:underline font-semibold">
               {t("needAccount")}
             </Link>
-            
-            <div className="flex items-start gap-2 bg-accent/5 border border-accent/15 rounded-xl p-3.5 text-left text-[11px] leading-relaxed">
-              <AlertCircle className="h-4 w-4 text-accent shrink-0 mt-0.5" />
-              <p>
-                Nếu API auth chưa khởi chạy, hệ thống sẽ tự động tạo một phiên đăng nhập xem thử cục bộ để bạn đánh giá các trang cá nhân và giỏ hàng.
-              </p>
-            </div>
           </div>
         </div>
       </div>

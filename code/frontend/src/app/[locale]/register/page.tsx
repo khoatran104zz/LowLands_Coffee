@@ -11,21 +11,20 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useRouter } from "@/i18n/navigation";
 import { toast } from "sonner";
-import { AlertCircle, UserPlus } from "lucide-react";
+import { UserPlus } from "lucide-react";
 
 export default function RegisterPage() {
   const t = useTranslations("auth");
   const tCommon = useTranslations("common");
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
-  
   const [loading, setLoading] = useState(false);
 
   const formSchema = zod.object({
-    fullName: zod.string().min(1, { message: "Họ tên không được để trống" }),
-    email: zod.string().email({ message: "Email không đúng định dạng" }),
-    phone: zod.string().regex(/^0[0-9]{9}$/, { message: "Số điện thoại không hợp lệ (10 số)" }),
-    password: zod.string().min(6, { message: "Mật khẩu tối thiểu 6 ký tự" }),
+    fullName: zod.string().min(1, { message: "Full name is required" }),
+    email: zod.string().email({ message: "Invalid email" }),
+    phone: zod.string().regex(/^0[0-9]{9}$/, { message: "Phone must have 10 digits and start with 0" }),
+    password: zod.string().min(6, { message: "Password must be at least 6 characters" }),
   });
 
   type FormData = zod.infer<typeof formSchema>;
@@ -47,31 +46,19 @@ export default function RegisterPage() {
   const onSubmit = async (data: FormData) => {
     setLoading(true);
     try {
-      // Hit API
       const res = await registerUser({
         fullName: data.fullName,
         email: data.email,
         phone: data.phone,
         password: data.password,
       });
-      login(res.user, res.token);
-      toast.success("Đăng ký thành viên thành công!");
+      login(res.user, res.accessToken);
+      localStorage.setItem("lowlands_refresh_token", res.refreshToken);
+      toast.success(t("registerButton") + " success");
       router.push("/profile");
     } catch (err) {
-      console.warn("Backend auth offline. Setting up client-side preview session.", err);
-      // Fallback local session
-      login(
-        {
-          id: 2,
-          fullName: data.fullName,
-          email: data.email,
-          phone: data.phone,
-          status: "active",
-        },
-        "preview-jwt-token-id-9999"
-      );
-      toast.success("Đăng ký thành công! (Chế độ Xem thử)");
-      router.push("/profile");
+      console.warn("Registration failed", err);
+      toast.error(t("registerFailed"));
     } finally {
       setLoading(false);
     }
@@ -93,7 +80,7 @@ export default function RegisterPage() {
               <label className="text-xs font-bold text-muted-foreground">{t("fullName")}</label>
               <Input
                 {...register("fullName")}
-                placeholder="Nguyễn Văn A"
+                placeholder="Nguyen Van A"
                 className="border-border text-xs sm:text-sm h-10"
               />
               {errors.fullName && (
@@ -106,7 +93,7 @@ export default function RegisterPage() {
               <Input
                 type="email"
                 {...register("email")}
-                placeholder="quan.doan@example.com"
+                placeholder="customer@example.com"
                 className="border-border text-xs sm:text-sm h-10"
               />
               {errors.email && (
@@ -145,17 +132,10 @@ export default function RegisterPage() {
             </Button>
           </form>
 
-          <div className="text-center text-xs text-muted-foreground border-t border-border/50 pt-4 flex flex-col gap-3">
+          <div className="text-center text-xs text-muted-foreground border-t border-border/50 pt-4">
             <Link href="/login" className="hover:text-primary hover:underline font-semibold">
               {t("hasAccount")}
             </Link>
-            
-            <div className="flex items-start gap-2 bg-accent/5 border border-accent/15 rounded-xl p-3.5 text-left text-[11px] leading-relaxed">
-              <AlertCircle className="h-4 w-4 text-accent shrink-0 mt-0.5" />
-              <p>
-                Đăng ký thành công sẽ cấp phiên chạy demo cục bộ để bạn tiếp tục trải nghiệm toàn bộ tính năng đặt hàng của Lowlands.
-              </p>
-            </div>
           </div>
         </div>
       </div>
