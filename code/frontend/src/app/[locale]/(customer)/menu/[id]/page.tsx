@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, use } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslations, useLocale } from "next-intl";
 import { getProductById } from "@/services/product.service";
 import { useCartStore } from "@/store/cart.store";
 import { Product, ProductVariant, Topping } from "@/types";
@@ -11,6 +11,7 @@ import { toast } from "sonner";
 import { ShoppingBag, ArrowLeft, Plus, Minus, AlertCircle } from "lucide-react";
 import { Link, useRouter } from "@/i18n/navigation";
 import Image from "next/image";
+import { MOCK_PRODUCTS } from "@/constants/mock";
 
 interface Props {
   params: Promise<{
@@ -26,6 +27,7 @@ export default function ProductDetailPage({ params }: Props) {
   const tCart = useTranslations("cart");
   const tMenu = useTranslations("menu");
   const router = useRouter();
+  const locale = useLocale();
   const productId = parseInt(id);
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -57,9 +59,21 @@ export default function ProductDetailPage({ params }: Props) {
         if (data?.toppings) {
           setSelectedToppings(data.toppings.map((topping) => ({ topping, quantity: 0 })));
         }
-      } catch (err) {
-        console.warn("Failed to load product details (API Offline):", err);
-        setError("api_not_connected");
+      } catch {
+        console.warn("Failed to load product details from backend. Loading offline fallback product.");
+        const fallbackProduct = MOCK_PRODUCTS.find((p) => p.id === productId);
+        if (fallbackProduct) {
+          setProduct(fallbackProduct);
+          if (fallbackProduct.variants && fallbackProduct.variants.length > 0) {
+            setSelectedVariant(fallbackProduct.variants[0]);
+          }
+          if (fallbackProduct.toppings) {
+            setSelectedToppings(fallbackProduct.toppings.map((topping) => ({ topping, quantity: 0 })));
+          }
+          setError("offline_fallback");
+        } else {
+          setError("api_not_connected");
+        }
       } finally {
         setLoading(false);
       }
@@ -67,6 +81,53 @@ export default function ProductDetailPage({ params }: Props) {
 
     loadProductDetails();
   }, [productId]);
+
+  // Localized helpers for mock product data in offline mode
+  function getProductName(p: Product) {
+    if (locale === "en" && error === "offline_fallback") {
+      if (p.name === "Phin Sữa Đá") return "Iced Milk Coffee (Phin)";
+      if (p.name === "Phin Đen Đá") return "Iced Black Coffee (Phin)";
+      if (p.name === "Bạc Xỉu") return "Bac Xiu Coffee";
+      if (p.name === "PhinĐi Hạnh Nhân") return "PhinDi Almond";
+      if (p.name === "Trà Sen Vàng") return "Golden Lotus Tea";
+      if (p.name === "Trà Thạch Đào") return "Peach Jelly Tea";
+      if (p.name === "Trà Thanh Đào") return "Peach Lemongrass Tea";
+      if (p.name === "Freeze Trà Xanh") return "Green Tea Freeze";
+      if (p.name === "Freeze Cà Phê Phin") return "Coffee Freeze";
+      if (p.name === "Bánh Mì Que Pate") return "Pate Stick Bread";
+      if (p.name === "Bánh Phô Mai Việt Quất") return "Blueberry Cheesecake";
+      if (p.name === "Cà Phê Phin Giấy Lowlands") return "Lowlands Drip Bag Coffee";
+    }
+    return p.name;
+  }
+
+  function getProductDescription(p: Product) {
+    if (locale === "en" && error === "offline_fallback") {
+      if (p.description?.includes("Robusta đậm đặc")) return "Traditional Robusta coffee brewed in phin filter with sweet condensed milk.";
+      if (p.description?.includes("Cà phê đen phin")) return "Rich traditional black filter coffee for true coffee connoisseurs.";
+      if (p.description?.includes("Cà phê phin hòa quyện")) return "Phin filtered coffee combined with fresh milk and condensed milk.";
+      if (p.description?.includes("Sự kết hợp mới mẻ")) return "A refreshing mix of phin coffee, creamy almond milk, and chewy grass jelly.";
+      if (p.description?.includes("Trà Ô Long")) return "Fragrant Oolong tea blended with rich lotus seeds and crispy water chestnut jelly.";
+      if (p.description?.includes("Trà đào thơm lừng")) return "Fragrant peach tea combined with crispy pickled peach slices and peach jelly.";
+      if (p.description?.includes("Trà đào thanh mát")) return "Refreshing peach tea with a perfect hint of fragrant lemongrass.";
+      if (p.description?.includes("Matcha trà xanh xay")) return "Finely blended green tea matcha with rich cream, matcha jelly, and red beans.";
+      if (p.description?.includes("Cà phê phin xay đá")) return "Blended phin coffee ice blended with rich cream and chewy coffee jelly.";
+      if (p.description?.includes("Bánh mì que giòn")) return "Crispy stick bread stuffed with delicious rich pate, Central Vietnam style.";
+      if (p.description?.includes("Bánh phô mai nướng")) return "Creamy baked cheesecake topped with sweet and sour blueberry sauce.";
+      if (p.description?.includes("Hộp cà phê phin")) return "Convenient drip bag coffee box from Lowlands Coffee.";
+    }
+    return p.description || "";
+  }
+
+  function getToppingName(topping: Topping) {
+    if (locale === "en" && error === "offline_fallback") {
+      if (topping.name === "Thạch Cà Phê") return "Coffee Jelly";
+      if (topping.name === "Trân Châu Trắng") return "White Tapioca";
+      if (topping.name === "Thạch Củ Năng") return "Water Chestnut Jelly";
+      if (topping.name === "Hạt Sen") return "Lotus Seeds";
+    }
+    return topping.name;
+  }
 
   // Handle Topping selection changes
   const handleToppingToggle = (topping: Topping, checked: boolean) => {
@@ -120,6 +181,8 @@ export default function ProductDetailPage({ params }: Props) {
     router.push("/cart");
   };
 
+  const showContent = !loading && (error === null || error === "offline_fallback") && product;
+
   return (
     <div className="py-12 bg-background min-h-screen">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -132,6 +195,16 @@ export default function ProductDetailPage({ params }: Props) {
           <ArrowLeft className="h-4 w-4" />
           <span>{tCommon("menu")}</span>
         </Link>
+
+        {/* Offline notice banner */}
+        {error === "offline_fallback" && (
+          <div className="flex items-start gap-2.5 bg-accent/10 border border-accent/20 px-4 py-3 rounded-xl mb-6 max-w-7xl mx-auto shadow-xs">
+            <AlertCircle className="h-5 w-5 text-accent shrink-0 mt-0.5" />
+            <span className="text-xs sm:text-sm text-foreground/80 leading-normal">
+              <strong>Chế độ Xem thử (Offline):</strong> API chi tiết sản phẩm đang ngoại tuyến. Dữ liệu tùy chọn được tải từ danh mục mẫu. Khởi động Spring Boot API để đồng bộ dữ liệu thực tế.
+            </span>
+          </div>
+        )}
 
         {loading && (
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center animate-pulse">
@@ -156,7 +229,7 @@ export default function ProductDetailPage({ params }: Props) {
           </div>
         )}
 
-        {!loading && !error && product && (
+        {showContent && (
           <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-start">
             
             {/* Product Image Column */}
@@ -164,7 +237,7 @@ export default function ProductDetailPage({ params }: Props) {
               {product.imageUrl ? (
                 <Image
                   src={product.imageUrl}
-                  alt={product.name}
+                  alt={getProductName(product)}
                   fill
                   className="object-cover animate-fade-in"
                   priority
@@ -180,18 +253,18 @@ export default function ProductDetailPage({ params }: Props) {
             <div className="md:col-span-7 flex flex-col items-start text-left gap-6">
               <div>
                 <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-primary">
-                  {product.name}
+                  {getProductName(product)}
                 </h1>
                 <div className="w-12 h-1 bg-accent rounded-full mt-3" />
               </div>
 
-              {product.description && (
+              {getProductDescription(product) && (
                 <div className="w-full">
                   <h4 className="text-xs uppercase font-bold tracking-wider text-muted-foreground mb-2">
                     {t("description")}
                   </h4>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    {product.description}
+                    {getProductDescription(product)}
                   </p>
                 </div>
               )}
@@ -242,7 +315,7 @@ export default function ProductDetailPage({ params }: Props) {
                           onCheckedChange={(checked) => handleToppingToggle(topping, !!checked)}
                         />
                         <div className="flex justify-between items-center w-full text-xs">
-                          <span className="font-semibold text-foreground">{topping.name}</span>
+                          <span className="font-semibold text-foreground">{getToppingName(topping)}</span>
                           <span className="text-muted-foreground font-semibold">+{formatPrice(Number(topping.price))}</span>
                         </div>
                       </div>

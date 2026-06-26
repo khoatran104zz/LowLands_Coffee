@@ -23,7 +23,12 @@
     "brandName": "Lowlands Coffee",
     "vietnam": "Tiếng Việt",
     "english": "English",
-    "footerDesc": "Lowlands Coffee brings you the rich flavor of traditional Vietnamese phin coffee from the Central Highlands, connecting people through every aromatic cup."
+    "footerDesc": "Lowlands Coffee brings you the rich flavor of traditional Vietnamese phin coffee from the Central Highlands, connecting people through every aromatic cup.",
+    "about": "About Lowlands",
+    "careers": "Careers",
+    "support": "Support",
+    "order": "Order Now",
+    "findStore": "Find Store"
   },
   "home": {
     "heroTitle": "Lowlands Coffee",

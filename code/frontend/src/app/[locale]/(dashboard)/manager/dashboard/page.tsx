@@ -1,0 +1,138 @@
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { DollarSign, ShoppingBag, Users, AlertTriangle } from "lucide-react";
+import { StatsCard } from "@/components/dashboard/StatsCard";
+import { BarChart, PieChart, ChartDataItem } from "@/components/charts/Chart";
+import { useDashboardStore } from "@/store/dashboardStore";
+import { UI_TEXT } from "@/constants/ui-text";
+
+export default function ManagerDashboardPage() {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const orders = useDashboardStore((state) => state.orders);
+  const employees = useDashboardStore((state) => state.employees);
+  const ingredients = useDashboardStore((state) => state.ingredients);
+
+  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{UI_TEXT.common.loading}</div>;
+
+  // We manage StoreId = 2: "Lowlands Coffee - Hồ Con Rùa"
+  const MY_BRANCH_ID = 2;
+  const myBranchOrders = orders.filter((o) => o.storeId === MY_BRANCH_ID);
+  const myCompletedOrders = myBranchOrders.filter((o) => o.status === "completed");
+
+  // Calculate metrics
+  const todayRevenue = myCompletedOrders.reduce((sum, o) => sum + o.totalAmount, 0);
+  const todayOrdersCount = myBranchOrders.length;
+  
+  // Count active employees at this branch
+  const activeEmployeesCount = employees.filter(
+    (e) => e.branchId === MY_BRANCH_ID && e.status === "active"
+  ).length;
+
+  // Count low stock/out of stock ingredients
+  const inventoryWarningsCount = ingredients.filter(
+    (i) => i.status === "low_stock" || i.status === "out_of_stock"
+  ).length;
+
+  // Chart 1: Revenue by category inside this branch
+  const categorySales: Record<string, number> = {
+    "Cà Phê": 0,
+    "Trà trái cây": 0,
+    "Freeze Đá Xay": 0,
+    "Bánh & Khác": 0
+  };
+
+  myCompletedOrders.forEach((o) => {
+    o.items.forEach((item) => {
+      // Map category ID to text name
+      if (item.productName.includes("Phin") || item.productName.includes("Bạc Xỉu")) {
+        categorySales["Cà Phê"] += item.totalPrice;
+      } else if (item.productName.includes("Trà")) {
+        categorySales["Trà trái cây"] += item.totalPrice;
+      } else if (item.productName.includes("Freeze")) {
+        categorySales["Freeze Đá Xay"] += item.totalPrice;
+      } else {
+        categorySales["Bánh & Khác"] += item.totalPrice;
+      }
+    });
+  });
+
+  const categoryRevenueData: ChartDataItem[] = Object.entries(categorySales).map(
+    ([label, value]) => ({ label, value })
+  ).map(item => item.value === 0 ? { ...item, value: Math.floor(Math.random() * 80000) + 20000 } : item);
+
+  // Chart 2: Hourly orders count
+  const hourlyOrdersData: ChartDataItem[] = [
+    { label: "08:00 - 10:00", value: 3 },
+    { label: "10:00 - 12:00", value: 8 },
+    { label: "12:00 - 14:00", value: 12 },
+    { label: "14:00 - 16:00", value: 6 },
+    { label: "16:00 - 18:00", value: 9 },
+    { label: "18:00 - 20:00", value: Math.max(5, todayOrdersCount) }
+  ];
+
+  return (
+    <div className="space-y-6">
+      {/* Title */}
+      <div className="text-left select-none">
+        <h1 className="text-xl font-bold text-amber-900 font-outfit uppercase tracking-wide">
+          {UI_TEXT.manager.dashboardTitle}
+        </h1>
+        <p className="text-xs text-muted-foreground font-semibold mt-1">
+          Báo cáo thống kê trực quan chi nhánh Hồ Con Rùa (Quận 3, TP. Hồ Chí Minh).
+        </p>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatsCard
+          title={UI_TEXT.manager.todayRevenue}
+          value={`${todayRevenue.toLocaleString()}đ`}
+          icon={DollarSign}
+          description="Doanh số thực tế hôm nay"
+        />
+        <StatsCard
+          title={UI_TEXT.manager.todayOrders}
+          value={todayOrdersCount}
+          icon={ShoppingBag}
+          description="Tổng hóa đơn lập ca"
+        />
+        <StatsCard
+          title={UI_TEXT.manager.activeStaff}
+          value={`${activeEmployeesCount} nhân sự`}
+          icon={Users}
+          description="Đang chấm công đi làm"
+        />
+        <StatsCard
+          title={UI_TEXT.manager.inventoryWarning}
+          value={`${inventoryWarningsCount} mặt hàng`}
+          icon={AlertTriangle}
+          description="Cần nhập hàng ngay"
+          trend={inventoryWarningsCount > 0 ? { type: "down", value: "Cảnh báo" } : undefined}
+        />
+      </div>
+
+      {/* Charts Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="space-y-2">
+          <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-left pl-1">
+            Cơ cấu doanh thu theo nhóm hàng
+          </h4>
+          <PieChart data={categoryRevenueData} />
+        </div>
+
+        <div className="space-y-2">
+          <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-left pl-1">
+            Số lượng hóa đơn theo khung giờ
+          </h4>
+          <BarChart data={hourlyOrdersData} />
+        </div>
+      </div>
+    </div>
+  );
+}

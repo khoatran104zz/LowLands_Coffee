@@ -1,6 +1,8 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
+import { useRouter, usePathname } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import {
   Select,
   SelectContent,
@@ -23,11 +25,18 @@ function VietnamFlag() {
 function UKFlag() {
   return (
     <svg viewBox="0 0 30 20" className="h-3.5 w-5 rounded-sm shadow-sm inline-block mr-2 shrink-0">
-      <rect width="30" height="20" fill="#012169"/>
-      <path d="M0,0 L30,20 M30,0 L0,20" stroke="#fff" stroke-width="3"/>
-      <path d="M0,0 L30,20 M30,0 L0,20" stroke="#C8102E" stroke-width="2"/>
-      <path d="M15,0 L15,20 M0,10 L30,10" stroke="#fff" stroke-width="5"/>
-      <path d="M15,0 L15,20 M0,10 L30,10" stroke="#C8102E" stroke-width="3"/>
+      <defs>
+        <clipPath id="flag-clip">
+          <rect width="30" height="20" rx="1" />
+        </clipPath>
+      </defs>
+      <g clipPath="url(#flag-clip)">
+        <rect width="30" height="20" fill="#012169"/>
+        <path d="M0,0 L30,20 M30,0 L0,20" stroke="#fff" strokeWidth="3"/>
+        <path d="M0,0 L30,20 M30,0 L0,20" stroke="#C8102E" strokeWidth="2"/>
+        <path d="M15,0 L15,20 M0,10 L30,10" stroke="#fff" strokeWidth="5"/>
+        <path d="M15,0 L15,20 M0,10 L30,10" stroke="#C8102E" strokeWidth="3"/>
+      </g>
     </svg>
   );
 }
@@ -35,25 +44,15 @@ function UKFlag() {
 export function LanguageSwitcher() {
   const locale = useLocale();
   const t = useTranslations("common");
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const handleLanguageChange = (value: string | null) => {
     if (!value) return;
-
-    if (typeof window !== "undefined") {
-      const currentPath = window.location.pathname;
-      const search = window.location.search;
-      
-      const parts = currentPath.split("/");
-      // Path format is /[locale]/path...
-      if (parts.length > 1 && (parts[1] === "vi" || parts[1] === "en")) {
-        parts[1] = value;
-      } else {
-        parts.splice(1, 0, value);
-      }
-      
-      const newPath = parts.join("/") + search;
-      window.location.href = newPath; // Perform full page reload to switch language and update HTML attributes
-    }
+    const search = searchParams.toString();
+    const targetPath = search ? `${pathname}?${search}` : pathname;
+    router.replace(targetPath, { locale: value });
   };
 
   return (

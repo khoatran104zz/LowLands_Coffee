@@ -8,6 +8,37 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MapPin, Phone, Search, AlertCircle } from "lucide-react";
 
+const MOCK_STORES: Store[] = [
+  {
+    id: 1,
+    name: "Lowlands Coffee - Nhà Thờ Lớn",
+    address: "2 Nhà Thờ, Hàng Trống, Hoàn Kiếm, Hà Nội",
+    phone: "024 3938 2112",
+    status: "active",
+  },
+  {
+    id: 2,
+    name: "Lowlands Coffee - Hàm Cá Mập",
+    address: "1-3-5 Đinh Tiên Hoàng, Hàng Bạc, Hoàn Kiếm, Hà Nội",
+    phone: "024 3926 2728",
+    status: "active",
+  },
+  {
+    id: 3,
+    name: "Lowlands Coffee - Lê Lợi",
+    address: "65 Lê Lợi, Bến Nghé, Quận 1, TP. Hồ Chí Minh",
+    phone: "028 3821 6789",
+    status: "active",
+  },
+  {
+    id: 4,
+    name: "Lowlands Coffee - Bạch Đằng",
+    address: "180 Bạch Đằng, Hải Châu 1, Hải Châu, Đà Nẵng",
+    phone: "0236 3849 777",
+    status: "active",
+  }
+];
+
 export function StoreLocator() {
   const t = useTranslations("home");
   const tCommon = useTranslations("common");
@@ -24,9 +55,11 @@ export function StoreLocator() {
       try {
         const data = await getStores();
         setStores(data || []);
-      } catch (err) {
-        console.warn("Backend API offline. Show fallback locator notice.", err);
-        setError("api_not_connected");
+      } catch {
+        // Quiet warn to keep Next.js dev server terminal clean and satisfy eslint rules
+        console.warn("Backend API offline. Loading fallback mock stores.");
+        setStores(MOCK_STORES);
+        setError("offline_fallback");
       } finally {
         setLoading(false);
       }
@@ -40,8 +73,10 @@ export function StoreLocator() {
     store.address.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  const showList = !loading && (error === null || error === "offline_fallback");
+
   return (
-    <section className="py-20 bg-background">
+    <section id="store-locator" className="py-20 bg-background scroll-mt-20">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-12">
           <h2 className="font-heading font-extrabold text-3xl text-primary tracking-tight">
@@ -64,7 +99,7 @@ export function StoreLocator() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
-                  disabled={loading || error !== null}
+                  disabled={loading || error === "api_not_connected"}
                 />
               </div>
               <Button variant="default">
@@ -81,6 +116,15 @@ export function StoreLocator() {
                 </div>
               )}
 
+              {error === "offline_fallback" && (
+                <div className="flex items-start gap-2 bg-accent/10 border border-accent/20 px-3 py-2.5 rounded-lg mb-1">
+                  <AlertCircle className="h-4.5 w-4.5 text-accent shrink-0 mt-0.5" />
+                  <span className="text-xs leading-normal text-foreground/80">
+                    <strong>Chế độ Xem thử:</strong> API offline. Đang hiển thị danh sách cửa hàng mẫu. Khởi động Spring Boot API để đồng bộ.
+                  </span>
+                </div>
+              )}
+
               {error === "api_not_connected" && (
                 <div className="flex flex-col items-center justify-center text-center p-6 gap-3">
                   <AlertCircle className="h-8 w-8 text-accent animate-bounce" />
@@ -91,13 +135,13 @@ export function StoreLocator() {
                 </div>
               )}
 
-              {!loading && !error && filteredStores.length === 0 && (
+              {showList && filteredStores.length === 0 && (
                 <p className="text-xs text-muted-foreground text-center py-8">
                   {tCommon("empty")}
                 </p>
               )}
 
-              {!loading && !error && filteredStores.map((store) => (
+              {showList && filteredStores.map((store) => (
                 <div
                   key={store.id}
                   className="border-b border-border/60 pb-3 last:border-0 last:pb-0 text-left hover:bg-muted/50 p-2 rounded-lg transition-colors cursor-pointer"
