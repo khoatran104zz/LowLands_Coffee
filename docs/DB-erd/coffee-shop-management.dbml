@@ -194,8 +194,33 @@ Table order_promotions {
 
 /* Ingredient & Inventory */
 
+Table suppliers {
+  id bigint [pk, increment]
+  code varchar(50) [unique]
+  name varchar(100)
+  contact_name varchar(100)
+  phone varchar(20)
+  email varchar(100)
+  address varchar(255)
+  tax_code varchar(50)
+  status varchar(20)
+  created_at datetime
+  updated_at datetime
+}
+
+Table ingredient_categories {
+  id bigint [pk, increment]
+  code varchar(50) [unique]
+  name varchar(100)
+  description text
+  status varchar(20)
+  created_at datetime
+  updated_at datetime
+}
+
 Table ingredients {
   id bigint [pk, increment]
+  category_id bigint
   code varchar(50) [unique]
   name varchar(100)
   unit varchar(20) // gram, ml, piece
@@ -206,8 +231,10 @@ Table ingredients {
 
 Table recipes {
   id bigint [pk, increment]
-  product_variant_id bigint
+  product_variant_id bigint [unique]
+  code varchar(50) [unique]
   name varchar(100)
+  description text
   status varchar(20)
   created_at datetime
   updated_at datetime
@@ -218,53 +245,49 @@ Table recipe_ingredients {
   recipe_id bigint
   ingredient_id bigint
   quantity decimal(12,2)
-}
-
-Table topping_ingredients {
-  id bigint [pk, increment]
-  topping_id bigint
-  ingredient_id bigint
-  quantity decimal(12,2)
-}
-
-Table store_ingredients {
-  id bigint [pk, increment]
-  store_id bigint
-  ingredient_id bigint
-  quantity decimal(12,2)
-  min_quantity decimal(12,2)
+  unit varchar(20)
+  created_at datetime
   updated_at datetime
 }
 
 Table goods_receipts {
   id bigint [pk, increment]
+  supplier_id bigint
   store_id bigint
   created_by bigint
   receipt_code varchar(50) [unique]
   total_amount decimal(12,2)
+  status varchar(20) // DRAFT, COMPLETED, CANCELLED
   note varchar(255)
   created_at datetime
+  updated_at datetime
 }
 
-Table goods_receipt_details {
+Table goods_receipt_items {
   id bigint [pk, increment]
   receipt_id bigint
   ingredient_id bigint
   quantity decimal(12,2)
+  unit varchar(20)
   unit_price decimal(12,2)
   total_price decimal(12,2)
+  created_at datetime
+  updated_at datetime
 }
 
 Table stock_movements {
   id bigint [pk, increment]
   store_id bigint
   ingredient_id bigint
-  movement_type varchar(20) // IMPORT, EXPORT, ADJUST
+  movement_type varchar(20) // IN, OUT, ADJUSTMENT
   quantity decimal(12,2)
-  reference_type varchar(30) // ORDER, RECEIPT, MANUAL
+  unit varchar(20)
+  reference_type varchar(30) // GOODS_RECEIPT, ORDER, MANUAL_ADJUSTMENT
   reference_id bigint
   note varchar(255)
+  created_by bigint
   created_at datetime
+  updated_at datetime
 }
 
 /* Relationships */
@@ -306,20 +329,18 @@ Ref: payments.order_id > orders.id
 Ref: order_promotions.order_id > orders.id
 Ref: order_promotions.promotion_id > promotions.id
 
+Ref: ingredients.category_id > ingredient_categories.id
+
 Ref: recipes.product_variant_id > product_variants.id
 Ref: recipe_ingredients.recipe_id > recipes.id
 Ref: recipe_ingredients.ingredient_id > ingredients.id
 
-Ref: topping_ingredients.topping_id > toppings.id
-Ref: topping_ingredients.ingredient_id > ingredients.id
-
-Ref: store_ingredients.store_id > stores.id
-Ref: store_ingredients.ingredient_id > ingredients.id
-
+Ref: goods_receipts.supplier_id > suppliers.id
 Ref: goods_receipts.store_id > stores.id
 Ref: goods_receipts.created_by > users.id
-Ref: goods_receipt_details.receipt_id > goods_receipts.id
-Ref: goods_receipt_details.ingredient_id > ingredients.id
+Ref: goods_receipt_items.receipt_id > goods_receipts.id
+Ref: goods_receipt_items.ingredient_id > ingredients.id
 
 Ref: stock_movements.store_id > stores.id
 Ref: stock_movements.ingredient_id > ingredients.id
+Ref: stock_movements.created_by > users.id
