@@ -37,7 +37,7 @@ Table stores {
   updated_at datetime
 }
 
-Table staff_stores {
+Table store_users {
   id bigint [pk, increment]
   staff_id bigint
   store_id bigint
@@ -273,8 +273,8 @@ Ref: users.role_id > roles.id
 Ref: role_permissions.role_id > roles.id
 Ref: role_permissions.permission_id > permissions.id
 
-Ref: staff_stores.staff_id > users.id
-Ref: staff_stores.store_id > stores.id
+Ref: store_users.staff_id > users.id
+Ref: store_users.store_id > stores.id
 
 Ref: customer_addresses.user_id > users.id
 

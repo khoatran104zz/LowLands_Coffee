@@ -120,6 +120,8 @@ Lưu danh sách cửa hàng.
 
 Liên kết nhân viên với cửa hàng.
 
+Canonical table name after Sprint 2 Phase 2: `store_users`.
+
 ### Ví dụ
 
 ```text
