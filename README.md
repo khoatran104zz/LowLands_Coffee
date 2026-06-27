@@ -45,6 +45,15 @@ root/
 
 ## 3. Hướng dẫn Khởi chạy Nhanh (Getting Started)
 
+### Khởi tạo database local
+
+
+```powershell
+.\scripts\setup-local-db.ps1
+npm install
+npm run dev
+```
+
 ### Bước 1: Khởi động API Backend
 Để ứng dụng frontend có thể tải dữ liệu thực tế (thực đơn, toppings, đơn hàng), bạn cần khởi động Backend Server trước:
 1. Di chuyển vào thư mục backend:
