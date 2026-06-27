@@ -22,7 +22,7 @@ public class DataBootstrap {
             PasswordEncoder passwordEncoder
     ) {
         return args -> {
-            if (userRepository.count() > 0) {
+            if (userRepository.existsByEmail(bootstrapProperties.adminEmail())) {
                 return;
             }
             RoleEntity adminRole = roleRepository.findByName("ADMIN")

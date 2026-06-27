@@ -1,0 +1,12 @@
+{
+  "name": "lowlands-coffee",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd code/backend && mvn spring-boot:run",
+    "dev:frontend": "cd code/frontend && npm run dev"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
+  }
+}

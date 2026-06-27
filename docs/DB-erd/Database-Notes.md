@@ -740,7 +740,7 @@ auth
 
 store
 ├── stores
-├── staff_stores
+├── store_users
 
 customer
 ├── customer_addresses

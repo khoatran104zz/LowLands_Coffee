@@ -1,0 +1,11 @@
+node_modules/
+
+.next/
+code/frontend/.next/
+
+target/
+code/backend/target/
+
+*.log
+.env
+.env.*
