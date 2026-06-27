@@ -228,3 +228,11 @@ src/test/java
 Không đặt test trong:
 
 src/main/java
+
+# Mock Data Policy
+
+-  Mock Data chỉ dùng trong quá trình phát triển giao diện.
+- Sau khi Backend API hoàn thành, Mock Data không được sử dụng làm nguồn dữ liệu chính.
+- Mock Data có thể giữ lại trong thư mục `/mocks` để phục vụ Storybook, Unit Test hoặc khi Backend tạm thời không khả dụng.
+- Mọi Service của Frontend phải ưu tiên gọi Backend API.
+- Không được tự động fallback sang Mock Data nếu API lỗi, để tránh che giấu lỗi tích hợp.
