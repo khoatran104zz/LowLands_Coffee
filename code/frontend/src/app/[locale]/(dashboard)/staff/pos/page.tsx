@@ -11,9 +11,37 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/button";
 import { UI_TEXT } from "@/constants/ui-text";
 import { toast } from "sonner";
+import { useAuthStore } from "@/store/auth.store";
+import { useRouter, useParams } from "next/navigation";
+import { AccountDropdown } from "@/components/account/AccountDropdown";
+import { AccountModal } from "@/components/account/AccountModal";
 
 export default function StaffPOSPage() {
   const [isMounted, setIsMounted] = useState(false);
+  const router = useRouter();
+  const params = useParams();
+  const locale = (params?.locale as string) || "vi";
+
+  // Account settings states
+  const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [defaultAccountTab, setDefaultAccountTab] = useState("profile");
+  
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const logout = useAuthStore((state) => state.logout);
+
+  const handleOpenAccountSettings = (tab: string = "profile") => {
+    setDefaultAccountTab(tab);
+    setIsAccountOpen(true);
+  };
+
+  const handleLogout = () => {
+    const confirm = window.confirm("Bạn có chắc chắn muốn đăng xuất khỏi tài khoản POS?");
+    if (confirm) {
+      logout();
+      router.push(`/${locale}/portal/login`);
+    }
+  };
 
   // Store data
   const products = useDashboardStore((state) => state.products);
@@ -33,10 +61,38 @@ export default function StaffPOSPage() {
 
   useEffect(() => {
     setIsMounted(true);
-    if (categories.length > 0) {
+    if (!isAuthenticated || !user) {
+      router.push(`/${locale}/portal/login`);
+      return;
+    }
+    const roleUpper = user.roleName?.toUpperCase();
+    if (roleUpper !== "STAFF" && roleUpper !== "ADMIN" && roleUpper !== "MANAGER") {
+      toast.error("Tài khoản không có quyền truy cập màn hình POS!");
+      router.push(`/${locale}/portal/login`);
+    }
+  }, [isMounted, isAuthenticated, user, router, locale]);
+
+  useEffect(() => {
+    if (categories.length > 0 && selectedCategoryId === null) {
       setSelectedCategoryId(categories[0].id);
     }
-  }, [categories]);
+  }, [categories, selectedCategoryId]);
+
+  // Show full screen loading state before layout mounts or if user is unauthorized
+  const userRole = user?.roleName?.toUpperCase();
+  const hasAccess = isAuthenticated && user && (userRole === "STAFF" || userRole === "ADMIN" || userRole === "MANAGER");
+
+  if (!isMounted || !hasAccess) {
+    return (
+      <div className="h-screen w-screen bg-zinc-950 flex flex-col items-center justify-center gap-3 text-amber-500 font-sans select-none">
+        <svg className="h-8 w-8 animate-spin text-amber-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">Đang xác thực quyền truy cập POS...</span>
+      </div>
+    );
+  }
 
   // Keyboard listeners for shortcuts
   useEffect(() => {
@@ -161,21 +217,35 @@ export default function StaffPOSPage() {
   const activeCategoryName = categories.find((c) => c.id === selectedCategoryId)?.name || "Thực đơn";
 
   return (
-    <div className="flex flex-col lg:flex-row gap-5 h-[calc(100vh-2rem)] select-none bg-[#FAF8F5] p-3 rounded-2xl border border-border/40 shadow-xs">
+    <div className="flex flex-col gap-4 h-[calc(100vh-2rem)] select-none bg-[#FAF8F5] p-3 rounded-2xl border border-border/40 shadow-xs">
       
-      {/* LEFT: Sidebar / Menu Navigation */}
-      <div className="w-full lg:w-52 bg-card border border-border/60 rounded-xl p-3 flex lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible shrink-0 text-left">
-        
-        {/* Brand Logo */}
-        <div className="hidden lg:flex items-center justify-center border-b border-border/65 pb-3 mb-2 shrink-0">
-          <div className="relative h-10 w-28">
+      {/* Top Header Bar */}
+      <header className="flex items-center justify-between border-b border-zinc-200/60 pb-2.5 shrink-0">
+        <div className="flex items-center space-x-3">
+          <div className="relative h-8 w-24 select-none">
             <img
               src="/logo/logo.svg"
               alt="Lowlands Coffee Logo"
               className="object-contain w-full h-full"
             />
           </div>
+          <span className="text-[10px] bg-amber-800/10 text-amber-800 border border-amber-850/20 px-2.5 py-0.5 rounded-full font-black uppercase tracking-wider select-none font-outfit">
+            Màn hình Bán hàng (POS)
+          </span>
         </div>
+
+        {/* User Account Settings Dropdown */}
+        <AccountDropdown
+          onOpenSettings={handleOpenAccountSettings}
+          onLogout={handleLogout}
+        />
+      </header>
+
+      {/* Main Content Layout Grid */}
+      <div className="flex-grow flex flex-col lg:flex-row gap-5 min-h-0 overflow-hidden">
+        
+        {/* LEFT: Sidebar / Menu Navigation */}
+        <div className="w-full lg:w-52 bg-card border border-border/60 rounded-xl p-3 flex lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible shrink-0 text-left">
 
         {/* Search Box */}
         <div className="relative mb-2 shrink-0 hidden lg:block">
@@ -387,6 +457,7 @@ export default function StaffPOSPage() {
           onCheckoutSuccess={handleCheckoutSuccess}
         />
       </div>
+    </div>
 
       {/* Receipt Success Modal */}
       <Modal
@@ -538,6 +609,13 @@ export default function StaffPOSPage() {
           </div>
         )}
       </Modal>
+
+      {/* Account Settings Modal */}
+      <AccountModal
+        isOpen={isAccountOpen}
+        onClose={() => setIsAccountOpen(false)}
+        defaultTab={defaultAccountTab}
+      />
     </div>
   );
 }

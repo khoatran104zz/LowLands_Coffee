@@ -43,6 +43,14 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await loginUser({ email: data.email, password: data.password });
+      
+      const roleUpper = res.user.roleName?.toUpperCase();
+      if (roleUpper === "ADMIN" || roleUpper === "MANAGER" || roleUpper === "STAFF") {
+        toast.warning("Tài khoản nhân sự vui lòng đăng nhập tại cổng quản trị.");
+        router.push("/portal/login");
+        return;
+      }
+
       login(res.user, res.accessToken);
       localStorage.setItem("lowlands_refresh_token", res.refreshToken);
       toast.success(tCommon("login") + " success");
