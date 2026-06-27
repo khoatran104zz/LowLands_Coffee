@@ -2,10 +2,22 @@ import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import { Store, Product, Category, Promotion } from "@/types";
 import { INITIAL_BRANCHES } from "@/mock/branches";
-import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from "@/mock/products";
 import { INITIAL_EMPLOYEES, Employee } from "@/mock/employees";
 import { INITIAL_CUSTOMERS, CustomerExtended } from "@/mock/customers";
 import { INITIAL_ORDERS, OrderExtended } from "@/mock/orders";
+import {
+  ProductRequest,
+  createAdminCategory,
+  createAdminProduct,
+  deleteAdminCategory,
+  deleteAdminProduct,
+  getAdminCategories,
+  getAdminProducts,
+  getCategories,
+  getProducts,
+  updateAdminCategory,
+  updateAdminProduct,
+} from "@/services/product.service";
 
 export interface Ingredient {
   id: number;
@@ -27,20 +39,22 @@ export interface DashboardState {
   ingredients: Ingredient[];
   
   // Actions
+  hydrateProductCatalog: () => Promise<void>;
+
   // Branches
   addBranch: (branch: Omit<Store, "id">) => void;
   updateBranch: (branch: Store) => void;
   deleteBranch: (id: number) => void;
   
   // Products
-  addProduct: (product: Omit<Product, "id">) => void;
-  updateProduct: (product: Product) => void;
-  deleteProduct: (id: number) => void;
+  addProduct: (product: Omit<Product, "id">) => Promise<void>;
+  updateProduct: (product: Product) => Promise<void>;
+  deleteProduct: (id: number) => Promise<void>;
   
   // Categories
-  addCategory: (category: Omit<Category, "id">) => void;
-  updateCategory: (category: Category) => void;
-  deleteCategory: (id: number) => void;
+  addCategory: (category: Omit<Category, "id">) => Promise<void>;
+  updateCategory: (category: Category) => Promise<void>;
+  deleteCategory: (id: number) => Promise<void>;
   
   // Employees
   addEmployee: (employee: Omit<Employee, "id">) => void;
@@ -116,17 +130,44 @@ const getIngredientStatus = (qty: number, min: number): Ingredient["status"] => 
   return "in_stock";
 };
 
+const toProductRequest = (product: Omit<Product, "id"> | Product, includeToppings: boolean): ProductRequest => ({
+  categoryId: product.categoryId,
+  name: product.name,
+  description: product.description,
+  imageUrl: product.imageUrl,
+  status: product.status,
+  variants: product.variants?.map((variant) => ({
+    id: variant.id,
+    size: variant.size,
+    price: variant.price,
+    status: variant.status,
+  })) ?? [],
+  toppingIds: includeToppings ? product.toppings?.map((topping) => topping.id) : [],
+});
+
 export const useDashboardStore = create<DashboardState>()(
   persist(
     (set, get) => ({
       branches: INITIAL_BRANCHES,
-      products: INITIAL_PRODUCTS,
-      categories: INITIAL_CATEGORIES,
+      products: [],
+      categories: [],
       employees: INITIAL_EMPLOYEES,
       customers: INITIAL_CUSTOMERS,
       orders: INITIAL_ORDERS,
       promotions: INITIAL_PROMOTIONS,
       ingredients: INITIAL_INGREDIENTS,
+
+      hydrateProductCatalog: async () => {
+        try {
+          const [products, categories] = await Promise.all([
+            getAdminProducts().catch(() => getProducts()),
+            getAdminCategories().catch(() => getCategories()),
+          ]);
+          set({ products, categories });
+        } catch (error) {
+          console.error("Failed to hydrate product catalog", error);
+        }
+      },
 
       // Branches CRUD
       addBranch: (branch) => set((state) => ({
@@ -140,26 +181,64 @@ export const useDashboardStore = create<DashboardState>()(
       })),
 
       // Products CRUD
-      addProduct: (product) => set((state) => ({
-        products: [...state.products, { ...product, id: Math.max(...state.products.map(p => p.id), 0) + 1 }]
-      })),
-      updateProduct: (updated) => set((state) => ({
-        products: state.products.map((p) => (p.id === updated.id ? updated : p))
-      })),
-      deleteProduct: (id) => set((state) => ({
-        products: state.products.filter((p) => p.id !== id)
-      })),
+      addProduct: async (product) => {
+        try {
+          const created = await createAdminProduct(toProductRequest(product, false));
+          set((state) => ({ products: [...state.products, created] }));
+        } catch (error) {
+          console.error("Failed to create product", error);
+        }
+      },
+      updateProduct: async (updated) => {
+        try {
+          const saved = await updateAdminProduct(updated.id, toProductRequest(updated, true));
+          set((state) => ({
+            products: state.products.map((p) => (p.id === saved.id ? saved : p))
+          }));
+        } catch (error) {
+          console.error("Failed to update product", error);
+        }
+      },
+      deleteProduct: async (id) => {
+        try {
+          await deleteAdminProduct(id);
+          set((state) => ({
+            products: state.products.filter((p) => p.id !== id)
+          }));
+        } catch (error) {
+          console.error("Failed to delete product", error);
+        }
+      },
 
       // Categories CRUD
-      addCategory: (category) => set((state) => ({
-        categories: [...state.categories, { ...category, id: Math.max(...state.categories.map(c => c.id), 0) + 1 }]
-      })),
-      updateCategory: (updated) => set((state) => ({
-        categories: state.categories.map((c) => (c.id === updated.id ? updated : c))
-      })),
-      deleteCategory: (id) => set((state) => ({
-        categories: state.categories.filter((c) => c.id !== id)
-      })),
+      addCategory: async (category) => {
+        try {
+          const created = await createAdminCategory(category);
+          set((state) => ({ categories: [...state.categories, created] }));
+        } catch (error) {
+          console.error("Failed to create category", error);
+        }
+      },
+      updateCategory: async (updated) => {
+        try {
+          const saved = await updateAdminCategory(updated.id, updated);
+          set((state) => ({
+            categories: state.categories.map((c) => (c.id === saved.id ? saved : c))
+          }));
+        } catch (error) {
+          console.error("Failed to update category", error);
+        }
+      },
+      deleteCategory: async (id) => {
+        try {
+          await deleteAdminCategory(id);
+          set((state) => ({
+            categories: state.categories.filter((c) => c.id !== id)
+          }));
+        } catch (error) {
+          console.error("Failed to delete category", error);
+        }
+      },
 
       // Employees CRUD
       addEmployee: (employee) => set((state) => {
@@ -272,6 +351,15 @@ export const useDashboardStore = create<DashboardState>()(
     {
       name: "lowlands-dashboard-store",
       storage: createJSONStorage(() => localStorage),
+      merge: (persistedState, currentState) => ({
+        ...currentState,
+        ...(persistedState as Partial<DashboardState>),
+        products: currentState.products,
+        categories: currentState.categories,
+      }),
+      onRehydrateStorage: () => (state) => {
+        void state?.hydrateProductCatalog();
+      },
     }
   )
 );
