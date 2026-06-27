@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Plus } from "lucide-react";
+import { AlertCircle, Plus } from "lucide-react";
 import { Product, Category, ProductVariant } from "@/types";
 import { useDashboardStore } from "@/store/dashboardStore";
 import { DataTable, Column } from "@/components/tables/DataTable";
@@ -23,6 +23,7 @@ export default function AdminProductsPage() {
   // Store data
   const products = useDashboardStore((state) => state.products);
   const categories = useDashboardStore((state) => state.categories);
+  const productCatalogError = useDashboardStore((state) => state.productCatalogError);
   const addProduct = useDashboardStore((state) => state.addProduct);
   const updateProduct = useDashboardStore((state) => state.updateProduct);
   const deleteProduct = useDashboardStore((state) => state.deleteProduct);
@@ -236,6 +237,13 @@ export default function AdminProductsPage() {
           <span>{UI_TEXT.common.add} món mới</span>
         </Button>
       </div>
+
+      {productCatalogError && (
+        <div className="flex items-start gap-2.5 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{productCatalogError}</span>
+        </div>
+      )}
 
       {/* Filters */}
       <div className="flex flex-col md:flex-row md:items-center gap-4 bg-card border border-border/80 rounded-xl p-4 shadow-2xs">

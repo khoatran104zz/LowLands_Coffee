@@ -32,6 +32,7 @@ export interface DashboardState {
   branches: Store[];
   products: Product[];
   categories: Category[];
+  productCatalogError: string | null;
   employees: Employee[];
   customers: CustomerExtended[];
   orders: OrderExtended[];
@@ -151,6 +152,7 @@ export const useDashboardStore = create<DashboardState>()(
       branches: INITIAL_BRANCHES,
       products: [],
       categories: [],
+      productCatalogError: null,
       employees: INITIAL_EMPLOYEES,
       customers: INITIAL_CUSTOMERS,
       orders: INITIAL_ORDERS,
@@ -163,9 +165,14 @@ export const useDashboardStore = create<DashboardState>()(
             getAdminProducts().catch(() => getProducts()),
             getAdminCategories().catch(() => getCategories()),
           ]);
-          set({ products, categories });
+          set({ products, categories, productCatalogError: null });
         } catch (error) {
           console.error("Failed to hydrate product catalog", error);
+          set({
+            products: [],
+            categories: [],
+            productCatalogError: "Không thể tải danh mục sản phẩm từ Backend API.",
+          });
         }
       },
 
@@ -184,29 +191,34 @@ export const useDashboardStore = create<DashboardState>()(
       addProduct: async (product) => {
         try {
           const created = await createAdminProduct(toProductRequest(product, false));
-          set((state) => ({ products: [...state.products, created] }));
+          set((state) => ({ products: [...state.products, created], productCatalogError: null }));
         } catch (error) {
           console.error("Failed to create product", error);
+          set({ productCatalogError: "Không thể tạo sản phẩm qua Backend API." });
         }
       },
       updateProduct: async (updated) => {
         try {
           const saved = await updateAdminProduct(updated.id, toProductRequest(updated, true));
           set((state) => ({
-            products: state.products.map((p) => (p.id === saved.id ? saved : p))
+            products: state.products.map((p) => (p.id === saved.id ? saved : p)),
+            productCatalogError: null,
           }));
         } catch (error) {
           console.error("Failed to update product", error);
+          set({ productCatalogError: "Không thể cập nhật sản phẩm qua Backend API." });
         }
       },
       deleteProduct: async (id) => {
         try {
           await deleteAdminProduct(id);
           set((state) => ({
-            products: state.products.filter((p) => p.id !== id)
+            products: state.products.filter((p) => p.id !== id),
+            productCatalogError: null,
           }));
         } catch (error) {
           console.error("Failed to delete product", error);
+          set({ productCatalogError: "Không thể xóa sản phẩm qua Backend API." });
         }
       },
 
@@ -214,29 +226,34 @@ export const useDashboardStore = create<DashboardState>()(
       addCategory: async (category) => {
         try {
           const created = await createAdminCategory(category);
-          set((state) => ({ categories: [...state.categories, created] }));
+          set((state) => ({ categories: [...state.categories, created], productCatalogError: null }));
         } catch (error) {
           console.error("Failed to create category", error);
+          set({ productCatalogError: "Không thể tạo danh mục qua Backend API." });
         }
       },
       updateCategory: async (updated) => {
         try {
           const saved = await updateAdminCategory(updated.id, updated);
           set((state) => ({
-            categories: state.categories.map((c) => (c.id === saved.id ? saved : c))
+            categories: state.categories.map((c) => (c.id === saved.id ? saved : c)),
+            productCatalogError: null,
           }));
         } catch (error) {
           console.error("Failed to update category", error);
+          set({ productCatalogError: "Không thể cập nhật danh mục qua Backend API." });
         }
       },
       deleteCategory: async (id) => {
         try {
           await deleteAdminCategory(id);
           set((state) => ({
-            categories: state.categories.filter((c) => c.id !== id)
+            categories: state.categories.filter((c) => c.id !== id),
+            productCatalogError: null,
           }));
         } catch (error) {
           console.error("Failed to delete category", error);
+          set({ productCatalogError: "Không thể xóa danh mục qua Backend API." });
         }
       },
 
@@ -356,6 +373,7 @@ export const useDashboardStore = create<DashboardState>()(
         ...(persistedState as Partial<DashboardState>),
         products: currentState.products,
         categories: currentState.categories,
+        productCatalogError: currentState.productCatalogError,
       }),
       onRehydrateStorage: () => (state) => {
         void state?.hydrateProductCatalog();
