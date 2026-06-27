@@ -1,11 +1,14 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter, usePathname } from "next/navigation";
-import { Menu, LogOut, RefreshCw, Sparkles, User } from "lucide-react";
+import { Menu, LogOut, RefreshCw, Sparkles } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { Button } from "@/components/ui/button";
 import { UI_TEXT } from "@/constants/ui-text";
+import { useAuthStore } from "@/store/auth.store";
+import { AccountDropdown } from "../account/AccountDropdown";
+import { AccountModal } from "../account/AccountModal";
 
 interface DashboardLayoutProps {
   children: React.ReactNode;
@@ -19,6 +22,68 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
   const locale = (params?.locale as string) || "vi";
 
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isAccountOpen, setIsAccountOpen] = useState(false);
+  const [defaultAccountTab, setDefaultAccountTab] = useState("profile");
+  
+  const [isMounted, setIsMounted] = useState(false);
+  const user = useAuthStore((state) => state.user);
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const logout = useAuthStore((state) => state.logout);
+
+  useEffect(() => {
+    setIsMounted(true);
+    
+    if (!isAuthenticated || !user) {
+      router.push(`/${locale}/portal/login`);
+      return;
+    }
+
+    const routeRole = role; // "admin" or "manager"
+    const userRole = user.roleName?.toLowerCase();
+
+    if (routeRole === "admin" && userRole !== "admin") {
+      if (userRole === "manager") {
+        router.push(`/${locale}/manager/dashboard`);
+      } else {
+        router.push(`/${locale}/portal/login`);
+      }
+    } else if (routeRole === "manager" && userRole !== "manager" && userRole !== "admin") {
+      if (userRole === "staff") {
+        router.push(`/${locale}/staff/pos`);
+      } else {
+        router.push(`/${locale}/portal/login`);
+      }
+    }
+  }, [isMounted, isAuthenticated, user, role, router, locale]);
+
+  const handleOpenAccountSettings = (tab: string = "profile") => {
+    setDefaultAccountTab(tab);
+    setIsAccountOpen(true);
+  };
+
+  const handleLogout = () => {
+    const confirm = window.confirm("Bạn có chắc chắn muốn đăng xuất tài khoản quản trị?");
+    if (confirm) {
+      logout();
+      router.push(`/${locale}/portal/login`);
+    }
+  };
+
+  // Show full screen loading state before layout mounts or if user is unauthorized
+  const userRole = user?.roleName?.toLowerCase();
+  const hasAccess = isAuthenticated && user && (
+    (role === "admin" && userRole === "admin") ||
+    (role === "manager" && (userRole === "manager" || userRole === "admin"))
+  );
+
+  if (!isMounted || !hasAccess) {
+    return (
+      <div className="h-screen w-screen bg-zinc-950 flex flex-col items-center justify-center gap-3 text-amber-500 font-sans select-none">
+        <RefreshCw className="h-8 w-8 animate-spin" />
+        <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">Đang tải và xác thực...</span>
+      </div>
+    );
+  }
 
   // Derive title from active route
   const getHeaderTitle = () => {
@@ -106,20 +171,11 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
               </select>
             </div>
 
-            {/* User Profile avatar */}
-            <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded-full bg-amber-850 text-white flex items-center justify-center font-bold text-xs select-none">
-                <User className="h-4 w-4" />
-              </div>
-              <div className="hidden md:block text-left select-none">
-                <span className="block text-xs font-bold text-foreground">
-                  {role === "admin" ? "Nguyễn Văn Hùng" : "Trần Thị Lan"}
-                </span>
-                <span className="block text-[10px] text-muted-foreground font-medium uppercase leading-none mt-0.5">
-                  {role === "admin" ? "Admin Tổng" : "Cửa hàng trưởng"}
-                </span>
-              </div>
-            </div>
+            {/* User Profile dropdown */}
+            <AccountDropdown 
+              onOpenSettings={handleOpenAccountSettings}
+              onLogout={handleLogout}
+            />
           </div>
         </header>
 
@@ -130,6 +186,13 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
           </div>
         </main>
       </div>
+
+      {/* Account Settings Modal */}
+      <AccountModal
+        isOpen={isAccountOpen}
+        onClose={() => setIsAccountOpen(false)}
+        defaultTab={defaultAccountTab}
+      />
     </div>
   );
 }

@@ -4,6 +4,7 @@ export interface User {
   email: string;
   phone: string;
   roleId?: number;
+  roleName?: string;
   status: string;
   createdAt?: string;
   updatedAt?: string;

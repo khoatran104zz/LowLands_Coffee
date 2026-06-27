@@ -26,6 +26,7 @@ export default function AdminEmployeesPage() {
   const addEmployee = useDashboardStore((state) => state.addEmployee);
   const updateEmployee = useDashboardStore((state) => state.updateEmployee);
   const deleteEmployee = useDashboardStore((state) => state.deleteEmployee);
+  const hydrateUsers = useDashboardStore((state) => state.hydrateUsers);
 
   // Modal controls
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -37,6 +38,7 @@ export default function AdminEmployeesPage() {
   const [formName, setFormName] = useState("");
   const [formEmail, setFormEmail] = useState("");
   const [formPhone, setFormPhone] = useState("");
+  const [formPassword, setFormPassword] = useState("");
   const [formRole, setFormRole] = useState<Employee["role"]>("staff");
   const [formBranchId, setFormBranchId] = useState("");
   const [formShift, setFormShift] = useState("Ca Sáng (06:00 - 14:00)");
@@ -45,7 +47,8 @@ export default function AdminEmployeesPage() {
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    hydrateUsers();
+  }, [hydrateUsers]);
 
   if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{UI_TEXT.common.loading}</div>;
 
@@ -102,6 +105,7 @@ export default function AdminEmployeesPage() {
     setFormName("");
     setFormEmail("");
     setFormPhone("");
+    setFormPassword("");
     setFormRole("staff");
     setFormBranchId(branches[0]?.id ? String(branches[0].id) : "");
     setFormShift("Ca Sáng (06:00 - 14:00)");
@@ -115,6 +119,7 @@ export default function AdminEmployeesPage() {
     setFormName(emp.fullName);
     setFormEmail(emp.email);
     setFormPhone(emp.phone);
+    setFormPassword("");
     setFormRole(emp.role);
     setFormBranchId(String(emp.branchId));
     setFormShift(emp.workingShift || "");
@@ -128,48 +133,61 @@ export default function AdminEmployeesPage() {
     setIsDeleteOpen(true);
   };
 
-  const handleSaveEmployee = (e: React.FormEvent) => {
+  const handleSaveEmployee = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim() || !formEmail.trim() || !formPhone.trim() || !formBranchId) {
       toast.error("Vui lòng điền đầy đủ các thông tin bắt buộc!");
       return;
     }
-
-    if (editingEmployee) {
-      updateEmployee({
-        id: editingEmployee.id,
-        fullName: formName.trim(),
-        email: formEmail.trim(),
-        phone: formPhone.trim(),
-        role: formRole,
-        branchId: parseInt(formBranchId),
-        branchName: "", // will be calculated by store action
-        workingShift: formShift,
-        status: formStatus,
-        performance: formPerf
-      });
-      toast.success("Cập nhật nhân viên thành công!");
-    } else {
-      addEmployee({
-        fullName: formName.trim(),
-        email: formEmail.trim(),
-        phone: formPhone.trim(),
-        role: formRole,
-        branchId: parseInt(formBranchId),
-        branchName: "", // will be calculated by store action
-        workingShift: formShift,
-        status: formStatus,
-        performance: formPerf
-      });
-      toast.success("Tuyển dụng nhân viên mới thành công!");
+    if (!editingEmployee && !formPassword.trim()) {
+      toast.error("Mật khẩu khởi tạo không được để trống!");
+      return;
     }
-    setIsFormOpen(false);
+
+    try {
+      if (editingEmployee) {
+        await updateEmployee({
+          id: editingEmployee.id,
+          fullName: formName.trim(),
+          email: formEmail.trim(),
+          phone: formPhone.trim(),
+          role: formRole,
+          branchId: parseInt(formBranchId),
+          branchName: "",
+          workingShift: formShift,
+          status: formStatus,
+          performance: formPerf
+        });
+        toast.success("Cập nhật nhân viên thành công!");
+      } else {
+        await addEmployee({
+          fullName: formName.trim(),
+          email: formEmail.trim(),
+          phone: formPhone.trim(),
+          role: formRole,
+          branchId: parseInt(formBranchId),
+          branchName: "",
+          workingShift: formShift,
+          status: formStatus,
+          performance: formPerf,
+          password: formPassword
+        });
+        toast.success("Tuyển dụng nhân viên mới thành công!");
+      }
+      setIsFormOpen(false);
+    } catch (err) {
+      toast.error("Không thể lưu tài khoản. Email có thể đã tồn tại.");
+    }
   };
 
-  const handleConfirmDelete = () => {
+  const handleConfirmDelete = async () => {
     if (deletingEmployeeId) {
-      deleteEmployee(deletingEmployeeId);
-      toast.success("Đã thôi việc nhân viên thành công!");
+      try {
+        await deleteEmployee(deletingEmployeeId);
+        toast.success("Đã thôi việc nhân viên thành công!");
+      } catch (err) {
+        toast.error("Thao tác thất bại.");
+      }
     }
     setIsDeleteOpen(false);
   };
@@ -263,6 +281,20 @@ export default function AdminEmployeesPage() {
               className="h-10 text-xs border-border bg-background"
             />
           </div>
+
+          {!editingEmployee && (
+            <div className="space-y-1.5">
+              <label className="text-xs font-bold text-muted-foreground uppercase">Mật khẩu khởi tạo *</label>
+              <Input
+                required
+                type="password"
+                value={formPassword}
+                onChange={(e) => setFormPassword(e.target.value)}
+                placeholder="Mật khẩu có ít nhất 6 ký tự"
+                className="h-10 text-xs border-border bg-background"
+              />
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
