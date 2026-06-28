@@ -47,4 +47,11 @@ public interface StockMovementRepository extends JpaRepository<StockMovementEnti
             order by sm.store.id, sm.ingredient.id
             """)
     List<Object[]> calculateAllStockBalances();
+
+    @Query("""
+            select count(distinct sm.ingredient.id)
+            from StockMovementEntity sm
+            where sm.store.id = :storeId
+            """)
+    long countDistinctIngredientsByStoreId(@Param("storeId") Long storeId);
 }

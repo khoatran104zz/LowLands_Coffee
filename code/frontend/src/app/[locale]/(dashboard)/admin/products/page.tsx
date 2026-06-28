@@ -24,6 +24,7 @@ export default function AdminProductsPage() {
   const products = useDashboardStore((state) => state.products);
   const categories = useDashboardStore((state) => state.categories);
   const productCatalogError = useDashboardStore((state) => state.productCatalogError);
+  const hydrateProductCatalog = useDashboardStore((state) => state.hydrateProductCatalog);
   const addProduct = useDashboardStore((state) => state.addProduct);
   const updateProduct = useDashboardStore((state) => state.updateProduct);
   const deleteProduct = useDashboardStore((state) => state.deleteProduct);
@@ -48,7 +49,8 @@ export default function AdminProductsPage() {
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    void hydrateProductCatalog("admin");
+  }, [hydrateProductCatalog]);
 
   if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{UI_TEXT.common.loading}</div>;
 

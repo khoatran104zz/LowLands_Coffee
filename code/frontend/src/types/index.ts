@@ -4,6 +4,9 @@ export interface User {
   email: string;
   phone: string;
   roleId?: number;
+  roleName?: string;
+  role?: "ADMIN" | "MANAGER" | "STAFF" | "CUSTOMER" | string;
+  permissions?: string[];
   status: string;
   createdAt?: string;
   updatedAt?: string;

@@ -5,13 +5,24 @@ import { DollarSign, ShoppingBag, Users, Store } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { LineChart, BarChart, PieChart, ChartDataItem } from "@/components/charts/Chart";
 import { useDashboardStore } from "@/store/dashboardStore";
+import { AdminDashboardSummary, getAdminDashboardSummary } from "@/services/dashboard.service";
 import { UI_TEXT } from "@/constants/ui-text";
 
 export default function AdminDashboardPage() {
   const [isMounted, setIsMounted] = useState(false);
+  const [summary, setSummary] = useState<AdminDashboardSummary | null>(null);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
+    getAdminDashboardSummary()
+      .then((data) => {
+        setSummary(data);
+        setSummaryError(null);
+      })
+      .catch(() => {
+        setSummaryError("Không thể tải dashboard summary từ Backend API.");
+      });
   }, []);
 
   // Fetch from store
@@ -33,15 +44,19 @@ export default function AdminDashboardPage() {
   const totalOrdersCount = orders.length;
   const totalCustomersCount = customers.length;
   const totalBranchesCount = branches.length;
+  const displayRevenue = summary?.totalRevenue ?? totalRevenue;
+  const displayOrders = summary?.totalOrders ?? totalOrdersCount;
+  const displayUsers = summary?.totalUsers ?? totalCustomersCount;
+  const displayStores = summary?.totalStores ?? totalBranchesCount;
 
   // Chart 1: Revenue by month (Mock data + dynamic last month)
   const revenueByMonthData: ChartDataItem[] = [
-    { label: "Tháng 1", value: 12000000 },
-    { label: "Tháng 2", value: 18500000 },
-    { label: "Tháng 3", value: 15000000 },
-    { label: "Tháng 4", value: 24000000 },
-    { label: "Tháng 5", value: 31000000 },
-    { label: "Tháng 6", value: Math.max(25000000, totalRevenue) }
+    { label: "Tháng 1", value: 0 },
+    { label: "Tháng 2", value: 0 },
+    { label: "Tháng 3", value: 0 },
+    { label: "Tháng 4", value: 0 },
+    { label: "Tháng 5", value: 0 },
+    { label: "Tháng 6", value: displayRevenue }
   ];
 
   // Chart 2: Revenue by branch
@@ -59,9 +74,7 @@ export default function AdminDashboardPage() {
   });
 
   const revenueByBranchData: ChartDataItem[] = Object.entries(branchRevenueMap)
-    .map(([label, value]) => ({ label, value }))
-    // If no sales yet, add mock fallback so chart is not empty
-    .map((item) => (item.value === 0 ? { ...item, value: Math.floor(Math.random() * 500000) + 100000 } : item));
+    .map(([label, value]) => ({ label, value }));
 
   // Chart 3: Best selling products
   const productSalesMap: Record<string, number> = {};
@@ -71,14 +84,6 @@ export default function AdminDashboardPage() {
     });
   });
 
-  // Ensure we have some data
-  if (Object.keys(productSalesMap).length === 0) {
-    productSalesMap["Phin Sữa Đá"] = 120;
-    productSalesMap["Bạc Xỉu"] = 95;
-    productSalesMap["Trà Sen Vàng"] = 80;
-    productSalesMap["Freeze Trà Xanh"] = 65;
-  }
-
   const bestSellingProductsData: ChartDataItem[] = Object.entries(productSalesMap)
     .map(([label, value]) => ({ label, value }))
     .sort((a, b) => b.value - a.value)
@@ -86,10 +91,10 @@ export default function AdminDashboardPage() {
 
   // Chart 4: Customer Growth (Mock data)
   const customerGrowthData: ChartDataItem[] = [
-    { label: "Tuần 1", value: 45 },
-    { label: "Tuần 2", value: 68 },
-    { label: "Tuần 3", value: 110 },
-    { label: "Tuần 4", value: Math.max(120, totalCustomersCount) }
+    { label: "Tuần 1", value: 0 },
+    { label: "Tuần 2", value: 0 },
+    { label: "Tuần 3", value: 0 },
+    { label: "Tuần 4", value: displayUsers }
   ];
 
   return (
@@ -108,28 +113,28 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title={UI_TEXT.admin.revenueTitle}
-          value={`${totalRevenue.toLocaleString()}đ`}
+          value={`${displayRevenue.toLocaleString()}đ`}
           icon={DollarSign}
           description="Đơn hoàn thành"
           trend={{ type: "up", value: "+12.4%" }}
         />
         <StatsCard
           title={UI_TEXT.admin.ordersTitle}
-          value={totalOrdersCount}
+          value={displayOrders}
           icon={ShoppingBag}
           description="Đơn trong tháng"
           trend={{ type: "up", value: "+8.2%" }}
         />
         <StatsCard
           title={UI_TEXT.admin.customersTitle}
-          value={totalCustomersCount}
+          value={displayUsers}
           icon={Users}
           description="Thành viên đã đăng ký"
           trend={{ type: "up", value: "+24.3%" }}
         />
         <StatsCard
           title={UI_TEXT.admin.branchesTitle}
-          value={totalBranchesCount}
+          value={displayStores}
           icon={Store}
           description="Chi nhánh đang chạy"
         />

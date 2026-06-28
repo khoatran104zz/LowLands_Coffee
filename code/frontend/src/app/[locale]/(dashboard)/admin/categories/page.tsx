@@ -17,6 +17,7 @@ export default function AdminCategoriesPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const categories = useDashboardStore((state) => state.categories);
+  const hydrateProductCatalog = useDashboardStore((state) => state.hydrateProductCatalog);
   const addCategory = useDashboardStore((state) => state.addCategory);
   const updateCategory = useDashboardStore((state) => state.updateCategory);
   const deleteCategory = useDashboardStore((state) => state.deleteCategory);
@@ -32,7 +33,8 @@ export default function AdminCategoriesPage() {
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    void hydrateProductCatalog("admin");
+  }, [hydrateProductCatalog]);
 
   if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{UI_TEXT.common.loading}</div>;
 
