@@ -104,23 +104,23 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
               </span>
             </div>
           )}
-
-          {/* Nút '+' góc dưới phải */}
-          {!isOutOfStock && (
-            <div className="absolute right-2 bottom-2 rounded-full h-7 w-7 bg-[#C8510A] text-white flex items-center justify-center shadow-md group-hover:bg-[#B04308] group-hover:scale-105 transition-all duration-300">
-              <Plus className="h-4 w-4" />
-            </div>
-          )}
         </div>
 
         {/* Text Area - Compact, no empty space */}
-        <div className="mt-2 text-left flex flex-col justify-between flex-grow">
-          <h4 className="text-xs font-bold text-foreground line-clamp-1 group-hover:text-[#C8510A] transition-colors leading-tight" title={product.name}>
-            {product.name}
-          </h4>
-          <span className="text-xs font-extrabold text-[#C8510A] mt-0.5 block leading-none">
-            {displayPrice.toLocaleString()}đ
-          </span>
+        <div className="mt-2 text-left flex justify-between items-end flex-grow">
+          <div className="flex flex-col min-w-0 pr-1">
+            <h4 className="text-xs font-bold text-foreground line-clamp-1 group-hover:text-[#C8510A] transition-colors leading-tight" title={product.name}>
+              {product.name}
+            </h4>
+            <span className="text-xs font-extrabold text-[#C8510A] mt-1.5 block leading-none">
+              {displayPrice.toLocaleString()}đ
+            </span>
+          </div>
+          {!isOutOfStock && (
+            <div className="rounded-full h-6 w-6 bg-[#C8510A] text-white flex items-center justify-center shadow-md group-hover:bg-[#B04308] group-hover:scale-105 transition-all duration-300 shrink-0">
+              <Plus className="h-3.5 w-3.5" />
+            </div>
+          )}
         </div>
       </div>
 
