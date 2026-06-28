@@ -1,6 +1,9 @@
 import { getMessages } from "next-intl/server";
 import { Hero } from "@/components/features/home/Hero";
+import { PromoBannerCarousel } from "@/components/features/home/PromoBannerCarousel";
+import { FeaturedProducts } from "@/components/features/home/FeaturedProducts";
 import { AboutBrand } from "@/components/features/home/AboutBrand";
+import { AppDownloadBanner } from "@/components/features/home/AppDownloadBanner";
 import { StoreLocator } from "@/components/features/home/StoreLocator";
 
 
@@ -34,7 +37,10 @@ export default function HomePage() {
     <div className="flex flex-col w-full">
       <h1 className="sr-only">Lowlands Coffee - Modern Vietnamese Coffee Shop</h1>
       <Hero />
+      <PromoBannerCarousel />
+      <FeaturedProducts />
       <AboutBrand />
+      <AppDownloadBanner />
       <StoreLocator />
     </div>
   );
