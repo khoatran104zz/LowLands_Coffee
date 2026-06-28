@@ -55,6 +55,7 @@ export function Header() {
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [megaMenuOpen, setMegaMenuOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   
   // Zustand State hooks
   const cartItemsCount = useCartStore((state) => 
@@ -156,20 +157,66 @@ export function Header() {
 
           {/* Auth Menu */}
           {isAuthenticated ? (
-            <div className="flex items-center gap-2 xl:gap-3 border-l border-border/60 pl-3 xl:pl-4">
-              <Link
-                href="/profile"
-                className="flex items-center gap-1.5 text-xs xl:text-sm font-semibold text-primary hover:text-accent"
-              >
-                <User className="h-4.5 w-4.5" />
-                <span className="hidden 2xl:inline max-w-[100px] truncate font-bold">{user?.fullName}</span>
-              </Link>
+            <div 
+              className="relative flex items-center h-full border-l border-border/60 pl-3 xl:pl-4"
+              onMouseEnter={() => setUserMenuOpen(true)}
+              onMouseLeave={() => setUserMenuOpen(false)}
+            >
               <button
-                onClick={logout}
-                className="text-[10px] xl:text-xs font-extrabold text-destructive hover:underline cursor-pointer"
+                className="flex items-center gap-2 text-xs xl:text-sm font-extrabold text-primary hover:text-accent transition-colors uppercase tracking-wider h-full cursor-pointer focus:outline-none"
               >
-                {t("common.logout")}
+                <div className="h-7 w-7 rounded-full bg-accent/15 flex items-center justify-center border border-accent/25">
+                  <User className="h-4 w-4 text-accent" />
+                </div>
+                <span className="max-w-[100px] truncate">{user?.fullName}</span>
+                <span className="text-[8px] opacity-60">▼</span>
               </button>
+
+              <AnimatePresence>
+                {userMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 top-full mt-0.5 w-44 bg-white dark:bg-[#1C1211] border border-border/80 rounded-xl shadow-lg py-2 z-50 text-left font-semibold text-xs text-foreground"
+                  >
+                    <Link
+                      href="/profile"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="block px-4 py-2 text-foreground hover:bg-[#C8510A]/10 hover:text-[#C8510A] transition-colors"
+                    >
+                      Trang cá nhân
+                    </Link>
+                    <Link
+                      href="/profile#orders"
+                      onClick={() => setUserMenuOpen(false)}
+                      className="block px-4 py-2 text-foreground hover:bg-[#C8510A]/10 hover:text-[#C8510A] transition-colors"
+                    >
+                      Lịch sử mua hàng
+                    </Link>
+                    {user?.roleName?.toUpperCase() === "ADMIN" || user?.roleName?.toUpperCase() === "STAFF" ? (
+                      <Link
+                        href="/admin"
+                        onClick={() => setUserMenuOpen(false)}
+                        className="block px-4 py-2 text-foreground hover:bg-[#C8510A]/10 hover:text-[#C8510A] transition-colors"
+                      >
+                        Quản trị hệ thống
+                      </Link>
+                    ) : null}
+                    <div className="border-t border-border/40 my-1" />
+                    <button
+                      onClick={() => {
+                        setUserMenuOpen(false);
+                        logout();
+                      }}
+                      className="w-full text-left px-4 py-2 text-destructive hover:bg-destructive/10 transition-colors cursor-pointer font-bold"
+                    >
+                      Đăng xuất
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           ) : (
             <Link
