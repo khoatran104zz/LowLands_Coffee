@@ -14,10 +14,12 @@ export default function AdminCustomersPage() {
   const [statusFilter, setStatusFilter] = useState("");
 
   const customers = useDashboardStore((state) => state.customers);
+  const hydrateUsers = useDashboardStore((state) => state.hydrateUsers);
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    hydrateUsers();
+  }, [hydrateUsers]);
 
   if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{UI_TEXT.common.loading}</div>;
 

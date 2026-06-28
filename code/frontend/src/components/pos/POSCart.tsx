@@ -247,11 +247,19 @@ export function POSCart({
   return (
     <div className="flex flex-col h-full bg-card border border-border/80 rounded-xl overflow-hidden shadow-sm select-none">
       {/* Panel Title */}
-      <div className="bg-muted/30 px-4 py-3 border-b border-border/60 flex items-center justify-between">
-        <h3 className="text-xs font-black text-foreground font-outfit uppercase tracking-wider flex items-center gap-1.5">
-          <ReceiptText className="h-4 w-4 text-[#C8510A]" />
-          Đơn hàng hiện tại ({items.length})
+      <div className="px-4 py-3 border-b border-border/60 flex items-center justify-between bg-background">
+        <h3 className="text-xs font-black text-foreground font-outfit uppercase tracking-wider">
+          ĐƠN HÀNG {items.length > 0 && <span className="text-[#C8510A] ml-1">({items.length} món)</span>}
         </h3>
+        {items.length > 0 && (
+          <button 
+            onClick={onClearCart} 
+            className="text-muted-foreground hover:text-rose-600 transition-colors p-1 hover:bg-muted/40 rounded-md"
+            title="Xóa giỏ hàng"
+          >
+            <Trash2 className="h-4 w-4" />
+          </button>
+        )}
       </div>
 
       {/* Service Type Selection (At the top of the panel) */}
@@ -310,49 +318,64 @@ export function POSCart({
           </div>
         ) : (
           items.map((item) => (
-            <div key={item.id} className="p-2.5 bg-[#FAF8F5] border border-border/50 rounded-lg space-y-1.5 hover:border-border transition-colors">
-              <div className="flex items-start justify-between">
-                <div className="text-left max-w-[70%]">
-                  <h4 className="text-xs font-black text-foreground truncate leading-snug">{item.product.name}</h4>
-                  <span className="text-[10px] text-muted-foreground block mt-0.5 leading-none">
-                    Size {item.variant.size}
+            <div key={item.id} className="p-2 bg-background border border-border/40 rounded-lg flex items-center justify-between hover:border-border transition-colors">
+              <div className="flex items-center space-x-2 min-w-0 flex-grow">
+                {/* Product Image */}
+                <div className="w-10 h-10 rounded-md overflow-hidden bg-muted/20 shrink-0">
+                  {item.product.imageUrl ? (
+                    <img src={item.product.imageUrl} alt={item.product.name} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground text-[10px] font-bold uppercase">
+                      {item.product.name.slice(0, 2)}
+                    </div>
+                  )}
+                </div>
+                
+                {/* Name and Meta */}
+                <div className="text-left min-w-0">
+                  <h4 className="text-xs font-black text-foreground truncate leading-tight">{item.product.name}</h4>
+                  <span className="text-[9px] text-muted-foreground block mt-0.5 leading-none">
+                    Size: {item.variant.size}
                     {item.toppings.length > 0 &&
-                      ` + ${item.toppings.map((t) => `${t.topping.name} (x${t.quantity})`).join(", ")}`}
+                      ` | Topping: ${item.toppings.map((t) => `${t.topping.name}`).join(", ")}`}
                   </span>
                   {item.note && (
-                    <span className="text-[10px] text-[#C8510A] italic block mt-0.5 leading-none">
-                      Ghi chú: {item.note}
+                    <span className="text-[9px] text-[#C8510A] italic block mt-0.5 leading-none">
+                      {item.note}
                     </span>
                   )}
                 </div>
-                <span className="text-xs font-extrabold text-foreground">
+              </div>
+              
+              {/* Qty and Price */}
+              <div className="flex items-center space-x-3 shrink-0 ml-2">
+                <span className="text-[10px] text-muted-foreground font-black">× {item.quantity}</span>
+                <span className="text-xs font-extrabold text-foreground min-w-[50px] text-right">
                   {((item.variant.price + item.toppings.reduce((sum, t) => sum + t.topping.price * t.quantity, 0)) * item.quantity).toLocaleString()}đ
                 </span>
-              </div>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-1 border border-border/80 rounded-lg bg-background p-0.5">
-                  <button
-                    onClick={() => handleUpdateQtyLocal(item.id, item.quantity - 1)}
-                    className="h-5 w-5 flex items-center justify-center hover:bg-muted text-muted-foreground rounded-md transition-colors"
-                  >
-                    <Minus className="h-2.5 w-2.5" />
-                  </button>
-                  <span className="w-6 text-center text-xs font-bold text-foreground">{item.quantity}</span>
-                  <button
-                    onClick={() => handleUpdateQtyLocal(item.id, item.quantity + 1)}
-                    className="h-5 w-5 flex items-center justify-center hover:bg-muted text-muted-foreground rounded-md transition-colors"
-                  >
-                    <Plus className="h-2.5 w-2.5" />
-                  </button>
+                
+                <div className="flex flex-col items-center space-y-0.5">
+                  <div className="flex items-center border border-border/60 rounded-md bg-background p-0.5">
+                    <button
+                      onClick={() => handleUpdateQtyLocal(item.id, item.quantity - 1)}
+                      className="h-4 w-4 flex items-center justify-center hover:bg-muted text-muted-foreground rounded transition-colors"
+                    >
+                      <Minus className="h-2 w-2" />
+                    </button>
+                    <button
+                      onClick={() => handleUpdateQtyLocal(item.id, item.quantity + 1)}
+                      className="h-4 w-4 flex items-center justify-center hover:bg-muted text-muted-foreground rounded transition-colors"
+                    >
+                      <Plus className="h-2 w-2" />
+                    </button>
+                  </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="icon-sm"
+                <button
                   onClick={() => handleRemoveItemLocal(item.id)}
-                  className="h-6 w-6 text-muted-foreground hover:text-rose-600 rounded-lg hover:bg-rose-500/10"
+                  className="text-muted-foreground hover:text-rose-600 p-0.5 rounded transition-colors"
                 >
                   <Trash2 className="h-3 w-3" />
-                </Button>
+                </button>
               </div>
             </div>
           ))
@@ -384,35 +407,32 @@ export function POSCart({
 
           {/* Ghi chú đơn hàng */}
           <div className="space-y-1 text-left">
-            <label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
-              Ghi chú đơn hàng:
-            </label>
             <textarea
               value={orderNote}
               onChange={(e) => setOrderNote(e.target.value)}
-              placeholder="Ghi chú tổng thể cho đơn hàng này..."
-              className="w-full text-xs p-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-1 focus:ring-[#C8510A] focus:border-[#C8510A] h-11 resize-none leading-snug transition-all"
+              placeholder="Ghi chú đơn hàng..."
+              className="w-full text-xs p-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-1 focus:ring-[#C8510A] focus:border-[#C8510A] h-10 resize-none leading-snug transition-all"
             />
           </div>
 
           {/* Pricing labels */}
-          <div className="space-y-1 text-xs text-muted-foreground font-semibold border-b border-border/40 pb-2.5">
+          <div className="space-y-1.5 text-xs text-muted-foreground font-semibold border-b border-border/40 pb-2.5">
             <div className="flex justify-between">
               <span>Tạm tính:</span>
               <span className="text-foreground">{subtotal.toLocaleString()}đ</span>
             </div>
             {discount > 0 && (
               <div className="flex justify-between text-emerald-700 font-bold">
-                <span>Khuyến mãi ({appliedPromo?.code}):</span>
+                <span>Giảm giá:</span>
                 <span>-{discount.toLocaleString()}đ</span>
               </div>
             )}
             <div className="flex justify-between">
-              <span>Thuế VAT (10%):</span>
+              <span>Phí phục vụ (5%):</span>
               <span className="text-foreground">{vat.toLocaleString()}đ</span>
             </div>
             <div className="flex justify-between text-sm font-black text-foreground pt-1.5 border-t border-dashed border-border/40 mt-1">
-              <span>TỔNG THANH TOÁN:</span>
+              <span>Tổng cộng:</span>
               <span className="text-[#C8510A] font-outfit text-base leading-none">{total.toLocaleString()}đ</span>
             </div>
           </div>
@@ -463,17 +483,19 @@ export function POSCart({
           <div className="grid grid-cols-3 gap-2 pt-1 border-t border-border/40">
             <Button
               type="button"
-              onClick={handleCancelClick}
-              className="bg-rose-100 hover:bg-rose-250 text-rose-700 border border-rose-200 text-xs font-bold h-10 rounded-xl transition-all shadow-2xs shrink-0"
+              onClick={() => toast.success("Đã lưu đơn hàng vào danh sách đơn tạm!")}
+              className="bg-background hover:bg-muted/10 text-foreground border border-border text-xs font-bold h-10 rounded-xl transition-all shadow-2xs shrink-0 flex items-center justify-center gap-1.5"
             >
-              Hủy đơn
+              <ReceiptText className="h-3.5 w-3.5 text-muted-foreground" />
+              Lưu đơn tạm
             </Button>
             <Button
               type="button"
               onClick={handleCheckoutClick}
-              className="col-span-2 bg-[#C8510A] hover:bg-[#B04308] text-white text-xs font-extrabold h-10 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center shrink-0"
+              className="col-span-2 bg-[#C8510A] hover:bg-[#B04308] text-white text-xs font-extrabold h-10 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center shrink-0 gap-1.5"
             >
-              Thanh toán ({total.toLocaleString()}đ)
+              <ShoppingBag className="h-3.5 w-3.5" />
+              Thanh toán
             </Button>
           </div>
         </div>

@@ -18,6 +18,13 @@ import {
   updateAdminCategory,
   updateAdminProduct,
 } from "@/services/product.service";
+import {
+  getUsers,
+  createUser,
+  updateUser,
+  deleteUser,
+} from "@/services/user.service";
+
 
 export interface Ingredient {
   id: number;
@@ -41,7 +48,12 @@ export interface DashboardState {
   ingredients: Ingredient[];
   
   // Actions
+<<<<<<< HEAD
   hydrateProductCatalog: (source?: "admin" | "public") => Promise<void>;
+=======
+  hydrateProductCatalog: () => Promise<void>;
+  hydrateUsers: () => Promise<void>;
+>>>>>>> ee3e379979843d4ff34e05a6d50561b1a92cd351
 
   // Branches
   addBranch: (branch: Omit<Store, "id">) => void;
@@ -59,9 +71,9 @@ export interface DashboardState {
   deleteCategory: (id: number) => Promise<void>;
   
   // Employees
-  addEmployee: (employee: Omit<Employee, "id">) => void;
-  updateEmployee: (employee: Employee) => void;
-  deleteEmployee: (id: number) => void;
+  addEmployee: (employee: Omit<Employee, "id"> & { password?: string }) => Promise<void>;
+  updateEmployee: (employee: Employee) => Promise<void>;
+  deleteEmployee: (id: number) => Promise<void>;
   
   // Orders
   addOrder: (order: Omit<OrderExtended, "id" | "orderCode" | "createdAt">) => OrderExtended;
@@ -176,6 +188,60 @@ export const useDashboardStore = create<DashboardState>()(
         }
       },
 
+      hydrateUsers: async () => {
+        if (typeof window === "undefined" || !localStorage.getItem("lowlands_token")) {
+          return;
+        }
+        try {
+          const users = await getUsers();
+          const roleMap: Record<string, "admin" | "manager" | "staff"> = {
+            ADMIN: "admin",
+            MANAGER: "manager",
+            STAFF: "staff"
+          };
+          
+          const employees = users
+            .filter((u) => u.roleName !== "CUSTOMER")
+            .map((u) => {
+              const roleKey = u.roleName?.toUpperCase() || "";
+              const mappedRole = roleMap[roleKey] || "staff";
+              const branchId = 1; // assign mock branch ID 1
+              const state = get();
+              const branchName = state.branches.find(b => b.id === branchId)?.name || "Chi nhánh khác";
+              return {
+                id: u.id,
+                fullName: u.fullName,
+                role: mappedRole,
+                branchId,
+                branchName,
+                email: u.email,
+                phone: u.phone || "",
+                status: (u.status?.toUpperCase() === "ACTIVE" ? "active" : "inactive") as "active" | "inactive",
+                workingShift: u.roleName?.toUpperCase() === "ADMIN" ? "Fulltime - Hành chính" : "Ca Sáng (06:00 - 14:00)",
+                performance: "Khá"
+              };
+            });
+
+          const customers = users
+            .filter((u) => u.roleName === "CUSTOMER")
+            .map((u) => {
+              return {
+                id: u.id,
+                fullName: u.fullName,
+                email: u.email,
+                phone: u.phone || "",
+                status: (u.status?.toUpperCase() === "ACTIVE" ? "active" : "inactive") as "active" | "inactive",
+                orderCount: 0,
+                totalSpent: 0
+              };
+            });
+
+          set({ employees, customers });
+        } catch (error) {
+          console.error("Failed to hydrate users", error);
+        }
+      },
+
       // Branches CRUD
       addBranch: (branch) => set((state) => ({
         branches: [...state.branches, { ...branch, id: Math.max(...state.branches.map(b => b.id), 0) + 1 }]
@@ -258,22 +324,58 @@ export const useDashboardStore = create<DashboardState>()(
       },
 
       // Employees CRUD
-      addEmployee: (employee) => set((state) => {
-        const nextId = Math.max(...state.employees.map(e => e.id), 0) + 1;
-        const branchName = state.branches.find(b => b.id === employee.branchId)?.name || "Chi nhánh khác";
-        return {
-          employees: [...state.employees, { ...employee, id: nextId, branchName }]
-        };
-      }),
-      updateEmployee: (updated) => set((state) => {
-        const branchName = state.branches.find(b => b.id === updated.branchId)?.name || updated.branchName;
-        return {
-          employees: state.employees.map((e) => (e.id === updated.id ? { ...updated, branchName } : e))
-        };
-      }),
-      deleteEmployee: (id) => set((state) => ({
-        employees: state.employees.filter((e) => e.id !== id)
-      })),
+      addEmployee: async (employee) => {
+        try {
+          const roleIdMap: Record<string, number> = {
+            admin: 1,
+            manager: 2,
+            staff: 3
+          };
+          const roleId = roleIdMap[employee.role] || 3;
+          await createUser({
+            fullName: employee.fullName,
+            email: employee.email,
+            phone: employee.phone,
+            password: employee.password || "Password@123",
+            roleId,
+            status: employee.status === "active" ? "ACTIVE" : "INACTIVE"
+          });
+          await get().hydrateUsers();
+        } catch (error) {
+          console.error("Failed to create employee", error);
+          throw error;
+        }
+      },
+      updateEmployee: async (updated) => {
+        try {
+          const roleIdMap: Record<string, number> = {
+            admin: 1,
+            manager: 2,
+            staff: 3
+          };
+          const roleId = roleIdMap[updated.role] || 3;
+          await updateUser(updated.id, {
+            fullName: updated.fullName,
+            email: updated.email,
+            phone: updated.phone,
+            roleId,
+            status: updated.status === "active" ? "ACTIVE" : "INACTIVE"
+          });
+          await get().hydrateUsers();
+        } catch (error) {
+          console.error("Failed to update employee", error);
+          throw error;
+        }
+      },
+      deleteEmployee: async (id) => {
+        try {
+          await deleteUser(id);
+          await get().hydrateUsers();
+        } catch (error) {
+          console.error("Failed to delete employee", error);
+          throw error;
+        }
+      },
 
       // Orders Operations
       addOrder: (orderInput) => {
@@ -376,7 +478,12 @@ export const useDashboardStore = create<DashboardState>()(
         productCatalogError: currentState.productCatalogError,
       }),
       onRehydrateStorage: () => (state) => {
+<<<<<<< HEAD
         void state?.hydrateProductCatalog("public");
+=======
+        void state?.hydrateProductCatalog();
+        void state?.hydrateUsers();
+>>>>>>> ee3e379979843d4ff34e05a6d50561b1a92cd351
       },
     }
   )
