@@ -7,6 +7,7 @@ import { Coffee, ArrowRight, ChevronDown } from "lucide-react";
 
 export function Hero() {
   const t = useTranslations("home");
+  const tCommon = useTranslations("common");
   const { scrollY } = useScroll();
 
   // Parallax effects
@@ -70,7 +71,7 @@ export function Hero() {
               className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/15 px-4 py-1.5 text-xs sm:text-sm font-semibold text-accent backdrop-blur-sm"
             >
               <Coffee className="h-4 w-4" />
-              <span>{t("common.brandName")}</span>
+              <span>{tCommon("brandName")}</span>
             </motion.div>
 
             {/* Staggered Title */}
