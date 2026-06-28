@@ -5,13 +5,25 @@ import { DollarSign, ShoppingBag, Users, AlertTriangle } from "lucide-react";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { BarChart, PieChart, ChartDataItem } from "@/components/charts/Chart";
 import { useDashboardStore } from "@/store/dashboardStore";
+import { getManagerDashboardSummary, ManagerDashboardSummary } from "@/services/dashboard.service";
 import { UI_TEXT } from "@/constants/ui-text";
 
 export default function ManagerDashboardPage() {
   const [isMounted, setIsMounted] = useState(false);
+  const [summary, setSummary] = useState<ManagerDashboardSummary | null>(null);
+  const [summaryError, setSummaryError] = useState<string | null>(null);
 
   useEffect(() => {
     setIsMounted(true);
+    getManagerDashboardSummary()
+      .then((data) => {
+        setSummary(data);
+        setSummaryError(null);
+      })
+      .catch((error) => {
+        console.error("Failed to load manager dashboard summary", error);
+        setSummaryError("Khong the tai dashboard summary tu Backend API.");
+      });
   }, []);
 
   const orders = useDashboardStore((state) => state.orders);
@@ -38,6 +50,9 @@ export default function ManagerDashboardPage() {
   const inventoryWarningsCount = ingredients.filter(
     (i) => i.status === "low_stock" || i.status === "out_of_stock"
   ).length;
+  const displayRevenue = Number(summary?.totalRevenue ?? todayRevenue);
+  const displayOrders = summary?.totalOrders ?? todayOrdersCount;
+  const displayInventoryWarnings = summary?.lowStockItems ?? inventoryWarningsCount;
 
   // Chart 1: Revenue by category inside this branch
   const categorySales: Record<string, number> = {
@@ -88,17 +103,21 @@ export default function ManagerDashboardPage() {
         </p>
       </div>
 
+      {summaryError && (
+        <p className="text-xs text-destructive font-semibold">{summaryError}</p>
+      )}
+
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title={UI_TEXT.manager.todayRevenue}
-          value={`${todayRevenue.toLocaleString()}đ`}
+          value={`${displayRevenue.toLocaleString()}đ`}
           icon={DollarSign}
           description="Doanh số thực tế hôm nay"
         />
         <StatsCard
           title={UI_TEXT.manager.todayOrders}
-          value={todayOrdersCount}
+          value={displayOrders}
           icon={ShoppingBag}
           description="Tổng hóa đơn lập ca"
         />
@@ -110,10 +129,10 @@ export default function ManagerDashboardPage() {
         />
         <StatsCard
           title={UI_TEXT.manager.inventoryWarning}
-          value={`${inventoryWarningsCount} mặt hàng`}
+          value={`${displayInventoryWarnings} mặt hàng`}
           icon={AlertTriangle}
           description="Cần nhập hàng ngay"
-          trend={inventoryWarningsCount > 0 ? { type: "down", value: "Cảnh báo" } : undefined}
+          trend={displayInventoryWarnings > 0 ? { type: "down", value: "Cảnh báo" } : undefined}
         />
       </div>
 

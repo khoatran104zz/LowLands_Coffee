@@ -21,6 +21,7 @@ import {
 
 export interface Ingredient {
   id: number;
+  storeId?: number;
   name: string;
   quantity: number;
   unit: string;
@@ -40,7 +41,7 @@ export interface DashboardState {
   ingredients: Ingredient[];
   
   // Actions
-  hydrateProductCatalog: () => Promise<void>;
+  hydrateProductCatalog: (source?: "admin" | "public") => Promise<void>;
 
   // Branches
   addBranch: (branch: Omit<Store, "id">) => void;
@@ -159,12 +160,11 @@ export const useDashboardStore = create<DashboardState>()(
       promotions: INITIAL_PROMOTIONS,
       ingredients: INITIAL_INGREDIENTS,
 
-      hydrateProductCatalog: async () => {
+      hydrateProductCatalog: async (source = "public") => {
         try {
-          const [products, categories] = await Promise.all([
-            getAdminProducts().catch(() => getProducts()),
-            getAdminCategories().catch(() => getCategories()),
-          ]);
+          const [products, categories] = source === "admin"
+            ? await Promise.all([getAdminProducts(), getAdminCategories()])
+            : await Promise.all([getProducts(), getCategories()]);
           set({ products, categories, productCatalogError: null });
         } catch (error) {
           console.error("Failed to hydrate product catalog", error);
@@ -376,7 +376,7 @@ export const useDashboardStore = create<DashboardState>()(
         productCatalogError: currentState.productCatalogError,
       }),
       onRehydrateStorage: () => (state) => {
-        void state?.hydrateProductCatalog();
+        void state?.hydrateProductCatalog("public");
       },
     }
   )

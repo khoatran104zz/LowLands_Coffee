@@ -10,4 +10,6 @@ public interface StoreUserRepository extends JpaRepository<StoreUserEntity, Long
     List<StoreUserEntity> findByStoreId(Long storeId);
 
     List<StoreUserEntity> findByUserId(Long userId);
+
+    boolean existsByUserIdAndStoreId(Long userId, Long storeId);
 }

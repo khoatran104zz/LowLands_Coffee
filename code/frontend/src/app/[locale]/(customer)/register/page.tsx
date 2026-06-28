@@ -52,10 +52,9 @@ export default function RegisterPage() {
         phone: data.phone,
         password: data.password,
       });
-      login(res.user, res.accessToken);
-      localStorage.setItem("lowlands_refresh_token", res.refreshToken);
+      login(res.user, res.accessToken, res.refreshToken);
       toast.success(t("registerButton") + " success");
-      router.push("/profile");
+      router.push("/");
     } catch (err) {
       console.warn("Registration failed", err);
       toast.error(t("registerFailed"));
