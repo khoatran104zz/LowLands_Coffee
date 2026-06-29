@@ -48,12 +48,8 @@ export interface DashboardState {
   ingredients: Ingredient[];
   
   // Actions
-<<<<<<< HEAD
   hydrateProductCatalog: (source?: "admin" | "public") => Promise<void>;
-=======
-  hydrateProductCatalog: () => Promise<void>;
   hydrateUsers: () => Promise<void>;
->>>>>>> ee3e379979843d4ff34e05a6d50561b1a92cd351
 
   // Branches
   addBranch: (branch: Omit<Store, "id">) => void;
@@ -478,12 +474,8 @@ export const useDashboardStore = create<DashboardState>()(
         productCatalogError: currentState.productCatalogError,
       }),
       onRehydrateStorage: () => (state) => {
-<<<<<<< HEAD
         void state?.hydrateProductCatalog("public");
-=======
-        void state?.hydrateProductCatalog();
         void state?.hydrateUsers();
->>>>>>> ee3e379979843d4ff34e05a6d50561b1a92cd351
       },
     }
   )

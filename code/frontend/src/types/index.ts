@@ -5,11 +5,8 @@ export interface User {
   phone: string;
   roleId?: number;
   roleName?: string;
-<<<<<<< HEAD
   role?: "ADMIN" | "MANAGER" | "STAFF" | "CUSTOMER" | string;
   permissions?: string[];
-=======
->>>>>>> ee3e379979843d4ff34e05a6d50561b1a92cd351
   status: string;
   createdAt?: string;
   updatedAt?: string;

@@ -29,31 +29,31 @@ public class StoreController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('STORE_READ')")
+    @PreAuthorize("hasAuthority('STORE_VIEW')")
     public ApiResponse<List<StoreResponse>> findAll() {
         return ApiResponse.success(storeService.findAll());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('STORE_READ')")
+    @PreAuthorize("hasAuthority('STORE_VIEW')")
     public ApiResponse<StoreResponse> findById(@PathVariable Long id) {
         return ApiResponse.success(storeService.findById(id));
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('STORE_MANAGE')")
+    @PreAuthorize("hasAuthority('STORE_CREATE')")
     public ApiResponse<StoreResponse> create(@Valid @RequestBody StoreCreateRequest request) {
         return ApiResponse.success(storeService.create(request));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('STORE_MANAGE')")
+    @PreAuthorize("hasAuthority('STORE_UPDATE')")
     public ApiResponse<StoreResponse> update(@PathVariable Long id, @Valid @RequestBody StoreUpdateRequest request) {
         return ApiResponse.success(storeService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('STORE_MANAGE')")
+    @PreAuthorize("hasAuthority('STORE_DELETE')")
     public ApiResponse<Void> delete(@PathVariable Long id) {
         storeService.delete(id);
         return ApiResponse.success(null);
