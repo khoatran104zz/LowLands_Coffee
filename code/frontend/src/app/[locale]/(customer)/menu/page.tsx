@@ -106,6 +106,22 @@ function MenuPageInner() {
 
   const showList = !loading && error === null;
 
+  const getCategoryName = (name: string) => {
+    switch (name.toLowerCase()) {
+      case "coffee":
+        return t("common.coffee");
+      case "tea":
+        return t("common.tea");
+      case "freeze":
+        return t("common.freeze");
+      case "other":
+      case "khác":
+        return t("common.other");
+      default:
+        return name;
+    }
+  };
+
   return (
     <div className="py-12 bg-background min-h-screen">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -136,7 +152,7 @@ function MenuPageInner() {
                 size="sm"
                 disabled={error !== null}
               >
-                {category.name}
+                {getCategoryName(category.name)}
               </Button>
             ))}
           </div>
