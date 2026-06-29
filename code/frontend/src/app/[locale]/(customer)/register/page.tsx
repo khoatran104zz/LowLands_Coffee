@@ -21,10 +21,17 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
 
   const formSchema = zod.object({
-    fullName: zod.string().min(1, { message: "Full name is required" }),
-    email: zod.string().email({ message: "Invalid email" }),
+    fullName: zod.string()
+      .min(1, { message: "Full name is required" })
+      .max(100, { message: "Full name must not exceed 100 characters" }),
+    email: zod.string()
+      .min(1, { message: "Email is required" })
+      .email({ message: "Invalid email" })
+      .max(100, { message: "Email must not exceed 100 characters" }),
     phone: zod.string().regex(/^0[0-9]{9}$/, { message: "Phone must have 10 digits and start with 0" }),
-    password: zod.string().min(6, { message: "Password must be at least 6 characters" }),
+    password: zod.string()
+      .min(6, { message: "Password must be at least 6 characters" })
+      .max(100, { message: "Password must be at least 6 characters" }),
   });
 
   type FormData = zod.infer<typeof formSchema>;
@@ -52,10 +59,9 @@ export default function RegisterPage() {
         phone: data.phone,
         password: data.password,
       });
-      login(res.user, res.accessToken);
-      localStorage.setItem("lowlands_refresh_token", res.refreshToken);
+      login(res.user, res.accessToken, res.refreshToken);
       toast.success(t("registerButton") + " success");
-      router.push("/profile");
+      router.push("/");
     } catch (err) {
       console.warn("Registration failed", err);
       toast.error(t("registerFailed"));

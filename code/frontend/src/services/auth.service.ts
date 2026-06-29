@@ -1,5 +1,4 @@
 import axiosInstance from "@/lib/axios";
-import { INITIAL_BRANCHES } from "@/mock/branches";
 import { User, Store, Promotion } from "@/types";
 
 export interface LoginRequest {
@@ -11,7 +10,7 @@ export interface RegisterRequest {
   fullName: string;
   email: string;
   phone: string;
-  password?: string;
+  password: string;
 }
 
 export interface AuthResponse {
@@ -48,12 +47,8 @@ export const updateProfile = async (userData: Partial<User>): Promise<User> => {
 };
 
 export const getStores = async (): Promise<Store[]> => {
-  try {
-    const response = await axiosInstance.get<ApiResponse<Store[]>>("/stores");
-    return response.data.data;
-  } catch {
-    return INITIAL_BRANCHES;
-  }
+  const response = await axiosInstance.get<ApiResponse<Store[]>>("/stores");
+  return response.data.data;
 };
 
 export const getPromotions = async (): Promise<Promotion[]> => {

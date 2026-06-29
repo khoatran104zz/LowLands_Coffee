@@ -1,6 +1,7 @@
 package com.lowlands.coffee.modules.auth.service.impl;
 
 import com.lowlands.coffee.common.exception.BadRequestException;
+import com.lowlands.coffee.common.exception.DuplicateResourceException;
 import com.lowlands.coffee.modules.auth.dto.request.LoginRequest;
 import com.lowlands.coffee.modules.auth.dto.request.ProfileUpdateRequest;
 import com.lowlands.coffee.modules.auth.dto.request.RefreshTokenRequest;
@@ -65,7 +66,11 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public AuthResponse register(RegisterRequest request) {
         if (userRepository.existsByEmail(request.getEmail())) {
-            throw new BadRequestException("Email already exists");
+            throw new DuplicateResourceException("Email already exists");
+        }
+        if (request.getPhone() != null && !request.getPhone().isBlank()
+                && userRepository.existsByPhone(request.getPhone())) {
+            throw new DuplicateResourceException("Phone already exists");
         }
         RoleEntity customerRole = roleRepository.findByName("CUSTOMER")
                 .orElseThrow(() -> new BadRequestException("CUSTOMER role is missing"));

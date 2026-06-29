@@ -110,6 +110,24 @@ src/main/java/com/lowlands/coffee/
 - promotion
 - inventory
 
+## 5.2.1 Permission Naming Standard
+
+Backend RBAC permission codes must use action-level names:
+
+- `MODULE_VIEW`
+- `MODULE_CREATE`
+- `MODULE_UPDATE`
+- `MODULE_DELETE`
+
+Examples:
+
+- `USER_VIEW`
+- `STORE_CREATE`
+- `PRODUCT_UPDATE`
+- `GOODS_RECEIPT_DELETE`
+
+Do not introduce new `READ` or `MANAGE` permission codes. When a module needs a special workflow action that is not basic CRUD, use an explicit action name, for example `INVENTORY_ADJUST` or `GOODS_RECEIPT_COMPLETE`.
+
 ## 5.3 Module Structure
 
 modules/{module}/
