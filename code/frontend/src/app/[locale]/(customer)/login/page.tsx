@@ -21,8 +21,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const formSchema = zod.object({
-    email: zod.string().email({ message: "Invalid email" }),
-    password: zod.string().min(6, { message: "Password must be at least 6 characters" }),
+    email: zod.string().email({ message: "Email không hợp lệ" }),
+    password: zod.string().min(6, { message: "Mật khẩu phải có ít nhất 6 ký tự" }),
   });
 
   type FormData = zod.infer<typeof formSchema>;
@@ -43,7 +43,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await loginUser({ email: data.email, password: data.password });
-      
+
       const roleUpper = res.user.roleName?.toUpperCase();
       if (roleUpper === "ADMIN" || roleUpper === "MANAGER" || roleUpper === "STAFF") {
         toast.warning("Tài khoản nhân sự vui lòng đăng nhập tại cổng quản trị.");
