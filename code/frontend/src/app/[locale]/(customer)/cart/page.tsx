@@ -118,6 +118,7 @@ export default function CartPage() {
                         src={item.product.imageUrl}
                         alt={item.product.name}
                         fill
+                        sizes="(max-width: 640px) 96px, 80px"
                         className="object-cover"
                       />
                     ) : (

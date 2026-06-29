@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useAuthStore } from "@/store/auth.store";
 import { updateProfile } from "@/services/auth.service";
 import { getOrderHistory } from "@/services/order.service";
@@ -13,8 +13,7 @@ import { useRouter } from "@/i18n/navigation";
 import { ClipboardList, Settings, LogOut, ShieldAlert, AlertCircle } from "lucide-react";
 
 export default function ProfilePage() {
-  const t = useTranslations("auth");
-  const tCommon = useTranslations("common");
+  const { t } = useTranslation();
   const router = useRouter();
 
   const { user, isAuthenticated, logout, updateUser } = useAuthStore();
@@ -63,12 +62,12 @@ export default function ProfilePage() {
     try {
       const updatedUser = await updateProfile({ fullName, phone });
       updateUser(updatedUser);
-      toast.success(t("profileSaved"));
+      toast.success(t("auth.profileSaved"));
     } catch (err) {
       console.warn("Backend API offline. Simulating profile save locally.", err);
       if (user) {
         updateUser({ ...user, fullName, phone });
-        toast.success(t("profileSaved") + " (Cục bộ)");
+        toast.success(t("auth.profileSaved") + " (Cục bộ)");
       }
     } finally {
       setProfileLoading(false);
@@ -85,7 +84,7 @@ export default function ProfilePage() {
   if (!isAuthenticated) {
     return (
       <div className="py-20 text-center text-xs text-muted-foreground">
-        {tCommon("loading")}
+        {t("common.loading")}
       </div>
     );
   }
@@ -98,7 +97,7 @@ export default function ProfilePage() {
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-10 border-b border-border/50 pb-6">
           <div>
             <h1 className="font-heading font-extrabold text-3xl text-primary tracking-tight">
-              {t("profileTitle")}
+              {t("auth.profileTitle")}
             </h1>
             <div className="w-12 h-1 bg-accent rounded-full mt-3" />
           </div>
@@ -113,7 +112,7 @@ export default function ProfilePage() {
             className="flex items-center gap-2 text-destructive border-destructive/30 hover:bg-destructive/5 self-start"
           >
             <LogOut className="h-4 w-4" />
-            <span>{tCommon("logout")}</span>
+            <span>{t("common.logout")}</span>
           </Button>
         </div>
 
@@ -128,7 +127,7 @@ export default function ProfilePage() {
 
             <form onSubmit={handleUpdateProfile} className="flex flex-col gap-4">
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-muted-foreground">{t("fullName")}</label>
+                <label className="text-xs font-bold text-muted-foreground">{t("auth.fullName")}</label>
                 <Input
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
@@ -137,7 +136,7 @@ export default function ProfilePage() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-muted-foreground">{t("email")}</label>
+                <label className="text-xs font-bold text-muted-foreground">{t("auth.email")}</label>
                 <Input
                   value={user?.email}
                   disabled
@@ -146,7 +145,7 @@ export default function ProfilePage() {
               </div>
 
               <div className="flex flex-col gap-1.5">
-                <label className="text-xs font-bold text-muted-foreground">{t("phone")}</label>
+                <label className="text-xs font-bold text-muted-foreground">{t("auth.phone")}</label>
                 <Input
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
@@ -155,7 +154,7 @@ export default function ProfilePage() {
               </div>
 
               <Button type="submit" disabled={profileLoading} className="w-full rounded-full h-10 font-bold text-sm">
-                {profileLoading ? tCommon("loading") : tCommon("save")}
+                {profileLoading ? t("common.loading") : t("common.save")}
               </Button>
             </form>
           </div>
@@ -164,13 +163,13 @@ export default function ProfilePage() {
           <div className="lg:col-span-7 border border-border/85 rounded-2xl p-6 bg-card shadow-sm flex flex-col gap-6">
             <h3 className="font-bold text-base text-primary flex items-center gap-2 border-b border-border/60 pb-3">
               <ClipboardList className="h-5 w-5 text-accent" />
-              <span>{t("orderHistory")}</span>
+              <span>{t("auth.orderHistory")}</span>
             </h3>
 
             {historyLoading && (
               <div className="flex flex-col gap-3 py-12 justify-center items-center">
                 <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                <span className="text-xs text-muted-foreground">{tCommon("loading")}</span>
+                <span className="text-xs text-muted-foreground">{t("common.loading")}</span>
               </div>
             )}
 
@@ -198,7 +197,7 @@ export default function ProfilePage() {
               >
                 <div className="flex flex-col gap-1 text-left">
                   <div className="flex items-center gap-2 font-bold text-primary">
-                    <span>{t("orderCode")}: {order.orderCode}</span>
+                    <span>{t("auth.orderCode")}: {order.orderCode}</span>
                     <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full font-medium scale-90">
                       {order.status}
                     </span>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as zod from "zod";
@@ -22,9 +22,7 @@ import {
 import { ShoppingBag, ArrowLeft, CheckCircle2, AlertCircle } from "lucide-react";
 
 export default function CheckoutPage() {
-  const t = useTranslations("checkout");
-  const tCommon = useTranslations("common");
-  const tCart = useTranslations("cart");
+  const { t } = useTranslation();
   const router = useRouter();
 
   const { items, getSubtotal, getDiscountAmount, getTotalAmount, clearCart, orderType, selectedStoreId } = useCartStore();
@@ -35,11 +33,11 @@ export default function CheckoutPage() {
 
   // Zod form validation schema matching messages validations
   const formSchema = zod.object({
-    receiverName: zod.string().min(1, { message: t("validation.nameRequired") }),
+    receiverName: zod.string().min(1, { message: t("product.checkout.validation.nameRequired") }),
     receiverPhone: zod
       .string()
-      .regex(/^0[0-9]{9}$/, { message: t("validation.phoneInvalid") }),
-    deliveryAddress: zod.string().min(1, { message: t("validation.addressRequired") }),
+      .regex(/^0[0-9]{9}$/, { message: t("product.checkout.validation.phoneInvalid") }),
+    deliveryAddress: zod.string().min(1, { message: t("product.checkout.validation.addressRequired") }),
     note: zod.string().optional(),
     paymentMethod: zod.enum(["cod", "bank_transfer", "e_wallet"] as const),
   });
@@ -117,7 +115,7 @@ export default function CheckoutPage() {
     try {
       // Attempt to hit Spring Boot Backend API
       await createOrder(orderData);
-      toast.success(t("orderSuccess"));
+      toast.success(t("product.checkout.orderSuccess"));
       clearCart();
       router.push("/menu");
     } catch (err) {
@@ -142,12 +140,12 @@ export default function CheckoutPage() {
         <div className="rounded-full bg-secondary p-6 text-muted-foreground/45">
           <ShoppingBag className="h-16 w-16" />
         </div>
-        <h2 className="font-heading font-extrabold text-2xl text-primary">{tCart("empty")}</h2>
+        <h2 className="font-heading font-extrabold text-2xl text-primary">{t("product.cart.empty")}</h2>
         <Link
           href="/menu"
           className="rounded-full bg-primary px-6 py-3 text-sm font-bold text-primary-foreground hover:bg-primary/95 transition-colors"
         >
-          {tCommon("menu")}
+          {t("common.menu")}
         </Link>
       </div>
     );
@@ -163,11 +161,11 @@ export default function CheckoutPage() {
           className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-primary mb-8"
         >
           <ArrowLeft className="h-4 w-4" />
-          <span>{tCommon("cart")}</span>
+          <span>{t("common.cart")}</span>
         </Link>
 
         <h1 className="font-heading font-extrabold text-3xl text-primary tracking-tight mb-8">
-          {t("title")}
+          {t("product.checkout.title")}
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -179,11 +177,11 @@ export default function CheckoutPage() {
               {/* Shipping Address Section */}
               <div className="border border-border/85 rounded-2xl p-6 bg-card shadow-sm flex flex-col gap-4 text-left">
                 <h3 className="font-bold text-base text-primary border-b border-border/60 pb-3">
-                  {t("shippingAddress")}
+                  {t("product.checkout.shippingAddress")}
                 </h3>
                 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">{t("fullName")}</label>
+                  <label className="text-xs font-bold text-muted-foreground">{t("product.checkout.fullName")}</label>
                   <Input
                     {...register("receiverName")}
                     className="border-border text-xs sm:text-sm h-10"
@@ -195,7 +193,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">{t("phone")}</label>
+                  <label className="text-xs font-bold text-muted-foreground">{t("product.checkout.phone")}</label>
                   <Input
                     {...register("receiverPhone")}
                     className="border-border text-xs sm:text-sm h-10"
@@ -207,7 +205,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">{t("address")}</label>
+                  <label className="text-xs font-bold text-muted-foreground">{t("product.checkout.address")}</label>
                   <Input
                     {...register("deliveryAddress")}
                     className="border-border text-xs sm:text-sm h-10"
@@ -219,7 +217,7 @@ export default function CheckoutPage() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">{tCart("promoCode")} ({tCommon("empty")})</label>
+                  <label className="text-xs font-bold text-muted-foreground">{t("product.cart.promoCode")} ({t("common.empty")})</label>
                   <textarea
                     {...register("note")}
                     className="w-full min-h-[80px] border border-border rounded-xl p-3 text-xs sm:text-sm focus:outline-primary/50 bg-card resize-none"
@@ -231,7 +229,7 @@ export default function CheckoutPage() {
               {/* Payment Methods Section */}
               <div className="border border-border/85 rounded-2xl p-6 bg-card shadow-sm flex flex-col gap-4 text-left">
                 <h3 className="font-bold text-base text-primary border-b border-border/60 pb-3">
-                  {t("paymentMethod")}
+                  {t("product.checkout.paymentMethod")}
                 </h3>
                 
                 <div className="flex flex-col gap-3">
@@ -242,7 +240,7 @@ export default function CheckoutPage() {
                       {...register("paymentMethod")}
                       className="accent-primary"
                     />
-                    <span className="text-xs sm:text-sm font-semibold">{t("cashOnDelivery")}</span>
+                    <span className="text-xs sm:text-sm font-semibold">{t("product.checkout.cashOnDelivery")}</span>
                   </label>
 
                   <label className="flex items-center gap-3 border border-border/80 rounded-xl p-3.5 hover:bg-muted/30 cursor-pointer">
@@ -252,7 +250,7 @@ export default function CheckoutPage() {
                       {...register("paymentMethod")}
                       className="accent-primary"
                     />
-                    <span className="text-xs sm:text-sm font-semibold">{t("bankTransfer")}</span>
+                    <span className="text-xs sm:text-sm font-semibold">{t("product.checkout.bankTransfer")}</span>
                   </label>
 
                   <label className="flex items-center gap-3 border border-border/80 rounded-xl p-3.5 hover:bg-muted/30 cursor-pointer">
@@ -262,7 +260,7 @@ export default function CheckoutPage() {
                       {...register("paymentMethod")}
                       className="accent-primary"
                     />
-                    <span className="text-xs sm:text-sm font-semibold">{t("eWallet")}</span>
+                    <span className="text-xs sm:text-sm font-semibold">{t("product.checkout.eWallet")}</span>
                   </label>
                 </div>
               </div>
@@ -273,7 +271,7 @@ export default function CheckoutPage() {
                 disabled={submitting}
                 className="w-full py-6 rounded-full font-bold text-sm"
               >
-                {submitting ? tCommon("loading") : t("placeOrder")}
+                {submitting ? t("common.loading") : t("product.checkout.placeOrder")}
               </Button>
 
             </form>
@@ -283,7 +281,7 @@ export default function CheckoutPage() {
           <div className="lg:col-span-5 flex flex-col gap-4">
             <div className="border border-border/85 rounded-2xl p-6 bg-card shadow-sm flex flex-col gap-4">
               <h3 className="font-bold text-base text-primary border-b border-border/60 pb-3">
-                {t("orderSummary")}
+                {t("product.checkout.orderSummary")}
               </h3>
 
               {/* Summary Items list */}
@@ -308,17 +306,17 @@ export default function CheckoutPage() {
               {/* Price Calculations */}
               <div className="flex flex-col gap-2 text-xs sm:text-sm">
                 <div className="flex justify-between text-muted-foreground">
-                  <span>{tCart("subtotal")}</span>
+                  <span>{t("product.cart.subtotal")}</span>
                   <span className="font-semibold text-foreground">{formatPrice(getSubtotal())}</span>
                 </div>
                 {getDiscountAmount() > 0 && (
                   <div className="flex justify-between text-accent font-semibold">
-                    <span>{tCart("discount")}</span>
+                    <span>{t("product.cart.discount")}</span>
                     <span>-{formatPrice(getDiscountAmount())}</span>
                   </div>
                 )}
                 <div className="flex justify-between border-t border-border/60 pt-3 text-base font-extrabold text-primary">
-                  <span>{tCommon("total")}</span>
+                  <span>{t("common.total")}</span>
                   <span className="text-lg font-black">{formatPrice(getTotalAmount())}</span>
                 </div>
               </div>
