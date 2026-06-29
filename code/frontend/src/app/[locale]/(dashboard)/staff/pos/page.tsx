@@ -65,13 +65,10 @@ export default function StaffPOSPage() {
 
   useEffect(() => {
     setIsMounted(true);
-<<<<<<< HEAD
     void hydrateProductCatalog("public");
   }, [hydrateProductCatalog]);
 
   useEffect(() => {
-    if (categories.length > 0) {
-=======
     if (!isAuthenticated || !user) {
       router.push(`/${locale}/portal/login`);
       return;
@@ -85,7 +82,6 @@ export default function StaffPOSPage() {
 
   useEffect(() => {
     if (categories.length > 0 && selectedCategoryId === null) {
->>>>>>> ee3e379979843d4ff34e05a6d50561b1a92cd351
       setSelectedCategoryId(categories[0].id);
     }
   }, [categories, selectedCategoryId]);

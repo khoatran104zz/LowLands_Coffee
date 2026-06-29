@@ -56,9 +56,6 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await loginUser({ email: data.email, password: data.password });
-<<<<<<< HEAD
-      login(res.user, res.accessToken, res.refreshToken);
-=======
       
       const roleUpper = res.user.roleName?.toUpperCase();
       if (roleUpper === "ADMIN" || roleUpper === "MANAGER" || roleUpper === "STAFF") {
@@ -67,9 +64,7 @@ export default function LoginPage() {
         return;
       }
 
-      login(res.user, res.accessToken);
-      localStorage.setItem("lowlands_refresh_token", res.refreshToken);
->>>>>>> ee3e379979843d4ff34e05a6d50561b1a92cd351
+      login(res.user, res.accessToken, res.refreshToken);
       toast.success(tCommon("login") + " success");
       router.push(getRoleRedirectPath(res.user.role ?? res.user.roleName));
     } catch (err) {
