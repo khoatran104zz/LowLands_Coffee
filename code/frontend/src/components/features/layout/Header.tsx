@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useLocale } from "next-intl";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -57,12 +57,18 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [megaMenuOpen, setMegaMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
   
   // Zustand State hooks
   const cartItemsCount = useCartStore((state) => 
     state.items.reduce((count, item) => count + item.quantity, 0)
   );
   const { isAuthenticated, user, logout } = useAuthStore();
+  const showAuth = isMounted && isAuthenticated;
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-secondary/95 backdrop-blur-md transition-all shadow-xs">
@@ -157,7 +163,7 @@ export function Header() {
           </Link>
 
           {/* Auth Menu */}
-          {isAuthenticated ? (
+          {showAuth ? (
             <div 
               className="relative flex items-center h-full border-l border-border/60 pl-3 xl:pl-4"
               onMouseEnter={() => setUserMenuOpen(true)}
@@ -361,7 +367,7 @@ export function Header() {
               </div>
             </div>
 
-            {isAuthenticated ? (
+            {showAuth ? (
               <div className="flex flex-col gap-4 pt-2">
                 <Link
                   href="/profile"
