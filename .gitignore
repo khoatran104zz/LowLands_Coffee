@@ -9,3 +9,4 @@ code/backend/target/
 *.log
 .env
 .env.*
+!.env.example
