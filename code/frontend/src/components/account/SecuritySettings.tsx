@@ -4,10 +4,11 @@ import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Lock, KeyRound, ShieldCheck, RefreshCw, ToggleLeft, ToggleRight } from "lucide-react";
 
 export function SecuritySettings() {
+  const { t } = useTranslation();
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -23,7 +24,7 @@ export function SecuritySettings() {
     }
 
     if (newPassword !== confirmPassword) {
-      toast.error(UI_TEXT.account.passwordError);
+      toast.error(t("auth.account.passwordError"));
       return;
     }
 
@@ -60,13 +61,13 @@ export function SecuritySettings() {
       <div className="bg-white dark:bg-zinc-900/45 border border-zinc-200/80 dark:border-zinc-850 p-6 rounded-2xl flex flex-col gap-4">
         <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800/80 pb-2.5 mb-2 select-none flex items-center gap-1.5">
           <KeyRound className="h-4 w-4 text-zinc-400" />
-          <span>{UI_TEXT.account.changePassword}</span>
+          <span>{t("auth.account.changePassword")}</span>
         </h3>
 
         <form onSubmit={handlePasswordChange} className="flex flex-col gap-4">
           {/* Current Password */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">{UI_TEXT.account.currentPassword} *</label>
+            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">{t("auth.account.currentPassword")} *</label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400 pointer-events-none">
                 <Lock className="h-4 w-4" />
@@ -84,7 +85,7 @@ export function SecuritySettings() {
 
           {/* New Password */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">{UI_TEXT.account.newPassword} *</label>
+            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">{t("auth.account.newPassword")} *</label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400 pointer-events-none">
                 <Lock className="h-4 w-4" />
@@ -102,7 +103,7 @@ export function SecuritySettings() {
 
           {/* Confirm New Password */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">{UI_TEXT.account.confirmNewPassword} *</label>
+            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">{t("auth.account.confirmNewPassword")} *</label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400 pointer-events-none">
                 <Lock className="h-4 w-4" />
@@ -137,7 +138,7 @@ export function SecuritySettings() {
         <div className="space-y-4">
           <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800/80 pb-2.5 mb-2 select-none flex items-center gap-1.5">
             <ShieldCheck className="h-4 w-4 text-zinc-400" />
-            <span>{UI_TEXT.account.twoFactor}</span>
+            <span>{t("auth.account.twoFactor")}</span>
           </h3>
 
           <p className="text-[11px] text-zinc-500 font-medium leading-relaxed">

@@ -1,4 +1,4 @@
-import { getMessages } from "next-intl/server";
+import { getMessages, getTranslations } from "next-intl/server";
 import { Hero } from "@/components/features/home/Hero";
 import { PromoBannerCarousel } from "@/components/features/home/PromoBannerCarousel";
 import { FeaturedProducts } from "@/components/features/home/FeaturedProducts";
@@ -8,10 +8,8 @@ import { StoreLocator } from "@/components/features/home/StoreLocator";
 
 
 export async function generateMetadata() {
-  const messages = (await getMessages()) as unknown as {
-    seo?: { homeTitle?: string; homeDesc?: string };
-  };
-  const tSeo = messages.seo;
+  const messages = (await getMessages()) as any;
+  const tSeo = messages.common?.seo;
 
   return {
     metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"),
@@ -32,10 +30,12 @@ export async function generateMetadata() {
   };
 }
 
-export default function HomePage() {
+export default async function HomePage() {
+  const t = await getTranslations();
+
   return (
     <div className="flex flex-col w-full">
-      <h1 className="sr-only">Lowlands Coffee - Modern Vietnamese Coffee Shop</h1>
+      <h1 className="sr-only">{t("common.brandName")} - {t("common.seo.homeTitle")}</h1>
       <Hero />
       <PromoBannerCarousel />
       <FeaturedProducts />

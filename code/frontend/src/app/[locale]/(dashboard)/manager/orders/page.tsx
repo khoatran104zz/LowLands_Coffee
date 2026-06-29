@@ -9,9 +9,10 @@ import { Filter } from "@/components/tables/Filter";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function ManagerOrdersPage() {
+  const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -26,7 +27,7 @@ export default function ManagerOrdersPage() {
     setIsMounted(true);
   }, []);
 
-  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{UI_TEXT.common.loading}</div>;
+  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
 
   // StoreId = 2: Hồ Con Rùa branch orders ONLY
   const MY_BRANCH_ID = 2;
@@ -111,7 +112,7 @@ export default function ManagerOrdersPage() {
       {/* Title */}
       <div className="text-left select-none">
         <h1 className="text-xl font-bold text-amber-900 font-outfit uppercase tracking-wide">
-          {UI_TEXT.manager.orderWorkflow}
+          {t("staff.manager.orderWorkflow")}
         </h1>
         <p className="text-xs text-muted-foreground font-semibold mt-1">
           Quy trình tiếp nhận, pha chế món và bàn giao nước cho khách hàng tại chi nhánh.

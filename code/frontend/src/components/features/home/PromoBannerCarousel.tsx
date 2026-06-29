@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Link } from "@/i18n/navigation";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -17,6 +18,7 @@ interface Banner {
 }
 
 export function PromoBannerCarousel() {
+  const { t } = useTranslation();
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState(0); // -1 for left, 1 for right
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -24,10 +26,10 @@ export function PromoBannerCarousel() {
   const banners: Banner[] = [
     {
       id: 1,
-      title: "HAPPY HOUR 14:00 – 17:00",
-      subtitle: "GIẢM 20% TOÀN BỘ ĐỒ UỐNG",
-      desc: "Nạp năng lượng buổi chiều cùng hương vị đậm đà nguyên bản của phin cà phê và trà thanh mát tại Lowlands.",
-      ctaText: "Đặt ngay",
+      title: t("landing.promo1.title"),
+      subtitle: t("landing.promo1.subtitle"),
+      desc: t("landing.promo1.desc"),
+      ctaText: t("landing.promo1.ctaText"),
       link: "/menu",
       bgClass: "bg-[#2D1A19] text-white border-y border-[#C5A880]/20",
       style: {
@@ -36,10 +38,10 @@ export function PromoBannerCarousel() {
     },
     {
       id: 2,
-      title: "COMBO BUỔI SÁNG",
-      subtitle: "PHIN SỮA ĐÁ + BÁNH MÌ CHỈ 49.000Đ",
-      desc: "Bữa sáng trọn vẹn kiểu Việt: bánh mì giòn tan kết hợp cùng ly Phin Sữa Đá truyền thống thơm ngon đậm đà.",
-      ctaText: "Xem combo",
+      title: t("landing.promo2.title"),
+      subtitle: t("landing.promo2.subtitle"),
+      desc: t("landing.promo2.desc"),
+      ctaText: t("landing.promo2.ctaText"),
       link: "/menu?search=Combo",
       bgClass: "bg-[#F7F3E9] text-[#2D1A19] border-y border-border/40",
       style: {
@@ -48,10 +50,10 @@ export function PromoBannerCarousel() {
     },
     {
       id: 3,
-      title: "ƯU ĐÃI THÀNH VIÊN MỚI",
-      subtitle: "TÍCH ĐIỂM X2 CHO LẦN ORDER ĐẦU TIÊN",
-      desc: "Trở thành hội viên Lowlands Club hôm nay để hưởng hàng ngàn ưu đãi đặc quyền, freeship và tích lũy điểm thưởng.",
-      ctaText: "Đăng ký ngay",
+      title: t("landing.promo3.title"),
+      subtitle: t("landing.promo3.subtitle"),
+      desc: t("landing.promo3.desc"),
+      ctaText: t("landing.promo3.ctaText"),
       link: "/register",
       bgClass: "text-white border-y border-[#C5A880]/30",
       style: {

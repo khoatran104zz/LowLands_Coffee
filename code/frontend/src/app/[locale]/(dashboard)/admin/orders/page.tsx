@@ -10,9 +10,10 @@ import { Filter } from "@/components/tables/Filter";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function AdminOrdersPage() {
+  const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [branchFilter, setBranchFilter] = useState("");
@@ -30,7 +31,7 @@ export default function AdminOrdersPage() {
     setIsMounted(true);
   }, []);
 
-  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{UI_TEXT.common.loading}</div>;
+  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
 
   // Filter orders
   const filteredOrders = orders.filter((o) => {
@@ -119,7 +120,7 @@ export default function AdminOrdersPage() {
       {/* Title */}
       <div className="text-left">
         <h1 className="text-xl font-bold text-amber-900 font-outfit uppercase tracking-wide">
-          {UI_TEXT.common.orders}
+          {t("common.orders")}
         </h1>
         <p className="text-xs text-muted-foreground font-semibold mt-1">
           Theo dõi tiến độ, thanh toán và xử lý đơn hàng tại quầy &amp; giao đi cho khách hàng.

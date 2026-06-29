@@ -1,0 +1,41 @@
+{
+  "manager": {
+    "dashboardTitle": "Cửa hàng trưởng - Báo cáo Chi nhánh",
+    "todayRevenue": "Doanh thu hôm nay",
+    "todayOrders": "Đơn hàng hôm nay",
+    "activeStaff": "Nhân viên đang trực",
+    "inventoryWarning": "Nguyên liệu sắp hết",
+    "orderWorkflow": "Quy trình xử lý đơn hàng",
+    "ingredientList": "Danh sách nguyên liệu",
+    "importStock": "Nhập thêm nguyên liệu",
+    "importStockTitle": "Phiếu nhập kho nguyên liệu",
+    "staffPerformance": "Hiệu suất nhân viên",
+    "workingShift": "Ca làm việc",
+    "weeklyRevenue": "Doanh thu tuần này",
+    "monthlyRevenue": "Doanh thu tháng này"
+  },
+  "pos": {
+    "coffee": "Cà phê",
+    "tea": "Trà trái cây",
+    "cake": "Bánh ngọt",
+    "food": "Đồ ăn nhanh",
+    "cartTitle": "Đơn hàng hiện tại",
+    "emptyCart": "Chưa có món nào được chọn",
+    "addNote": "Thêm ghi chú...",
+    "payCash": "Tiền mặt",
+    "payCard": "Quẹt thẻ",
+    "payQR": "Quét mã QR",
+    "checkoutSuccess": "Thanh toán thành công!",
+    "orderCode": "Mã hóa đơn",
+    "receiptPreview": "Xem trước hóa đơn bán lẻ",
+    "printReceipt": "In hóa đơn",
+    "close": "Đóng cửa sổ",
+    "customerName": "Khách hàng",
+    "staffName": "Thu ngân",
+    "dateTime": "Thời gian",
+    "cashReceived": "Tiền khách đưa",
+    "cashReturned": "Tiền thối lại",
+    "notePlaceholder": "Ví dụ: Ít sữa, nhiều đá, chia 2 ly...",
+    "addToOrder": "+ Thêm vào đơn"
+  }
+}

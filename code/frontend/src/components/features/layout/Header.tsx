@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Link, usePathname } from "@/i18n/navigation";
-import { useTranslations, useLocale } from "next-intl";
+import { useLocale } from "next-intl";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useCartStore } from "@/store/cart.store";
 import { useAuthStore } from "@/store/auth.store";
 import { LanguageSwitcher } from "./LanguageSwitcher";
@@ -50,7 +51,7 @@ const MEGA_MENU_CATEGORIES = [
 ];
 
 export function Header() {
-  const t = useTranslations();
+  const { t } = useTranslation();
   const locale = useLocale();
   const pathname = usePathname();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -186,14 +187,14 @@ export function Header() {
                       onClick={() => setUserMenuOpen(false)}
                       className="block px-4 py-2 text-foreground hover:bg-[#C8510A]/10 hover:text-[#C8510A] transition-colors"
                     >
-                      Trang cá nhân
+                      {t("header.profile")}
                     </Link>
                     <Link
                       href="/profile#orders"
                       onClick={() => setUserMenuOpen(false)}
                       className="block px-4 py-2 text-foreground hover:bg-[#C8510A]/10 hover:text-[#C8510A] transition-colors"
                     >
-                      Lịch sử mua hàng
+                      {t("header.orders")}
                     </Link>
                     {user?.roleName?.toUpperCase() === "ADMIN" || user?.roleName?.toUpperCase() === "STAFF" ? (
                       <Link
@@ -201,7 +202,7 @@ export function Header() {
                         onClick={() => setUserMenuOpen(false)}
                         className="block px-4 py-2 text-foreground hover:bg-[#C8510A]/10 hover:text-[#C8510A] transition-colors"
                       >
-                        Quản trị hệ thống
+                        {t("header.adminPortal")}
                       </Link>
                     ) : null}
                     <div className="border-t border-border/40 my-1" />
@@ -212,7 +213,7 @@ export function Header() {
                       }}
                       className="w-full text-left px-4 py-2 text-destructive hover:bg-destructive/10 transition-colors cursor-pointer font-bold"
                     >
-                      Đăng xuất
+                      {t("header.logout")}
                     </button>
                   </motion.div>
                 )}
@@ -289,7 +290,7 @@ export function Header() {
               ))}
             </div>
             <div className="bg-[#211210] border-t border-white/5 py-3 text-center text-[10px] text-white/40 tracking-wider font-semibold">
-              LOWLANDS COFFEE & TEA • TRẢI NGHIỆM PHIN HIỆN ĐẠI
+              {t("common.brandName").toUpperCase()} • {t("header.mobileExperience")}
             </div>
           </motion.div>
         )}

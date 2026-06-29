@@ -3,9 +3,10 @@
 import React from "react";
 import { useAuthStore } from "@/store/auth.store";
 import { ShieldCheck, CheckCircle2 } from "lucide-react";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export function PermissionList() {
+  const { t } = useTranslation();
   const user = useAuthStore((state) => state.user);
 
   if (!user) return null;
@@ -55,7 +56,7 @@ export function PermissionList() {
       <div>
         <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800/80 pb-2.5 mb-1.5 select-none flex items-center gap-1.5">
           <ShieldCheck className="h-4 w-4 text-zinc-400" />
-          <span>{UI_TEXT.account.permissions}</span>
+          <span>{t("auth.account.permissions")}</span>
         </h3>
         <p className="text-[10px] text-zinc-400 font-bold uppercase mt-1">
           Chức vụ hiện tại: <span className="text-amber-800 font-extrabold">{user.roleName}</span>

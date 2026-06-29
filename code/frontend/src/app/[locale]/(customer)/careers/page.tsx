@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useTranslation } from "@/hooks/useTranslation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Briefcase, MapPin, Clock, Upload, CheckCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -14,6 +15,7 @@ interface Job {
 }
 
 export default function CareersPage() {
+  const { t } = useTranslation();
   const [filterType, setFilterType] = useState<string>("All");
   const [filterLoc, setFilterLoc] = useState<string>("All");
   const [formData, setFormData] = useState({
@@ -25,13 +27,13 @@ export default function CareersPage() {
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const jobs: Job[] = [
-    { id: 1, title: "Cửa Hàng Trưởng (Store Manager)", location: "TP.HCM", type: "Full-time", salary: "12 - 15 triệu" },
-    { id: 2, title: "Barista Chuyên Nghiệp", location: "Hà Nội", type: "Full-time", salary: "7 - 9 triệu" },
-    { id: 3, title: "Nhân Viên Phục Vụ Khách Hàng", location: "Đà Nẵng", type: "Part-time", salary: "22k - 25k/giờ" },
-    { id: 4, title: "Thực Tập Sinh R&D Đồ Uống", location: "TP.HCM", type: "Intern", salary: "Thỏa thuận" },
-    { id: 5, title: "Giám Sát Ca Làm Việc", location: "TP.HCM", type: "Full-time", salary: "8 - 10 triệu" },
-    { id: 6, title: "Nhân Viên Thu Ngân POS", location: "Hà Nội", type: "Part-time", salary: "22k - 25k/giờ" },
-    { id: 7, title: "Nhân Viên Pha Chế (Barista)", location: "Đà Nẵng", type: "Full-time", salary: "6.5 - 8 triệu" }
+    { id: 1, title: t("landing.careersPage.jobs.j1"), location: "TP.HCM", type: "Full-time", salary: `12 - 15 ${t("landing.careersPage.jobs.million")}` },
+    { id: 2, title: t("landing.careersPage.jobs.j2"), location: "Hà Nội", type: "Full-time", salary: `7 - 9 ${t("landing.careersPage.jobs.million")}` },
+    { id: 3, title: t("landing.careersPage.jobs.j3"), location: "Đà Nẵng", type: "Part-time", salary: t("landing.careersPage.jobs.hourly") },
+    { id: 4, title: t("landing.careersPage.jobs.j4"), location: "TP.HCM", type: "Intern", salary: t("landing.careersPage.jobs.negotiable") },
+    { id: 5, title: t("landing.careersPage.jobs.j5"), location: "TP.HCM", type: "Full-time", salary: `8 - 10 ${t("landing.careersPage.jobs.million")}` },
+    { id: 6, title: t("landing.careersPage.jobs.j6"), location: "Hà Nội", type: "Part-time", salary: t("landing.careersPage.jobs.hourly") },
+    { id: 7, title: t("landing.careersPage.jobs.j7"), location: "Đà Nẵng", type: "Full-time", salary: `6.5 - 8 ${t("landing.careersPage.jobs.million")}` }
   ];
 
   const filteredJobs = jobs.filter((job) => {
@@ -62,12 +64,12 @@ export default function CareersPage() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name || !formData.email || !formData.position) {
-      toast.error("Vui lòng điền đầy đủ thông tin bắt buộc!");
+      toast.error(t("landing.careersPage.validationError"));
       return;
     }
     // Simulate submission
     setIsSubmitted(true);
-    toast.success("Hồ sơ ứng tuyển của bạn đã được gửi thành công!");
+    toast.success(t("landing.careersPage.successToast"));
   };
 
   const handleResetForm = () => {
@@ -92,7 +94,7 @@ export default function CareersPage() {
             animate={{ opacity: 1, scale: 1 }}
             className="inline-block text-xs font-black uppercase tracking-widest text-accent bg-accent/15 px-4 py-1.5 rounded-full border border-accent/20 backdrop-blur-xs mb-4"
           >
-            Tuyển dụng nhân sự
+            {t("landing.careersPage.badge")}
           </motion.span>
           <motion.h1 
             initial={{ opacity: 0, y: 25 }}
@@ -100,7 +102,12 @@ export default function CareersPage() {
             transition={{ duration: 0.55, delay: 0.1 }}
             className="font-heading font-black text-4xl sm:text-5xl uppercase tracking-tight leading-tight"
           >
-            Đồng Hành Kiến Tạo <br /> Trải Nghiệm Cà Phê Mới
+            {t("landing.careersPage.heroTitle").split("\n").map((line, idx) => (
+              <React.Fragment key={idx}>
+                {line}
+                {idx < t("landing.careersPage.heroTitle").split("\n").length - 1 && <br />}
+              </React.Fragment>
+            ))}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0, y: 20 }}
@@ -108,7 +115,7 @@ export default function CareersPage() {
             transition={{ duration: 0.55, delay: 0.2 }}
             className="text-xs sm:text-sm font-semibold opacity-90 max-w-xl leading-relaxed mt-4"
           >
-            Tại Lowlands, chúng tôi trân trọng mỗi cá nhân và mong muốn tạo dựng một môi trường làm việc trẻ trung, sáng tạo, nơi mọi ý tưởng đột phá đều được chào đón.
+            {t("landing.careersPage.heroDesc")}
           </motion.p>
         </div>
       </section>
@@ -118,7 +125,7 @@ export default function CareersPage() {
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="font-heading font-extrabold text-3xl text-primary uppercase tracking-tight">Cơ Hội Việc Làm</h2>
+            <h2 className="font-heading font-extrabold text-3xl text-primary uppercase tracking-tight">{t("landing.careersPage.sectionTitle")}</h2>
             <div className="w-12 h-0.5 bg-accent mx-auto mt-3 rounded-full" />
           </div>
 
@@ -134,7 +141,7 @@ export default function CareersPage() {
                     filterType === type ? "bg-[#C8510A] text-white shadow-xs" : "text-muted-foreground hover:text-primary"
                   }`}
                 >
-                  {type === "All" ? "Tất cả loại hình" : type}
+                  {type === "All" ? t("landing.careersPage.allTypes") : type}
                 </button>
               ))}
             </div>
@@ -149,7 +156,7 @@ export default function CareersPage() {
                     filterLoc === loc ? "bg-[#C8510A] text-white shadow-xs" : "text-muted-foreground hover:text-primary"
                   }`}
                 >
-                  {loc === "All" ? "Tất cả khu vực" : loc}
+                  {loc === "All" ? t("landing.careersPage.allLocs") : loc}
                 </button>
               ))}
             </div>
@@ -192,14 +199,14 @@ export default function CareersPage() {
                         onClick={() => handleApplyClick(job.title)}
                         className="bg-[#C8510A] hover:bg-[#B04308] text-white text-[10px] font-black uppercase tracking-wider px-4 py-2.5 rounded-full transition-all cursor-pointer shadow-xs"
                       >
-                        Ứng tuyển ngay
+                        {t("landing.careersPage.applyNow")}
                       </button>
                     </div>
                   </motion.div>
                 ))
               ) : (
                 <div className="col-span-2 text-center py-10 text-muted-foreground text-sm font-semibold">
-                  Không tìm thấy vị trí tuyển dụng nào phù hợp.
+                  {t("landing.careersPage.noJobs")}
                 </div>
               )}
             </AnimatePresence>
@@ -213,7 +220,7 @@ export default function CareersPage() {
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="font-heading font-extrabold text-3xl text-primary uppercase tracking-tight">Văn Hóa Làm Việc</h2>
+            <h2 className="font-heading font-extrabold text-3xl text-primary uppercase tracking-tight">{t("landing.careersPage.cultureTitle")}</h2>
             <div className="w-12 h-0.5 bg-accent mx-auto mt-3 rounded-full" />
           </div>
 
@@ -224,9 +231,9 @@ export default function CareersPage() {
             </div>
             {/* Highlight copy block */}
             <div className="md:col-span-4 bg-[#2D1A19] text-white p-8 rounded-2xl flex flex-col justify-center text-left border border-[#C5A880]/20">
-              <h3 className="font-heading font-extrabold text-lg text-accent uppercase leading-snug">Chính sách đào tạo bài bản</h3>
+              <h3 className="font-heading font-extrabold text-lg text-accent uppercase leading-snug">{t("landing.careersPage.cultureSub")}</h3>
               <p className="text-xs opacity-80 leading-relaxed mt-2 text-justify">
-                Được đào tạo tay nghề Barista chuyên nghiệp từ cơ bản đến nâng cao hoàn toàn miễn phí. Hỗ trợ định hướng và nâng tầm lộ trình phát triển sự nghiệp cá nhân.
+                {t("landing.careersPage.cultureDesc")}
               </p>
             </div>
             {/* Image 2 */}
@@ -254,12 +261,12 @@ export default function CareersPage() {
             {!isSubmitted ? (
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="text-center pb-2">
-                  <h2 className="font-heading font-extrabold text-xl sm:text-2xl text-primary uppercase">Ứng Tuyển Nhanh</h2>
-                  <p className="text-xs text-muted-foreground mt-1">Vui lòng điền thông tin và tải lên CV ứng tuyển cá nhân.</p>
+                  <h2 className="font-heading font-extrabold text-xl sm:text-2xl text-primary uppercase">{t("landing.careersPage.formTitle")}</h2>
+                  <p className="text-xs text-muted-foreground mt-1">{t("landing.careersPage.formDesc")}</p>
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Họ và tên *</label>
+                  <label className="text-xs font-black uppercase tracking-wider text-muted-foreground">{t("landing.careersPage.labelName")}</label>
                   <input
                     type="text"
                     name="name"
@@ -272,7 +279,7 @@ export default function CareersPage() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Địa chỉ Email *</label>
+                  <label className="text-xs font-black uppercase tracking-wider text-muted-foreground">{t("landing.careersPage.labelEmail")}</label>
                   <input
                     type="email"
                     name="email"
@@ -285,20 +292,20 @@ export default function CareersPage() {
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Vị trí ứng tuyển *</label>
+                  <label className="text-xs font-black uppercase tracking-wider text-muted-foreground">{t("landing.careersPage.labelPosition")}</label>
                   <input
                     type="text"
                     name="position"
                     value={formData.position}
                     onChange={handleInputChange}
-                    placeholder="VD: Cửa Hàng Trưởng, Barista..."
+                    placeholder={t("landing.careersPage.jobs.negotiable").replace("Thỏa thuận", "VD: Cửa Hàng Trưởng, Barista...")}
                     required
                     className="w-full text-xs p-3 border border-border bg-white text-foreground rounded-xl focus:outline-none focus:ring-1 focus:ring-[#C8510A] focus:border-[#C8510A] transition-all font-semibold"
                   />
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-black uppercase tracking-wider text-muted-foreground">Tải lên hồ sơ / CV (PDF) *</label>
+                  <label className="text-xs font-black uppercase tracking-wider text-muted-foreground">{t("landing.careersPage.labelResume")}</label>
                   <div className="relative border-2 border-dashed border-border/80 hover:border-[#C5A880]/80 transition-colors rounded-xl p-6 flex flex-col items-center justify-center cursor-pointer">
                     <input
                       type="file"
@@ -309,9 +316,9 @@ export default function CareersPage() {
                     />
                     <Upload className="h-8 w-8 text-[#C8510A] mb-2 opacity-80" />
                     <span className="text-xs font-bold text-muted-foreground">
-                      {formData.resume ? formData.resume.name : "Kéo thả hoặc nhấp chọn để tải CV"}
+                      {formData.resume ? formData.resume.name : t("landing.careersPage.resumePlaceholder")}
                     </span>
-                    <span className="text-[10px] text-muted-foreground/60 mt-1">Định dạng hỗ trợ: PDF, Word (Max 5MB)</span>
+                    <span className="text-[10px] text-muted-foreground/60 mt-1">{t("landing.careersPage.resumeHint")}</span>
                   </div>
                 </div>
 
@@ -320,7 +327,7 @@ export default function CareersPage() {
                     type="submit"
                     className="w-full bg-[#C8510A] hover:bg-[#B04308] text-white font-black text-xs uppercase tracking-wider py-3 rounded-xl transition-all cursor-pointer shadow-xs"
                   >
-                    Gửi hồ sơ ứng tuyển
+                    {t("landing.careersPage.submitButton")}
                   </button>
                 </div>
               </form>
@@ -333,16 +340,16 @@ export default function CareersPage() {
                 <div className="h-16 w-16 bg-emerald-100 rounded-full flex items-center justify-center border border-emerald-200">
                   <CheckCircle className="h-8 w-8 text-emerald-600 animate-pulse" />
                 </div>
-                <h3 className="font-heading font-extrabold text-xl text-emerald-800 uppercase">Gửi Hồ Sơ Thành Công</h3>
+                <h3 className="font-heading font-extrabold text-xl text-emerald-800 uppercase">{t("landing.careersPage.successTitle")}</h3>
                 <p className="text-xs text-muted-foreground max-w-sm leading-relaxed">
-                  Cảm ơn ứng viên <span className="font-bold text-foreground">{formData.name}</span>! Lowlands đã tiếp nhận thông tin ứng tuyển vị trí <span className="font-bold text-foreground">{formData.position}</span>. Chúng tôi sẽ phản hồi lại bạn qua email sớm nhất có thể.
+                  {t("landing.careersPage.successDesc").replace("{name}", formData.name).replace("{position}", formData.position)}
                 </p>
                 <div className="pt-2">
                   <button
                     onClick={handleResetForm}
                     className="bg-secondary hover:bg-secondary/80 text-foreground font-black text-[10px] uppercase tracking-wider px-5 py-2.5 rounded-xl border border-border/50 transition-all cursor-pointer"
                   >
-                    Nộp đơn ứng tuyển khác
+                    {t("landing.careersPage.applyOtherButton")}
                   </button>
                 </div>
               </motion.div>

@@ -1,0 +1,57 @@
+{
+  "menu": {
+    "title": "Our Menu",
+    "searchPlaceholder": "Search coffee, tea...",
+    "filterPrice": "Filter by Price",
+    "all": "All",
+    "noProducts": "No products found in this category.",
+    "size": "Size",
+    "topping": "Extra Toppings",
+    "priceRange": "Price range:",
+    "apiErrorTitle": "Backend API Error",
+    "apiErrorDesc": "Failed to load products from backend API. Frontend does not use fallback mock products, please verify the Spring Boot API and seed data."
+  },
+  "detail": "Product Detail",
+  "description": "Description",
+  "sizeS": "Small (S)",
+  "sizeM": "Regular (M)",
+  "sizeL": "Large (L)",
+  "addedToCart": "Successfully added product to cart!",
+  "outOfStock": "Product temporarily out of stock!",
+  "defaultDescription": "Signature delicious flavor only available at Lowlands Coffee.",
+  "cart": {
+    "title": "Your Cart",
+    "empty": "Your cart is empty.",
+    "itemCount": "{count} items",
+    "summary": "Order Summary",
+    "subtotal": "Subtotal",
+    "discount": "Discount",
+    "total": "Total Amount",
+    "checkout": "Proceed to checkout",
+    "removeConfirm": "Are you sure you want to remove this item from the cart?",
+    "promoCode": "Promo Code",
+    "applyPromo": "Apply",
+    "promoSuccess": "Promo code applied successfully!",
+    "promoInvalid": "Invalid or expired promo code.",
+    "note": "Note for barista..."
+  },
+  "checkout": {
+    "title": "Checkout",
+    "shippingAddress": "Shipping Address",
+    "paymentMethod": "Payment Method",
+    "orderSummary": "Order Summary",
+    "fullName": "Recipient's Name",
+    "phone": "Recipient's Phone Number",
+    "address": "Detailed Address (Street name, house number, ward, district...)",
+    "cashOnDelivery": "Cash on Delivery (COD)",
+    "bankTransfer": "Bank Transfer",
+    "eWallet": "E-Wallet (Momo / ZaloPay)",
+    "placeOrder": "Place Order Now",
+    "orderSuccess": "Order placed successfully! Thank you for choosing Lowlands Coffee.",
+    "validation": {
+      "nameRequired": "Recipient's name cannot be empty",
+      "phoneInvalid": "Invalid phone number (must be 10 digits)",
+      "addressRequired": "Shipping address cannot be empty"
+    }
+  }
+}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { getProducts, getCategories } from "@/services/product.service";
@@ -26,7 +26,7 @@ export default function MenuPage() {
 }
 
 function MenuPageInner() {
-  const t = useTranslations("menu");
+  const { t } = useTranslation();
   const searchParams = useSearchParams();
   const router = useRouter();
   const pathname = usePathname();
@@ -111,7 +111,7 @@ function MenuPageInner() {
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-left mb-10">
           <h1 className="font-heading font-extrabold text-3xl sm:text-4xl text-primary tracking-tight">
-            {t("title")}
+            {t("product.menu.title")}
           </h1>
           <div className="w-12 h-1 bg-accent rounded-full mt-3" />
         </div>
@@ -125,7 +125,7 @@ function MenuPageInner() {
               size="sm"
               disabled={error !== null}
             >
-              {t("all")}
+              {t("product.menu.all")}
             </Button>
             {categories.map((category) => (
               <Button
@@ -144,7 +144,7 @@ function MenuPageInner() {
           <div className="relative w-full md:w-80">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder={t("searchPlaceholder")}
+              placeholder={t("product.menu.searchPlaceholder")}
               value={localSearch}
               onChange={(event) => handleSearchChange(event.target.value)}
               className="pl-9 rounded-full h-10 border-border"
@@ -171,9 +171,9 @@ function MenuPageInner() {
             <div className="rounded-full bg-accent/15 p-4 text-accent">
               <AlertCircle className="h-10 w-10" />
             </div>
-            <h3 className="font-heading font-extrabold text-xl text-primary">Backend API error</h3>
+            <h3 className="font-heading font-extrabold text-xl text-primary">{t("product.menu.apiErrorTitle")}</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">
-              Không thể tải sản phẩm từ backend API. Frontend không dùng mock product thay thế, vui lòng kiểm tra Spring Boot API và seed data.
+              {t("product.menu.apiErrorDesc")}
             </p>
             <div className="w-full text-left bg-secondary/35 p-4 rounded-xl font-mono text-xs text-foreground/80 leading-relaxed border border-border">
               GET http://localhost:8080/api/v1/products
@@ -184,7 +184,7 @@ function MenuPageInner() {
         {showList && filteredProducts.length === 0 && (
           <div className="text-center py-24 flex flex-col items-center justify-center gap-3">
             <Coffee className="h-12 w-12 text-muted-foreground/30" />
-            <p className="text-sm text-muted-foreground">{t("noProducts")}</p>
+            <p className="text-sm text-muted-foreground">{t("product.menu.noProducts")}</p>
           </div>
         )}
 

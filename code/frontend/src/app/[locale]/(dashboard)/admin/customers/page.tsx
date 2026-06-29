@@ -6,9 +6,10 @@ import { useDashboardStore } from "@/store/dashboardStore";
 import { DataTable, Column } from "@/components/tables/DataTable";
 import { SearchBar } from "@/components/tables/SearchBar";
 import { Filter } from "@/components/tables/Filter";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function AdminCustomersPage() {
+  const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
@@ -21,7 +22,7 @@ export default function AdminCustomersPage() {
     hydrateUsers();
   }, [hydrateUsers]);
 
-  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{UI_TEXT.common.loading}</div>;
+  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
 
   const filteredCustomers = customers.filter((c) => {
     if (!statusFilter) return true;
@@ -64,7 +65,7 @@ export default function AdminCustomersPage() {
     <div className="space-y-6 text-left">
       <div>
         <h1 className="text-xl font-bold text-amber-900 font-outfit uppercase tracking-wide">
-          {UI_TEXT.common.customers}
+          {t("common.customers")}
         </h1>
         <p className="text-xs text-muted-foreground font-semibold mt-1">
           Xem thông tin khách hàng, số lượng đơn đặt hàng trực tuyến và tổng chi tiêu tích lũy.

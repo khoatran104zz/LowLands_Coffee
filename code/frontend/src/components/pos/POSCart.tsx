@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useDashboardStore } from "@/store/dashboardStore";
 
 interface POSCartProps {
@@ -23,6 +23,7 @@ export function POSCart({
   onClearCart,
   onCheckoutSuccess
 }: POSCartProps) {
+  const { t } = useTranslation();
   const [promoCode, setPromoCode] = useState("");
   const [appliedPromo, setAppliedPromo] = useState<Promotion | null>(null);
   
@@ -314,7 +315,7 @@ export function POSCart({
         {items.length === 0 ? (
           <div className="h-full flex flex-col items-center justify-center text-muted-foreground/60 py-16">
             <ReceiptText className="h-10 w-10 mb-2 stroke-[1.2] text-muted-foreground/45" />
-            <span className="text-xs font-bold">{UI_TEXT.pos.emptyCart}</span>
+            <span className="text-xs font-bold">{t("staff.pos.emptyCart")}</span>
           </div>
         ) : (
           items.map((item) => (

@@ -8,11 +8,12 @@ import { SearchBar } from "@/components/tables/SearchBar";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
 import Link from "next/link";
 import { ChevronLeft, Coffee } from "lucide-react";
 
 export default function StaffOrdersPage() {
+  const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -26,7 +27,7 @@ export default function StaffOrdersPage() {
     setIsMounted(true);
   }, []);
 
-  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{UI_TEXT.common.loading}</div>;
+  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
 
   const MY_BRANCH_ID = 2; // Hồ Con Rùa
   // Active preparation orders: pending or preparing

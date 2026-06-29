@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useConfirm } from "@/hooks/useConfirm";
 import { useCartStore } from "@/store/cart.store";
 import { getPromotions } from "@/services/auth.service";
 import { Button } from "@/components/ui/button";
@@ -12,8 +13,8 @@ import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, Ticket, AlertCircle } fro
 import Image from "next/image";
 
 export default function CartPage() {
-  const t = useTranslations("cart");
-  const tCommon = useTranslations("common");
+  const { t } = useTranslation();
+  const confirm = useConfirm();
   const router = useRouter();
 
   const {
@@ -51,9 +52,9 @@ export default function CartPage() {
 
       if (matchedPromo) {
         applyPromotion(matchedPromo);
-        toast.success(t("promoSuccess"));
+        toast.success(t("product.cart.promoSuccess"));
       } else {
-        toast.error(t("promoInvalid"));
+        toast.error(t("product.cart.promoInvalid"));
       }
     } catch {
       console.warn("Failed to apply promotion (API Offline).");
@@ -74,12 +75,12 @@ export default function CartPage() {
         <div className="rounded-full bg-secondary p-6 text-muted-foreground/45">
           <ShoppingBag className="h-16 w-16" />
         </div>
-        <h2 className="font-heading font-extrabold text-2xl text-primary">{t("empty")}</h2>
+        <h2 className="font-heading font-extrabold text-2xl text-primary">{t("product.cart.empty")}</h2>
         <Link
           href="/menu"
           className="rounded-full bg-primary px-6 py-3 text-sm font-bold text-primary-foreground hover:bg-primary/95 transition-colors"
         >
-          {tCommon("menu")}
+          {t("common.menu")}
         </Link>
       </div>
     );
@@ -90,7 +91,7 @@ export default function CartPage() {
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         
         <h1 className="font-heading font-extrabold text-3xl text-primary tracking-tight mb-8">
-          {t("title")}
+          {t("product.cart.title")}
         </h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -154,7 +155,7 @@ export default function CartPage() {
                     {/* Item Total Price */}
                     <div className="flex flex-col text-left sm:text-right">
                       <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground sm:hidden">
-                        {tCommon("price")}
+                        {t("common.price")}
                       </span>
                       <span className="text-sm font-extrabold text-primary">
                         {formatPrice(totalItemPrice)}
@@ -185,8 +186,14 @@ export default function CartPage() {
                       </div>
 
                       <button
-                        onClick={() => {
-                          if (confirm(t("removeConfirm"))) {
+                        onClick={async () => {
+                          const isConfirmed = await confirm({
+                            title: t("common.confirmDeleteTitle"),
+                            message: t("product.cart.removeConfirm"),
+                            confirmText: t("common.delete"),
+                            cancelText: t("common.cancel")
+                          });
+                          if (isConfirmed) {
                             removeItem(item.id);
                           }
                         }}
@@ -208,13 +215,13 @@ export default function CartPage() {
             
             <div className="border border-border/80 rounded-2xl p-6 bg-card shadow-sm flex flex-col gap-4">
               <h3 className="font-heading font-extrabold text-lg text-primary border-b border-border/60 pb-3">
-                {t("summary")}
+                {t("product.cart.summary")}
               </h3>
 
               {/* Pricing Rows */}
               <div className="flex flex-col gap-2.5 text-xs sm:text-sm">
                 <div className="flex justify-between items-center text-muted-foreground">
-                  <span>{t("subtotal")}</span>
+                  <span>{t("product.cart.subtotal")}</span>
                   <span className="font-semibold text-foreground">{formatPrice(getSubtotal())}</span>
                 </div>
 
@@ -229,7 +236,7 @@ export default function CartPage() {
                 )}
 
                 <div className="flex justify-between items-center border-t border-border/60 pt-3 text-base font-extrabold text-primary">
-                  <span>{t("total")}</span>
+                  <span>{t("product.cart.total")}</span>
                   <span className="text-lg font-black">{formatPrice(getTotalAmount())}</span>
                 </div>
               </div>
@@ -237,7 +244,7 @@ export default function CartPage() {
               {/* Promo Code Input Form */}
               <div className="flex flex-col gap-2 pt-2 border-t border-border/60">
                 <label className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
-                  {t("promoCode")}
+                  {t("product.cart.promoCode")}
                 </label>
                 <div className="flex gap-2">
                   <Input
@@ -262,7 +269,7 @@ export default function CartPage() {
                       disabled={promoLoading || !promoCode}
                       className="h-9 px-4 text-xs font-bold"
                     >
-                      {t("applyPromo")}
+                      {t("product.cart.applyPromo")}
                     </Button>
                   )}
                 </div>
@@ -273,7 +280,7 @@ export default function CartPage() {
                 onClick={() => router.push("/checkout")}
                 className="w-full rounded-full font-bold gap-2 py-5.5 mt-2 text-sm"
               >
-                <span>{t("checkout")}</span>
+                <span>{t("product.cart.checkout")}</span>
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </div>

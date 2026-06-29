@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Eye, Edit, Trash2 } from "lucide-react";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export interface Column<T> {
   key: string;
@@ -38,6 +38,7 @@ export function DataTable<T extends { id?: number | string }>({
   onView,
   pageSize = 7
 }: DataTableProps<T>) {
+  const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
 
   // Filter data based on search query
@@ -75,7 +76,7 @@ export function DataTable<T extends { id?: number | string }>({
               ))}
               {(onEdit || onDelete || onView) && (
                 <TableHead className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-right py-4 px-6 select-none font-outfit">
-                  {UI_TEXT.common.actions}
+                  {t("common.actions")}
                 </TableHead>
               )}
             </TableRow>
@@ -87,7 +88,7 @@ export function DataTable<T extends { id?: number | string }>({
                   colSpan={columns.length + ((onEdit || onDelete || onView) ? 1 : 0)}
                   className="h-48 text-center text-muted-foreground font-medium"
                 >
-                  {UI_TEXT.common.loading.replace("đang tải", "không tìm thấy")}
+                  {t("common.emptyTable")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -109,8 +110,8 @@ export function DataTable<T extends { id?: number | string }>({
                             variant="ghost"
                             size="icon-sm"
                             onClick={() => onView(item)}
-                            title="Chi tiết"
-                            className="text-muted-foreground hover:text-primary transition-colors h-8 w-8 rounded-lg"
+                             title={t("common.details")}
+                             className="text-muted-foreground hover:text-primary transition-colors h-8 w-8 rounded-lg"
                           >
                             <Eye className="h-4 w-4" />
                           </Button>
@@ -120,8 +121,8 @@ export function DataTable<T extends { id?: number | string }>({
                             variant="ghost"
                             size="icon-sm"
                             onClick={() => onEdit(item)}
-                            title={UI_TEXT.common.edit}
-                            className="text-muted-foreground hover:text-amber-600 transition-colors h-8 w-8 rounded-lg"
+                             title={t("common.edit")}
+                             className="text-muted-foreground hover:text-amber-600 transition-colors h-8 w-8 rounded-lg"
                           >
                             <Edit className="h-4 w-4" />
                           </Button>
@@ -131,8 +132,8 @@ export function DataTable<T extends { id?: number | string }>({
                             variant="ghost"
                             size="icon-sm"
                             onClick={() => onDelete(item)}
-                            title={UI_TEXT.common.delete}
-                            className="text-muted-foreground hover:text-rose-600 transition-colors h-8 w-8 rounded-lg"
+                             title={t("common.delete")}
+                             className="text-muted-foreground hover:text-rose-600 transition-colors h-8 w-8 rounded-lg"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -151,11 +152,12 @@ export function DataTable<T extends { id?: number | string }>({
       {totalPages > 1 && (
         <div className="flex items-center justify-between border-t border-border/60 bg-muted/20 px-6 py-3">
           <div className="text-xs text-muted-foreground font-medium">
-            Hiển thị <span className="font-semibold text-foreground">{startIndex + 1}</span> đến{" "}
-            <span className="font-semibold text-foreground">
-              {Math.min(startIndex + pageSize, totalItems)}
-            </span>{" "}
-            trong tổng số <span className="font-semibold text-foreground">{totalItems}</span> bản ghi
+            {t.rich("common.pagination", {
+              start: startIndex + 1,
+              end: Math.min(startIndex + pageSize, totalItems),
+              total: totalItems,
+              bold: (chunks) => <span className="font-semibold text-foreground">{chunks}</span>
+            })}
           </div>
           <div className="flex items-center space-x-2">
             <Button

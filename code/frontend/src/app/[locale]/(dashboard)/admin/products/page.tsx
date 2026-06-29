@@ -11,9 +11,12 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useConfirm } from "@/hooks/useConfirm";
 
 export default function AdminProductsPage() {
+  const { t } = useTranslation();
+  const confirm = useConfirm();
   const [isMounted, setIsMounted] = useState(false);
 
   // Filters & searches
@@ -32,8 +35,6 @@ export default function AdminProductsPage() {
   // Modal controls
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [deletingProductId, setDeletingProductId] = useState<number | null>(null);
 
   // Form states
   const [formName, setFormName] = useState("");
@@ -52,7 +53,7 @@ export default function AdminProductsPage() {
     void hydrateProductCatalog("admin");
   }, [hydrateProductCatalog]);
 
-  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{UI_TEXT.common.loading}</div>;
+  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
 
   // Filter products by category
   const filteredProducts = products.filter((p) => {
@@ -115,7 +116,7 @@ export default function AdminProductsPage() {
               : "bg-zinc-500/10 text-zinc-650"
           }`}
         >
-          {item.status === "active" ? UI_TEXT.common.active : UI_TEXT.common.inactive}
+          {item.status === "active" ? t("common.active") : t("common.inactive")}
         </span>
       )
     }
@@ -155,9 +156,17 @@ export default function AdminProductsPage() {
     setIsFormOpen(true);
   };
 
-  const handleOpenDelete = (product: Product) => {
-    setDeletingProductId(product.id);
-    setIsDeleteOpen(true);
+  const handleOpenDelete = async (product: Product) => {
+    const isConfirmed = await confirm({
+      title: t("common.confirmDeleteTitle"),
+      message: t("admin.deleteProductConfirm"),
+      confirmText: t("common.delete"),
+      cancelText: t("common.cancel")
+    });
+    if (isConfirmed) {
+      deleteProduct(product.id);
+      toast.success("Xóa sản phẩm thành công!");
+    }
   };
 
   // Submit product
@@ -211,13 +220,7 @@ export default function AdminProductsPage() {
     setIsFormOpen(false);
   };
 
-  const handleConfirmDelete = () => {
-    if (deletingProductId) {
-      deleteProduct(deletingProductId);
-      toast.success("Xóa sản phẩm thành công!");
-    }
-    setIsDeleteOpen(false);
-  };
+
 
   return (
     <div className="space-y-6">
@@ -225,7 +228,7 @@ export default function AdminProductsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-left">
         <div>
           <h1 className="text-xl font-bold text-amber-900 font-outfit uppercase tracking-wide">
-            {UI_TEXT.common.products}
+            {t("common.products")}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold mt-1">
             Thiết lập menu đồ uống, bánh ngọt và thông số giá cho toàn bộ cửa hàng.
@@ -236,7 +239,7 @@ export default function AdminProductsPage() {
           className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg px-4 h-10 text-xs font-semibold flex items-center space-x-2 shrink-0 self-start sm:self-auto"
         >
           <Plus className="h-4 w-4" />
-          <span>{UI_TEXT.common.add} món mới</span>
+          <span>{t("common.add")} món mới</span>
         </Button>
       </div>
 
@@ -277,7 +280,7 @@ export default function AdminProductsPage() {
       <Modal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        title={editingProduct ? UI_TEXT.admin.editProduct : UI_TEXT.admin.createProduct}
+        title={editingProduct ? t("admin.editProduct") : t("admin.createProduct")}
         size="md"
       >
         <form onSubmit={handleSaveProduct} className="space-y-4 text-left">
@@ -371,8 +374,8 @@ export default function AdminProductsPage() {
               onChange={(e) => setFormStatus(e.target.value)}
               className="w-full h-10 px-3 py-1 bg-background border border-border text-foreground hover:bg-muted/10 rounded-lg text-xs font-medium focus:outline-none"
             >
-              <option value="active">{UI_TEXT.common.active}</option>
-              <option value="inactive">{UI_TEXT.common.inactive}</option>
+              <option value="active">{t("common.active")}</option>
+              <option value="inactive">{t("common.inactive")}</option>
             </select>
           </div>
 
@@ -383,46 +386,19 @@ export default function AdminProductsPage() {
               onClick={() => setIsFormOpen(false)}
               className="h-10 text-xs font-semibold rounded-lg"
             >
-              {UI_TEXT.common.cancel}
+              {t("common.cancel")}
             </Button>
             <Button
               type="submit"
               className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg h-10 text-xs font-semibold px-4"
             >
-              {UI_TEXT.common.save}
+              {t("common.save")}
             </Button>
           </div>
         </form>
       </Modal>
 
-      {/* Delete product */}
-      <Modal
-        isOpen={isDeleteOpen}
-        onClose={() => setIsDeleteOpen(false)}
-        title="Xác nhận xóa sản phẩm"
-        size="sm"
-      >
-        <div className="space-y-4 text-left">
-          <p className="text-sm text-foreground/80">
-            {UI_TEXT.admin.deleteProductConfirm}
-          </p>
-          <div className="flex justify-end space-x-2 border-t border-border/40 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteOpen(false)}
-              className="h-10 text-xs font-semibold rounded-lg"
-            >
-              {UI_TEXT.common.cancel}
-            </Button>
-            <Button
-              onClick={handleConfirmDelete}
-              className="bg-rose-600 hover:bg-rose-700 text-white rounded-lg h-10 text-xs font-semibold px-4"
-            >
-              {UI_TEXT.common.confirm}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
-import { useLocale, useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useRouter, usePathname } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import {
@@ -43,7 +44,7 @@ function UKFlag() {
 
 export function LanguageSwitcher() {
   const locale = useLocale();
-  const t = useTranslations("common");
+  const { t } = useTranslation();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -59,10 +60,10 @@ export function LanguageSwitcher() {
     <div className="flex items-center gap-2">
       <Select value={locale} onValueChange={handleLanguageChange}>
         <SelectTrigger className="w-[140px] h-9 bg-card text-xs font-bold border-border rounded-full hover:bg-muted/30 transition-colors shadow-sm focus:ring-1 focus:ring-primary/30">
-          <SelectValue placeholder={t("vietnam")}>
+          <SelectValue placeholder={t("common.vietnam")}>
             <div className="flex items-center">
               {locale === "vi" ? <VietnamFlag /> : <UKFlag />}
-              <span>{locale === "vi" ? "Tiếng Việt" : "English"}</span>
+              <span>{locale === "vi" ? t("common.vietnam") : t("common.english")}</span>
             </div>
           </SelectValue>
         </SelectTrigger>
@@ -70,13 +71,13 @@ export function LanguageSwitcher() {
           <SelectItem value="vi" className="text-xs font-semibold cursor-pointer">
             <div className="flex items-center py-0.5">
               <VietnamFlag />
-              <span>Tiếng Việt</span>
+              <span>{t("common.vietnam")}</span>
             </div>
           </SelectItem>
           <SelectItem value="en" className="text-xs font-semibold cursor-pointer">
             <div className="flex items-center py-0.5">
               <UKFlag />
-              <span>English</span>
+              <span>{t("common.english")}</span>
             </div>
           </SelectItem>
         </SelectContent>

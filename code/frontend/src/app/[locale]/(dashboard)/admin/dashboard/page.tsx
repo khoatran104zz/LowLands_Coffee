@@ -6,9 +6,10 @@ import { StatsCard } from "@/components/dashboard/StatsCard";
 import { LineChart, BarChart, PieChart, ChartDataItem } from "@/components/charts/Chart";
 import { useDashboardStore } from "@/store/dashboardStore";
 import { AdminDashboardSummary, getAdminDashboardSummary } from "@/services/dashboard.service";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function AdminDashboardPage() {
+  const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
   const [summary, setSummary] = useState<AdminDashboardSummary | null>(null);
   const [summaryError, setSummaryError] = useState<string | null>(null);
@@ -33,7 +34,7 @@ export default function AdminDashboardPage() {
   if (!isMounted) {
     return (
       <div className="flex items-center justify-center min-h-[300px] text-muted-foreground text-sm font-semibold">
-        {UI_TEXT.common.loading}
+        {t("common.loading")}
       </div>
     );
   }
@@ -102,7 +103,7 @@ export default function AdminDashboardPage() {
       {/* Header Info */}
       <div className="text-left select-none">
         <h1 className="text-xl font-bold text-amber-900 font-outfit uppercase tracking-wide">
-          {UI_TEXT.admin.dashboardTitle}
+          {t("admin.dashboardTitle")}
         </h1>
         <p className="text-xs text-muted-foreground font-semibold mt-1">
           Hệ thống giám sát vận hành, kết quả kinh doanh toàn hệ thống Lowlands Coffee.
@@ -112,28 +113,28 @@ export default function AdminDashboardPage() {
       {/* Stats Cards Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
-          title={UI_TEXT.admin.revenueTitle}
+          title={t("admin.revenueTitle")}
           value={`${displayRevenue.toLocaleString()}đ`}
           icon={DollarSign}
           description="Đơn hoàn thành"
           trend={{ type: "up", value: "+12.4%" }}
         />
         <StatsCard
-          title={UI_TEXT.admin.ordersTitle}
+          title={t("admin.ordersTitle")}
           value={displayOrders}
           icon={ShoppingBag}
           description="Đơn trong tháng"
           trend={{ type: "up", value: "+8.2%" }}
         />
         <StatsCard
-          title={UI_TEXT.admin.customersTitle}
+          title={t("admin.customersTitle")}
           value={displayUsers}
           icon={Users}
           description="Thành viên đã đăng ký"
           trend={{ type: "up", value: "+24.3%" }}
         />
         <StatsCard
-          title={UI_TEXT.admin.branchesTitle}
+          title={t("admin.branchesTitle")}
           value={displayStores}
           icon={Store}
           description="Chi nhánh đang chạy"
@@ -145,7 +146,7 @@ export default function AdminDashboardPage() {
         {/* Chart 1 */}
         <div className="space-y-2">
           <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-left pl-1">
-            {UI_TEXT.admin.revenueMonthChart}
+            {t("admin.revenueMonthChart")}
           </h4>
           <LineChart data={revenueByMonthData} />
         </div>
@@ -153,7 +154,7 @@ export default function AdminDashboardPage() {
         {/* Chart 2 */}
         <div className="space-y-2">
           <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-left pl-1">
-            {UI_TEXT.admin.revenueBranchChart}
+            {t("admin.revenueBranchChart")}
           </h4>
           <PieChart data={revenueByBranchData} />
         </div>
@@ -161,7 +162,7 @@ export default function AdminDashboardPage() {
         {/* Chart 3 */}
         <div className="space-y-2">
           <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-left pl-1">
-            {UI_TEXT.admin.bestSellersChart}
+            {t("admin.bestSellersChart")}
           </h4>
           <BarChart data={bestSellingProductsData} />
         </div>
@@ -169,7 +170,7 @@ export default function AdminDashboardPage() {
         {/* Chart 4 */}
         <div className="space-y-2">
           <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-left pl-1">
-            {UI_TEXT.admin.customerGrowthChart}
+            {t("admin.customerGrowthChart")}
           </h4>
           <LineChart data={customerGrowthData} />
         </div>

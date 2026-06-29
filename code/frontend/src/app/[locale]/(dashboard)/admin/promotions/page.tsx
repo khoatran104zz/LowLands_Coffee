@@ -10,9 +10,12 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useConfirm } from "@/hooks/useConfirm";
 
 export default function AdminPromotionsPage() {
+  const { t } = useTranslation();
+  const confirm = useConfirm();
   const [isMounted, setIsMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -23,8 +26,6 @@ export default function AdminPromotionsPage() {
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingPromo, setEditingPromo] = useState<Promotion | null>(null);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [deletingPromoId, setDeletingPromoId] = useState<number | null>(null);
 
   const [formCode, setFormCode] = useState("");
   const [formName, setFormName] = useState("");
@@ -37,7 +38,7 @@ export default function AdminPromotionsPage() {
     setIsMounted(true);
   }, []);
 
-  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{UI_TEXT.common.loading}</div>;
+  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
 
   const columns: Column<Promotion>[] = [
     { key: "id", header: "ID" },
@@ -103,9 +104,17 @@ export default function AdminPromotionsPage() {
     setIsFormOpen(true);
   };
 
-  const handleOpenDelete = (promo: Promotion) => {
-    setDeletingPromoId(promo.id);
-    setIsDeleteOpen(true);
+  const handleOpenDelete = async (promo: Promotion) => {
+    const isConfirmed = await confirm({
+      title: t("common.confirmDeleteTitle"),
+      message: t("admin.deletePromotionConfirm"),
+      confirmText: t("common.delete"),
+      cancelText: t("common.cancel")
+    });
+    if (isConfirmed) {
+      deletePromotion(promo.id);
+      toast.success("Xóa chương trình khuyến mãi thành công!");
+    }
   };
 
   const handleSavePromo = (e: React.FormEvent) => {
@@ -140,13 +149,7 @@ export default function AdminPromotionsPage() {
     setIsFormOpen(false);
   };
 
-  const handleConfirmDelete = () => {
-    if (deletingPromoId) {
-      deletePromotion(deletingPromoId);
-      toast.success("Đã xóa mã khuyến mãi thành công!");
-    }
-    setIsDeleteOpen(false);
-  };
+
 
   return (
     <div className="space-y-6">
@@ -154,7 +157,7 @@ export default function AdminPromotionsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-left">
         <div>
           <h1 className="text-xl font-bold text-amber-900 font-outfit uppercase tracking-wide">
-            {UI_TEXT.common.promotions}
+            {t("common.promotions")}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold mt-1">
             Quản lý các chương trình ưu đãi, mã giảm giá trực tuyến &amp; tại quầy của Lowlands Coffee.
@@ -165,7 +168,7 @@ export default function AdminPromotionsPage() {
           className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg px-4 h-10 text-xs font-semibold flex items-center space-x-2 shrink-0 self-start sm:self-auto"
         >
           <Plus className="h-4 w-4" />
-          <span>{UI_TEXT.common.add} mã giảm giá</span>
+          <span>{t("common.add")} mã giảm giá</span>
         </Button>
       </div>
 
@@ -192,7 +195,7 @@ export default function AdminPromotionsPage() {
       <Modal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        title={editingPromo ? UI_TEXT.admin.editPromotion : UI_TEXT.admin.createPromotion}
+        title={editingPromo ? t("admin.editPromotion") : t("admin.createPromotion")}
         size="md"
       >
         <form onSubmit={handleSavePromo} className="space-y-4 text-left">
@@ -276,46 +279,19 @@ export default function AdminPromotionsPage() {
               onClick={() => setIsFormOpen(false)}
               className="h-10 text-xs font-semibold rounded-lg"
             >
-              {UI_TEXT.common.cancel}
+              {t("common.cancel")}
             </Button>
             <Button
               type="submit"
               className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg h-10 text-xs font-semibold px-4"
             >
-              {UI_TEXT.common.save}
+              {t("common.save")}
             </Button>
           </div>
         </form>
       </Modal>
 
-      {/* Delete Confirmation */}
-      <Modal
-        isOpen={isDeleteOpen}
-        onClose={() => setIsDeleteOpen(false)}
-        title="Xác nhận xóa mã giảm giá"
-        size="sm"
-      >
-        <div className="space-y-4 text-left">
-          <p className="text-sm text-foreground/80">
-            {UI_TEXT.admin.deletePromotionConfirm}
-          </p>
-          <div className="flex justify-end space-x-2 border-t border-border/40 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteOpen(false)}
-              className="h-10 text-xs font-semibold rounded-lg"
-            >
-              {UI_TEXT.common.cancel}
-            </Button>
-            <Button
-              onClick={handleConfirmDelete}
-              className="bg-rose-600 hover:bg-rose-700 text-white rounded-lg h-10 text-xs font-semibold px-4"
-            >
-              {UI_TEXT.common.confirm}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      
     </div>
   );
 }

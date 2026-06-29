@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
+import { useTranslation } from "@/hooks/useTranslation";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Search, ShoppingCart, CreditCard, Truck, Users, MessageSquare, 
@@ -21,42 +22,43 @@ interface Category {
 }
 
 export default function SupportPage() {
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [openFaqId, setOpenFaqId] = useState<number | null>(null);
 
   const categories: Category[] = [
-    { icon: <ShoppingCart className="h-6 w-6 text-[#C8510A]" />, title: "Đặt hàng online", desc: "Hướng dẫn đặt món, thay đổi món, điều chỉnh địa chỉ giao hàng và huỷ đơn." },
-    { icon: <CreditCard className="h-6 w-6 text-[#C8510A]" />, title: "Thanh toán", desc: "Thông tin về cổng chuyển khoản, thanh toán ví điện tử Momo, ZaloPay và COD." },
-    { icon: <Truck className="h-6 w-6 text-[#C8510A]" />, title: "Giao hàng", desc: "Chính sách vận chuyển, phí giao hàng, thời gian nhận hàng và đối tác giao nhận." },
-    { icon: <Users className="h-6 w-6 text-[#C8510A]" />, title: "Hội viên Club", desc: "Cách thức đăng ký, tích lũy điểm thưởng, đổi mã voucher ưu đãi." },
-    { icon: <MessageSquare className="h-6 w-6 text-[#C8510A]" />, title: "Góp ý & Khiếu nại", desc: "Gửi ý kiến phản hồi về chất lượng sản phẩm và thái độ phục vụ tại cửa hàng." }
+    { icon: <ShoppingCart className="h-6 w-6 text-[#C8510A]" />, title: t("landing.supportPage.categories.c1.title"), desc: t("landing.supportPage.categories.c1.desc") },
+    { icon: <CreditCard className="h-6 w-6 text-[#C8510A]" />, title: t("landing.supportPage.categories.c2.title"), desc: t("landing.supportPage.categories.c2.desc") },
+    { icon: <Truck className="h-6 w-6 text-[#C8510A]" />, title: t("landing.supportPage.categories.c3.title"), desc: t("landing.supportPage.categories.c3.desc") },
+    { icon: <Users className="h-6 w-6 text-[#C8510A]" />, title: t("landing.supportPage.categories.c4.title"), desc: t("landing.supportPage.categories.c4.desc") },
+    { icon: <MessageSquare className="h-6 w-6 text-[#C8510A]" />, title: t("landing.supportPage.categories.c5.title"), desc: t("landing.supportPage.categories.c5.desc") }
   ];
 
   const faqs: FAQ[] = [
     { 
       id: 1, 
-      question: "Cách đặt hàng online trên website Lowlands Coffee?", 
-      answer: "Bạn chỉ cần di chuyển đến trang 'Thực đơn', chọn các món nước yêu thích kèm size và topping mong muốn, nhấn 'Thêm vào giỏ'. Sau đó, truy cập vào 'Giỏ hàng' của bạn ở góc trên bên phải, điền thông tin giao hàng và chọn phương thức thanh toán rồi hoàn tất đặt đơn." 
+      question: t("landing.supportPage.faqs.f1.q"), 
+      answer: t("landing.supportPage.faqs.f1.a") 
     },
     { 
       id: 2, 
-      question: "Thời gian giao hàng trung bình của Lowlands là bao lâu?", 
-      answer: "Thời gian giao hàng trung bình từ 15 đến 35 phút tùy thuộc vào khoảng cách từ chi nhánh Lowlands gần nhất đến địa chỉ của bạn. Nếu có bất kỳ sự cố thời tiết hay quá tải, tổng đài chăm sóc khách hàng sẽ chủ động liên hệ thông báo." 
+      question: t("landing.supportPage.faqs.f2.q"), 
+      answer: t("landing.supportPage.faqs.f2.a") 
     },
     { 
       id: 3, 
-      question: "Làm thế nào để tích lũy điểm thành viên?", 
-      answer: "Mỗi khi đặt hàng trực tuyến trên website/app khi đã đăng nhập tài khoản, hệ thống sẽ tự động cộng điểm thưởng (với tỷ lệ quy đổi 10.000đ = 1 điểm). Khi mua trực tiếp tại quầy, bạn chỉ cần đọc số điện thoại đã đăng ký cho thu ngân để được tích lũy điểm." 
+      question: t("landing.supportPage.faqs.f3.q"), 
+      answer: t("landing.supportPage.faqs.f3.a") 
     },
     { 
       id: 4, 
-      question: "Tôi có thể hủy hoặc chỉnh sửa thông tin đơn hàng sau khi đặt không?", 
-      answer: "Để bảo vệ quyền lợi và đảm bảo đồ uống được giao nóng/lạnh nhanh nhất, đơn hàng sau khi xác nhận sẽ được pha chế ngay. Nếu muốn thay đổi thông tin chi tiết hoặc hủy đơn, vui lòng gọi điện trực tiếp đến Hotline CSKH 1900 xxxx trong vòng 3 phút kể từ khi đặt đơn." 
+      question: t("landing.supportPage.faqs.f4.q"), 
+      answer: t("landing.supportPage.faqs.f4.a") 
     },
     { 
       id: 5, 
-      question: "Lowlands hỗ trợ những hình thức thanh toán nào?", 
-      answer: "Chúng tôi hỗ trợ đa dạng phương thức thanh toán bao gồm: Tiền mặt khi nhận hàng (COD), Chuyển khoản ngân hàng qua mã QR động, và các ví điện tử liên kết phổ biến như Momo, ZaloPay." 
+      question: t("landing.supportPage.faqs.f5.q"), 
+      answer: t("landing.supportPage.faqs.f5.a") 
     }
   ];
 
@@ -70,7 +72,7 @@ export default function SupportPage() {
   };
 
   const handleLiveChatClick = () => {
-    toast.success("Trợ lý ảo Lowlands đang được kết nối...");
+    toast.success(t("landing.supportPage.toastConnecting"));
   };
 
   return (
@@ -86,14 +88,14 @@ export default function SupportPage() {
             animate={{ opacity: 1, y: 0 }}
             className="font-heading font-black text-3xl sm:text-4xl uppercase tracking-tight"
           >
-            Bạn Cần Giúp Đỡ Gì?
+            {t("landing.supportPage.heroTitle")}
           </motion.h1>
           <motion.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.8 }}
             className="text-xs sm:text-sm font-semibold max-w-lg mx-auto"
           >
-            Nhập câu hỏi hoặc từ khóa tìm kiếm để tra cứu thông tin hỗ trợ nhanh chóng từ bộ phận hỗ trợ khách hàng của chúng tôi.
+            {t("landing.supportPage.heroDesc")}
           </motion.p>
 
           {/* Search bar inside Hero */}
@@ -105,7 +107,7 @@ export default function SupportPage() {
           >
             <input
               type="text"
-              placeholder="Nhập câu hỏi của bạn (ví dụ: giao hàng, tích điểm, hủy đơn...)"
+              placeholder={t("landing.supportPage.searchPlaceholder")}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full text-xs p-3.5 pl-11 border border-white/20 bg-white/10 text-white placeholder-white/50 rounded-xl focus:outline-none focus:ring-1 focus:ring-accent focus:border-accent transition-all font-semibold"
@@ -120,7 +122,7 @@ export default function SupportPage() {
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="font-heading font-extrabold text-2xl text-primary uppercase tracking-tight">Danh Mục Hỗ Trợ</h2>
+            <h2 className="font-heading font-extrabold text-2xl text-primary uppercase tracking-tight">{t("landing.supportPage.sectionTitle")}</h2>
             <div className="w-12 h-0.5 bg-accent mx-auto mt-3 rounded-full" />
           </div>
 
@@ -150,7 +152,7 @@ export default function SupportPage() {
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="font-heading font-extrabold text-2xl text-primary uppercase tracking-tight">Câu Hỏi Thường Gặp (FAQs)</h2>
+            <h2 className="font-heading font-extrabold text-2xl text-primary uppercase tracking-tight">{t("landing.supportPage.faqTitle")}</h2>
             <div className="w-12 h-0.5 bg-accent mx-auto mt-3 rounded-full" />
           </div>
 
@@ -196,7 +198,7 @@ export default function SupportPage() {
               })
             ) : (
               <div className="text-center py-8 text-muted-foreground text-sm font-semibold">
-                Không tìm thấy câu hỏi thường gặp nào phù hợp với từ khoá.
+                {t("landing.supportPage.noFaq")}
               </div>
             )}
           </div>
@@ -209,7 +211,7 @@ export default function SupportPage() {
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="font-heading font-extrabold text-2xl text-primary uppercase tracking-tight">Liên Hệ Trực Tiếp</h2>
+            <h2 className="font-heading font-extrabold text-2xl text-primary uppercase tracking-tight">{t("landing.supportPage.directContactTitle")}</h2>
             <div className="w-12 h-0.5 bg-accent mx-auto mt-3 rounded-full" />
           </div>
 
@@ -219,9 +221,9 @@ export default function SupportPage() {
               <div className="h-10 w-10 rounded-full bg-[#FAF8F5] border border-border/40 flex items-center justify-center text-[#C8510A]">
                 <Phone className="h-5 w-5" />
               </div>
-              <h3 className="font-heading font-bold text-sm text-foreground uppercase tracking-wider leading-none">Tổng đài CSKH</h3>
+              <h3 className="font-heading font-bold text-sm text-foreground uppercase tracking-wider leading-none">{t("landing.supportPage.hotlineTitle")}</h3>
               <p className="text-base font-black text-[#C8510A] mt-1">1900 xxxx</p>
-              <span className="text-[10px] text-muted-foreground leading-none">Hỗ trợ từ 8:00 - 22:00 hàng ngày</span>
+              <span className="text-[10px] text-muted-foreground leading-none">{t("landing.supportPage.hotlineHours")}</span>
             </div>
 
             {/* Email card */}
@@ -229,9 +231,9 @@ export default function SupportPage() {
               <div className="h-10 w-10 rounded-full bg-[#FAF8F5] border border-border/40 flex items-center justify-center text-[#C8510A]">
                 <Mail className="h-5 w-5" />
               </div>
-              <h3 className="font-heading font-bold text-sm text-foreground uppercase tracking-wider leading-none">Hỗ trợ qua Email</h3>
+              <h3 className="font-heading font-bold text-sm text-foreground uppercase tracking-wider leading-none">{t("landing.supportPage.emailTitle")}</h3>
               <p className="text-sm font-extrabold text-primary truncate max-w-full mt-1">contact@lowlands.com</p>
-              <span className="text-[10px] text-muted-foreground leading-none">Phản hồi trong vòng 24 giờ làm việc</span>
+              <span className="text-[10px] text-muted-foreground leading-none">{t("landing.supportPage.emailReplyTime")}</span>
             </div>
 
             {/* Live Chat card */}
@@ -239,14 +241,14 @@ export default function SupportPage() {
               <div className="h-10 w-10 rounded-full bg-[#FAF8F5] border border-border/40 flex items-center justify-center text-[#C8510A]">
                 <MessageCircle className="h-5 w-5" />
               </div>
-              <h3 className="font-heading font-bold text-sm text-foreground uppercase tracking-wider leading-none">Trực tuyến 24/7</h3>
+              <h3 className="font-heading font-bold text-sm text-foreground uppercase tracking-wider leading-none">{t("landing.supportPage.liveChatTitle")}</h3>
               <button
                 onClick={handleLiveChatClick}
                 className="mt-1 bg-[#C8510A] hover:bg-[#B04308] text-white text-[10px] font-black uppercase tracking-wider px-4.5 py-2.5 rounded-full transition-all cursor-pointer shadow-xs"
               >
-                Nhắn tin ngay
+                {t("landing.supportPage.liveChatButton")}
               </button>
-              <span className="text-[10px] text-muted-foreground leading-none">Kết nối nhanh chóng với tư vấn viên</span>
+              <span className="text-[10px] text-muted-foreground leading-none">{t("landing.supportPage.liveChatDesc")}</span>
             </div>
           </div>
 
@@ -258,14 +260,14 @@ export default function SupportPage() {
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-2xl mx-auto mb-12">
-            <h2 className="font-heading font-extrabold text-2xl text-primary uppercase tracking-tight">Hệ Thống Cửa Hàng</h2>
+            <h2 className="font-heading font-extrabold text-2xl text-primary uppercase tracking-tight">{t("landing.supportPage.storesTitle")}</h2>
             <div className="w-12 h-0.5 bg-accent mx-auto mt-3 rounded-full" />
           </div>
 
           <div className="max-w-4xl mx-auto rounded-3xl overflow-hidden border border-border/80 bg-card shadow-md flex flex-col md:flex-row items-stretch">
             {/* Map metadata on the left */}
             <div className="w-full md:w-80 p-6 flex flex-col justify-start text-left gap-4 shrink-0 bg-[#FAF8F5] dark:bg-[#1C1211]">
-              <h3 className="font-heading font-black text-sm text-primary uppercase tracking-wider">Cửa Hàng Nổi Bật</h3>
+              <h3 className="font-heading font-black text-sm text-primary uppercase tracking-wider">{t("landing.supportPage.featuredStores")}</h3>
               
               <div className="space-y-4">
                 <div className="space-y-1">
@@ -275,7 +277,7 @@ export default function SupportPage() {
                   </div>
                   <p className="text-[11px] text-muted-foreground pl-5 leading-normal">
                     Hồ Con Rùa, Q.3, TP. Hồ Chí Minh <br />
-                    Giờ mở cửa: 7:00 - 22:30
+                    {t("landing.supportPage.openTime")}: 7:00 - 22:30
                   </p>
                 </div>
                 
@@ -286,10 +288,10 @@ export default function SupportPage() {
                   </div>
                   <p className="text-[11px] text-muted-foreground pl-5 leading-normal">
                     Nhà Thờ Lớn, Q. Hoàn Kiếm, Hà Nội <br />
-                    Giờ mở cửa: 7:00 - 23:00
+                    {t("landing.supportPage.openTime")}: 7:00 - 23:00
                   </p>
                 </div>
-
+                
                 <div className="space-y-1">
                   <div className="text-xs font-black text-foreground flex items-center gap-1.5">
                     <MapPin className="h-3.5 w-3.5 text-[#C8510A] shrink-0" />
@@ -297,7 +299,7 @@ export default function SupportPage() {
                   </div>
                   <p className="text-[11px] text-muted-foreground pl-5 leading-normal">
                     Bạch Đằng, Q. Hải Châu, Đà Nẵng <br />
-                    Giờ mở cửa: 6:30 - 22:00
+                    {t("landing.supportPage.openTime")}: 6:30 - 22:00
                   </p>
                 </div>
               </div>

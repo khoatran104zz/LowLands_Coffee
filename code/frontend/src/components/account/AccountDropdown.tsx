@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAuthStore } from "@/store/auth.store";
 import { User as UserIcon, Settings, Key, LogOut, ChevronDown, Bell } from "lucide-react";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface AccountDropdownProps {
   onOpenSettings: (defaultTab?: string) => void;
@@ -11,6 +11,7 @@ interface AccountDropdownProps {
 }
 
 export function AccountDropdown({ onOpenSettings, onLogout }: AccountDropdownProps) {
+  const { t } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const user = useAuthStore((state) => state.user);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -94,7 +95,7 @@ export function AccountDropdown({ onOpenSettings, onLogout }: AccountDropdownPro
               className="w-full flex items-center space-x-2 px-3.5 py-2.5 rounded-xl text-xs font-bold text-zinc-700 dark:text-zinc-300 hover:bg-amber-50 hover:text-amber-800 dark:hover:bg-amber-950/20 dark:hover:text-amber-500 transition-colors"
             >
               <UserIcon className="h-4 w-4 text-zinc-400 group-hover:text-amber-700" />
-              <span>{UI_TEXT.account.profileInfo}</span>
+              <span>{t("auth.account.profileInfo")}</span>
             </button>
 
             <button
@@ -105,7 +106,7 @@ export function AccountDropdown({ onOpenSettings, onLogout }: AccountDropdownPro
               className="w-full flex items-center space-x-2 px-3.5 py-2.5 rounded-xl text-xs font-bold text-zinc-700 dark:text-zinc-300 hover:bg-amber-50 hover:text-amber-800 dark:hover:bg-amber-950/20 dark:hover:text-amber-500 transition-colors"
             >
               <Settings className="h-4 w-4 text-zinc-400 group-hover:text-amber-700" />
-              <span>{UI_TEXT.account.preferences}</span>
+              <span>{t("auth.account.preferences")}</span>
             </button>
 
             <button
@@ -116,7 +117,7 @@ export function AccountDropdown({ onOpenSettings, onLogout }: AccountDropdownPro
               className="w-full flex items-center space-x-2 px-3.5 py-2.5 rounded-xl text-xs font-bold text-zinc-700 dark:text-zinc-300 hover:bg-amber-50 hover:text-amber-800 dark:hover:bg-amber-950/20 dark:hover:text-amber-500 transition-colors"
             >
               <Key className="h-4 w-4 text-zinc-400 group-hover:text-amber-700" />
-              <span>{UI_TEXT.account.changePassword}</span>
+              <span>{t("auth.account.changePassword")}</span>
             </button>
             
             <button
@@ -127,7 +128,7 @@ export function AccountDropdown({ onOpenSettings, onLogout }: AccountDropdownPro
               className="w-full flex items-center space-x-2 px-3.5 py-2.5 rounded-xl text-xs font-bold text-zinc-700 dark:text-zinc-300 hover:bg-amber-50 hover:text-amber-800 dark:hover:bg-amber-950/20 dark:hover:text-amber-500 transition-colors"
             >
               <Bell className="h-4 w-4 text-zinc-400 group-hover:text-amber-700" />
-              <span>{UI_TEXT.account.permissions}</span>
+              <span>{t("auth.account.permissions")}</span>
             </button>
 
             <div className="border-t border-zinc-100 dark:border-zinc-800/80 my-1" />
@@ -140,7 +141,7 @@ export function AccountDropdown({ onOpenSettings, onLogout }: AccountDropdownPro
               className="w-full flex items-center space-x-2 px-3.5 py-2.5 rounded-xl text-xs font-bold text-rose-600 dark:text-rose-400 hover:bg-rose-500/5 transition-colors"
             >
               <LogOut className="h-4 w-4 text-rose-500/80" />
-              <span>{UI_TEXT.common.logout}</span>
+              <span>{t("common.logout")}</span>
             </button>
           </div>
         </div>

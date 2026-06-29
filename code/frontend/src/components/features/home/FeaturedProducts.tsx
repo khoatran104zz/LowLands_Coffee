@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useCartStore } from "@/store/cart.store";
 import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from "@/mock/products";
 import { Product } from "@/types";
@@ -9,6 +10,7 @@ import { Plus, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 
 export function FeaturedProducts() {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<number | null>(null); // null means All
   const addItem = useCartStore((state) => state.addItem);
 
@@ -25,9 +27,9 @@ export function FeaturedProducts() {
     if (product.variants && product.variants.length > 0) {
       const defaultVariant = product.variants[0];
       addItem(product, defaultVariant, 1, []);
-      toast.success(`Đã thêm ${product.name} vào giỏ hàng!`);
+      toast.success(t("product.addedToCart"));
     } else {
-      toast.error("Sản phẩm tạm thời hết hàng!");
+      toast.error(t("product.outOfStock"));
     }
   };
 
@@ -64,7 +66,7 @@ export function FeaturedProducts() {
             transition={{ duration: 0.5 }}
             className="font-heading font-extrabold text-3xl sm:text-4xl text-primary uppercase tracking-tight"
           >
-            Thực Đơn Nổi Bật
+            {t("landing.featured.title")}
           </motion.h2>
           <motion.div 
             initial={{ width: 0 }}
@@ -80,7 +82,7 @@ export function FeaturedProducts() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="text-sm text-muted-foreground mt-4 leading-relaxed"
           >
-            Khám phá hương vị đặc sắc tinh tuyển từ hạt cà phê Robusta hảo hạng và trà Ô Long thượng hạng của Lowlands.
+            {t("landing.featured.desc")}
           </motion.p>
         </div>
 
@@ -92,7 +94,7 @@ export function FeaturedProducts() {
               activeTab === null ? "text-[#C8510A] font-black" : "text-muted-foreground hover:text-primary"
             }`}
           >
-            <span>Tất cả</span>
+            <span>{t("common.all")}</span>
             {activeTab === null && (
               <motion.div 
                 layoutId="activeTabUnderline"
@@ -163,7 +165,7 @@ export function FeaturedProducts() {
                         className="hidden md:flex items-center gap-1.5 bg-[#C8510A] text-white hover:bg-[#B04308] text-xs font-extrabold px-4 py-2.5 rounded-full shadow-md translate-y-8 group-hover:translate-y-0 transition-transform duration-300 cursor-pointer uppercase tracking-wider"
                       >
                         <ShoppingCart className="h-3.5 w-3.5" />
-                        <span>Thêm vào giỏ</span>
+                        <span>{t("common.addToCart")}</span>
                       </motion.button>
                     </div>
                   </div>
