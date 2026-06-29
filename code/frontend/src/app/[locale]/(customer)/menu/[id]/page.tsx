@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, use, useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslation } from "@/hooks/useTranslation";
 import Image from "next/image";
 import { toast } from "sonner";
 import { AlertCircle, ArrowLeft, Minus, Plus, ShoppingBag } from "lucide-react";
@@ -21,10 +21,7 @@ interface Props {
 
 export default function ProductDetailPage({ params }: Props) {
   const { id } = use(params);
-  const t = useTranslations("product");
-  const tCommon = useTranslations("common");
-  const tCart = useTranslations("cart");
-  const tMenu = useTranslations("menu");
+  const { t } = useTranslation();
   const router = useRouter();
   const productId = parseInt(id, 10);
 
@@ -104,7 +101,7 @@ export default function ProductDetailPage({ params }: Props) {
       note
     );
 
-    toast.success(t("addedToCart"));
+    toast.success(t("product.addedToCart"));
     router.push("/cart");
   };
 
@@ -118,7 +115,7 @@ export default function ProductDetailPage({ params }: Props) {
           className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-primary mb-8"
         >
           <ArrowLeft className="h-4 w-4" />
-          <span>{tCommon("menu")}</span>
+          <span>{t("common.menu")}</span>
         </Link>
 
         {loading && (
@@ -155,6 +152,7 @@ export default function ProductDetailPage({ params }: Props) {
                   src={product.imageUrl}
                   alt={product.name}
                   fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                   className="object-cover animate-fade-in"
                   priority
                 />
@@ -176,7 +174,7 @@ export default function ProductDetailPage({ params }: Props) {
               {product.description && (
                 <div className="w-full">
                   <h4 className="text-xs uppercase font-bold tracking-wider text-muted-foreground mb-2">
-                    {t("description")}
+                    {t("product.description")}
                   </h4>
                   <p className="text-sm text-muted-foreground leading-relaxed">
                     {product.description}
@@ -187,7 +185,7 @@ export default function ProductDetailPage({ params }: Props) {
               {product.variants && product.variants.length > 0 && (
                 <div className="w-full">
                   <h4 className="text-xs uppercase font-bold tracking-wider text-muted-foreground mb-3">
-                    {tMenu("size")} ({t("sizeS")} / {t("sizeM")} / {t("sizeL")})
+                    {t("product.menu.size")} ({t("product.sizeS")} / {t("product.sizeM")} / {t("product.sizeL")})
                   </h4>
                   <div className="flex gap-4">
                     {product.variants.map((variant) => {
@@ -214,7 +212,7 @@ export default function ProductDetailPage({ params }: Props) {
               {selectedToppings.length > 0 && (
                 <div className="w-full border-t border-border/50 pt-6">
                   <h4 className="text-xs uppercase font-bold tracking-wider text-muted-foreground mb-3">
-                    {tMenu("topping")} ({tCommon("price")})
+                    {t("product.menu.topping")} ({t("common.price")})
                   </h4>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     {selectedToppings.map(({ topping, quantity: toppingQty }) => (
@@ -239,12 +237,12 @@ export default function ProductDetailPage({ params }: Props) {
 
               <div className="w-full border-t border-border/50 pt-6">
                 <h4 className="text-xs uppercase font-bold tracking-wider text-muted-foreground mb-2">
-                  {tCart("note")}
+                  {t("product.cart.note")}
                 </h4>
                 <textarea
                   value={note}
                   onChange={(event) => setNote(event.target.value)}
-                  placeholder={tCart("note")}
+                  placeholder={t("product.cart.note")}
                   className="w-full min-h-[70px] border border-border rounded-xl p-3 text-xs focus:outline-primary/50 bg-card resize-none"
                 />
               </div>
@@ -269,7 +267,7 @@ export default function ProductDetailPage({ params }: Props) {
                 <div className="flex gap-4 items-center w-full sm:w-auto">
                   <div className="text-right hidden sm:flex flex-col">
                     <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
-                      {tCommon("total")}
+                      {t("common.total")}
                     </span>
                     <span className="text-lg font-black text-primary">
                       {formatPrice(totalPrice)}
@@ -283,7 +281,7 @@ export default function ProductDetailPage({ params }: Props) {
                     disabled={!selectedVariant}
                   >
                     <ShoppingBag className="h-4 w-4" />
-                    <span>{tCommon("addToCart")}</span>
+                    <span>{t("common.addToCart")}</span>
                     <span className="sm:hidden">({formatPrice(totalPrice)})</span>
                   </Button>
                 </div>
