@@ -57,20 +57,21 @@
       "backDesc": "Not just selling coffee, Lowlands brings a cozy and sophisticated destination to study, chat, or meet. A place connecting like-minded souls amidst the busy urban life."
     }
   },
-  "app": {
-    "title": "Easier ordering \n with Lowlands App",
-    "desc": "Download Lowlands Coffee app today to get a 50,000đ voucher for your first order, collect points to exchange gifts, and enjoy pre-order pickup service.",
-    "downloadOn": "Download on the",
-    "downloadOnGoogle": "Get it on",
-    "hello": "Hello, John Doe 👋",
-    "promoToday": "Today's Offer",
-    "promoFreeDrink": "Free Ice Blended Size L",
-    "promoMinOrder": "For orders over 99,000đ",
-    "recommendedMenu": "Recommended Menu",
-    "navHome": "Home",
-    "navMenu": "Menu",
-    "navWallet": "My Wallet",
-    "navSettings": "Settings"
+  "loyalty": {
+    "title": "Lowlands Club Membership \nEarn Coffee Beans, Get Rewards",
+    "desc": "Become a Lowlands Club member today to enjoy premium privileges. Accumulate Coffee Beans with every purchase of your favorite drinks and redeem them for exclusive brand items, free beverages, and personalized offers.",
+    "step1Title": "1. Create Account",
+    "step1Desc": "Sign up for membership in just 30 seconds and receive a 20% off voucher for your first order.",
+    "step2Title": "2. Enjoy & Earn Beans",
+    "step2Desc": "For every 10,000đ spent at any store or when ordering online, you immediately earn 1 Coffee Bean.",
+    "step3Title": "3. Redeem Privileges",
+    "step3Desc": "Redeem your coffee beans for free drinks, hot pastries, or exclusive brand merchandise.",
+    "cardTier": "Gold Member",
+    "cardNumber": "Card No: LL-8899-2026",
+    "cardHolder": "JOHN DOE",
+    "pointsBalance": "Bean Balance: 188 Beans",
+    "joinNow": "Register Membership",
+    "viewBenefits": "View Member Benefits"
   },
   "promo1": {
     "title": "HAPPY HOUR 14:00 – 17:00",

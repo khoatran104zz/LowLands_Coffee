@@ -116,82 +116,78 @@ export function Hero() {
                   whileTap={{ scale: 0.97 }}
                   className="relative overflow-hidden group inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3.5 text-sm font-extrabold text-accent-foreground shadow-lg transition-all duration-300 cursor-pointer"
                 >
-                  {/* Ripple overlay effect */}
                   <span className="absolute inset-0 bg-white/20 rounded-full scale-0 group-hover:scale-100 transition-transform duration-500 origin-center pointer-events-none" />
                   <span>{t("landing.button.exploreMenu")}</span>
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </motion.div>
               </Link>
+
+              <Link href="/menu">
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="inline-flex items-center gap-2 rounded-full border border-white/25 hover:bg-white/10 px-6 py-3.5 text-sm font-extrabold text-white transition-all duration-300 cursor-pointer"
+                >
+                  <span>{t("landing.button.orderNow")}</span>
+                </motion.div>
+              </Link>
             </motion.div>
           </motion.div>
 
-          {/* Right Illustration Column */}
-          <div className="lg:col-span-5 flex justify-center">
+          {/* Right Column: Premium Iced Coffee Image Stack */}
+          <div className="lg:col-span-5 flex justify-center relative select-none">
+            {/* Background Glow Halo */}
+            <div className="absolute inset-0 bg-accent/20 rounded-full blur-[80px] scale-90 pointer-events-none" />
+
             <motion.div
               style={{ y: yCup }}
-              initial={{ opacity: 0, scale: 0.8, rotate: -5 }}
+              initial={{ opacity: 0, scale: 0.9, rotate: 2 }}
               animate={{ opacity: 1, scale: 1, rotate: 0 }}
-              transition={{ type: "spring" as const, damping: 18, stiffness: 80, delay: 0.2 }}
-              className="relative w-72 h-72 sm:w-96 sm:h-96"
+              transition={{ type: "spring", damping: 20, stiffness: 60, delay: 0.3 }}
+              className="relative z-10 w-72 h-72 sm:w-[380px] sm:h-[380px]"
             >
-              <style>{`
-                @keyframes rise-steam {
-                  0% {
-                    stroke-dashoffset: 0;
-                    opacity: 0;
-                    transform: translateY(12px) scaleX(0.85);
-                  }
-                  30% {
-                    opacity: 0.75;
-                  }
-                  100% {
-                    stroke-dashoffset: -80;
-                    opacity: 0;
-                    transform: translateY(-24px) scaleX(1.2);
-                  }
-                }
-                .steam-line {
-                  animation: rise-steam 4.5s ease-in-out infinite;
-                  transform-origin: bottom center;
-                }
-                .steam-line-1 { animation-delay: 0s; }
-                .steam-line-2 { animation-delay: 1.6s; }
-                .steam-line-3 { animation-delay: 0.8s; }
-              `}</style>
+              {/* Decorative gold background border rotated */}
+              <div className="absolute inset-0 border border-accent/40 rounded-[36px] -rotate-3 scale-[1.02] pointer-events-none" />
+              
+              <div className="w-full h-full rounded-[36px] overflow-hidden border-4 border-accent/80 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] bg-neutral-900">
+                <img 
+                  src="/images/hero-coffee.png" 
+                  alt="Lowlands Signature Phin Sua Da" 
+                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" 
+                />
+              </div>
 
-              {/* Steaming Coffee Cup Graphic */}
-              <svg viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full drop-shadow-[0_20px_40px_rgba(0,0,0,0.55)]">
-                {/* Steaming lines */}
-                <path d="M75 50 Q 80 40, 75 30 T 75 10" stroke="url(#steam-grad)" strokeWidth="3" strokeLinecap="round" className="steam-line steam-line-1" />
-                <path d="M100 45 Q 105 32, 100 20 T 100 5" stroke="url(#steam-grad)" strokeWidth="4.5" strokeLinecap="round" className="steam-line steam-line-2" />
-                <path d="M125 50 Q 130 40, 125 30 T 125 10" stroke="url(#steam-grad)" strokeWidth="3" strokeLinecap="round" className="steam-line steam-line-3" />
+              {/* Floating Badge 1: 100% Coffee */}
+              <motion.div
+                animate={{ y: [0, -6, 0] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+                className="absolute -top-4 -left-6 z-20 bg-[#2D1A19]/95 border border-accent/40 backdrop-blur-md px-3.5 py-2 rounded-2xl flex items-center gap-2 shadow-lg"
+              >
+                <div className="h-6 w-6 rounded-full bg-accent/25 flex items-center justify-center text-accent">
+                  <Coffee className="h-3 w-3" fill="currentColor" />
+                </div>
+                <div className="text-left">
+                  <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider leading-none">Cà Phê Việt</p>
+                  <p className="text-[11px] text-white font-black leading-none mt-1">100% Mộc Mạc</p>
+                </div>
+              </motion.div>
 
-                {/* Cup Body */}
-                <path d="M 50 65 L 150 65 C 150 120, 135 150, 100 150 C 65 150, 50 120, 50 65 Z" fill="url(#cup-grad)" stroke="#C5A880" strokeWidth="1.5" />
-                
-                {/* Cup handle */}
-                <path d="M 150 80 C 175 80, 175 120, 150 120" fill="none" stroke="#C5A880" strokeWidth="8" strokeLinecap="round" />
-                
-                {/* Plate / Saucer */}
-                <ellipse cx="100" cy="155" rx="75" ry="12" fill="url(#saucer-grad)" stroke="#C5A880" strokeWidth="1.5" />
-                
-                {/* Gradients definitions */}
-                <defs>
-                  <linearGradient id="cup-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#4A2C2A" />
-                    <stop offset="100%" stopColor="#2D1A19" />
-                  </linearGradient>
-                  <linearGradient id="saucer-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor="#C5A880" />
-                    <stop offset="100%" stopColor="#AA7C11" />
-                  </linearGradient>
-                  <linearGradient id="steam-grad" x1="0%" y1="100%" x2="0%" y2="0%">
-                    <stop offset="0%" stopColor="rgba(247, 243, 233, 0)" />
-                    <stop offset="30%" stopColor="rgba(247, 243, 233, 0.75)" />
-                    <stop offset="100%" stopColor="rgba(247, 243, 233, 0)" />
-                  </linearGradient>
-                </defs>
-              </svg>
+              {/* Floating Badge 2: Product info */}
+              <motion.div
+                animate={{ y: [0, 6, 0] }}
+                transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+                className="absolute -bottom-4 -right-6 z-20 bg-white/95 text-neutral-800 p-3.5 rounded-2xl flex flex-col gap-1 shadow-2xl min-w-[170px] border border-border/40"
+              >
+                <div className="flex justify-between items-center gap-3">
+                  <span className="text-xs font-black text-primary uppercase tracking-wider">Phin Sữa Đá</span>
+                  <span className="inline-flex items-center rounded-full bg-accent/20 px-2 py-0.5 text-[8px] font-black text-[#AA7C11] tracking-wide">BEST SELLER</span>
+                </div>
+                <p className="text-[9px] text-zinc-500 font-medium text-left leading-tight">Đậm đà hương vị truyền thống Việt</p>
+                <div className="flex justify-between items-center mt-1 border-t border-zinc-100 pt-1.5">
+                  <span className="text-[9px] text-zinc-400 font-bold">Giá chỉ từ</span>
+                  <span className="text-xs font-black text-[#C8510A] font-outfit">29.000đ</span>
+                </div>
+              </motion.div>
             </motion.div>
           </div>
 

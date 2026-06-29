@@ -3,7 +3,7 @@ import { Hero } from "@/components/features/home/Hero";
 import { PromoBannerCarousel } from "@/components/features/home/PromoBannerCarousel";
 import { FeaturedProducts } from "@/components/features/home/FeaturedProducts";
 import { AboutBrand } from "@/components/features/home/AboutBrand";
-import { AppDownloadBanner } from "@/components/features/home/AppDownloadBanner";
+import { LoyaltyProgramBanner } from "@/components/features/home/LoyaltyProgramBanner";
 import { StoreLocator } from "@/components/features/home/StoreLocator";
 
 
@@ -40,7 +40,7 @@ export default async function HomePage() {
       <PromoBannerCarousel />
       <FeaturedProducts />
       <AboutBrand />
-      <AppDownloadBanner />
+      <LoyaltyProgramBanner />
       <StoreLocator />
     </div>
   );
