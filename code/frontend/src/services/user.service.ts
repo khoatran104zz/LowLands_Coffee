@@ -5,7 +5,7 @@ export interface UserCreateRequest {
   fullName: string;
   email: string;
   phone?: string;
-  password?: string;
+  password: string;
   roleId: number;
   status: string;
 }

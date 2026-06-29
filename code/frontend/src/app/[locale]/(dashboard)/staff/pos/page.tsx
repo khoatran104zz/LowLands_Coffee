@@ -51,6 +51,7 @@ export default function StaffPOSPage() {
   const categories = useDashboardStore((state) => state.categories);
   const orders = useDashboardStore((state) => state.orders);
   const addOrder = useDashboardStore((state) => state.addOrder);
+  const hydrateProductCatalog = useDashboardStore((state) => state.hydrateProductCatalog);
 
   // Local state
   const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
@@ -64,6 +65,10 @@ export default function StaffPOSPage() {
 
   useEffect(() => {
     setIsMounted(true);
+    void hydrateProductCatalog("public");
+  }, [hydrateProductCatalog]);
+
+  useEffect(() => {
     if (!isAuthenticated || !user) {
       router.push(`/${locale}/portal/login`);
       return;

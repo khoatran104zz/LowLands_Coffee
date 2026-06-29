@@ -13,6 +13,19 @@ import { Link, useRouter } from "@/i18n/navigation";
 import { toast } from "sonner";
 import { LogIn } from "lucide-react";
 
+const getRoleRedirectPath = (role?: string) => {
+  switch (role) {
+    case "ADMIN":
+      return "/admin/dashboard";
+    case "MANAGER":
+      return "/manager/dashboard";
+    case "STAFF":
+      return "/staff/pos";
+    default:
+      return "/";
+  }
+};
+
 export default function LoginPage() {
   const t = useTranslations("auth");
   const tCommon = useTranslations("common");
@@ -51,10 +64,9 @@ export default function LoginPage() {
         return;
       }
 
-      login(res.user, res.accessToken);
-      localStorage.setItem("lowlands_refresh_token", res.refreshToken);
+      login(res.user, res.accessToken, res.refreshToken);
       toast.success(tCommon("login") + " success");
-      router.push("/profile");
+      router.push(getRoleRedirectPath(res.user.role ?? res.user.roleName));
     } catch (err) {
       console.warn("Login failed", err);
       toast.error(t("loginFailed"));

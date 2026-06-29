@@ -29,31 +29,31 @@ public class UserController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('USER_READ')")
+    @PreAuthorize("hasAuthority('USER_VIEW')")
     public ApiResponse<List<UserResponse>> findAll() {
         return ApiResponse.success(userService.findAll());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('USER_READ')")
+    @PreAuthorize("hasAuthority('USER_VIEW')")
     public ApiResponse<UserResponse> findById(@PathVariable Long id) {
         return ApiResponse.success(userService.findById(id));
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('USER_MANAGE')")
+    @PreAuthorize("hasAuthority('USER_CREATE')")
     public ApiResponse<UserResponse> create(@Valid @RequestBody UserCreateRequest request) {
         return ApiResponse.success(userService.create(request));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('USER_MANAGE')")
+    @PreAuthorize("hasAuthority('USER_UPDATE')")
     public ApiResponse<UserResponse> update(@PathVariable Long id, @Valid @RequestBody UserUpdateRequest request) {
         return ApiResponse.success(userService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('USER_MANAGE')")
+    @PreAuthorize("hasAuthority('USER_DELETE')")
     public ApiResponse<Void> delete(@PathVariable Long id) {
         userService.delete(id);
         return ApiResponse.success(null);

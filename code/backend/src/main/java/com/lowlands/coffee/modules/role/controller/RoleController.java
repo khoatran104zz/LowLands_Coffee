@@ -29,31 +29,31 @@ public class RoleController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('ROLE_READ')")
+    @PreAuthorize("hasAuthority('ROLE_VIEW')")
     public ApiResponse<List<RoleResponse>> findAll() {
         return ApiResponse.success(roleService.findAll());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('ROLE_READ')")
+    @PreAuthorize("hasAuthority('ROLE_VIEW')")
     public ApiResponse<RoleResponse> findById(@PathVariable Long id) {
         return ApiResponse.success(roleService.findById(id));
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('ROLE_MANAGE')")
+    @PreAuthorize("hasAuthority('ROLE_CREATE')")
     public ApiResponse<RoleResponse> create(@Valid @RequestBody RoleCreateRequest request) {
         return ApiResponse.success(roleService.create(request));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('ROLE_MANAGE')")
+    @PreAuthorize("hasAuthority('ROLE_UPDATE')")
     public ApiResponse<RoleResponse> update(@PathVariable Long id, @Valid @RequestBody RoleUpdateRequest request) {
         return ApiResponse.success(roleService.update(id, request));
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('ROLE_MANAGE')")
+    @PreAuthorize("hasAuthority('ROLE_DELETE')")
     public ApiResponse<Void> delete(@PathVariable Long id) {
         roleService.delete(id);
         return ApiResponse.success(null);

@@ -7,7 +7,7 @@ interface AuthState {
   isAuthenticated: boolean;
   
   // Actions
-  login: (user: User, token: string) => void;
+  login: (user: User, token: string, refreshToken?: string) => void;
   logout: () => void;
   updateUser: (user: User) => void;
 }
@@ -19,10 +19,13 @@ export const useAuthStore = create<AuthState>((set) => ({
   token: typeof window !== "undefined" ? localStorage.getItem("lowlands_token") : null,
   isAuthenticated: typeof window !== "undefined" ? Boolean(localStorage.getItem("lowlands_token")) : false,
 
-  login: (user, token) => {
+  login: (user, token, refreshToken) => {
     // Save to local storage for persistence
     if (typeof window !== "undefined") {
       localStorage.setItem("lowlands_token", token);
+      if (refreshToken) {
+        localStorage.setItem("lowlands_refresh_token", refreshToken);
+      }
       localStorage.setItem("lowlands_user", JSON.stringify(user));
     }
     set({ user, token, isAuthenticated: true });

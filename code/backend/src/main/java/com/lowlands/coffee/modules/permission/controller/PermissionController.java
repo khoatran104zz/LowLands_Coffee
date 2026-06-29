@@ -29,25 +29,25 @@ public class PermissionController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('PERMISSION_READ')")
+    @PreAuthorize("hasAuthority('PERMISSION_VIEW')")
     public ApiResponse<List<PermissionResponse>> findAll() {
         return ApiResponse.success(permissionService.findAll());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('PERMISSION_READ')")
+    @PreAuthorize("hasAuthority('PERMISSION_VIEW')")
     public ApiResponse<PermissionResponse> findById(@PathVariable Long id) {
         return ApiResponse.success(permissionService.findById(id));
     }
 
     @PostMapping
-    @PreAuthorize("hasAuthority('PERMISSION_MANAGE')")
+    @PreAuthorize("hasAuthority('PERMISSION_CREATE')")
     public ApiResponse<PermissionResponse> create(@Valid @RequestBody PermissionCreateRequest request) {
         return ApiResponse.success(permissionService.create(request));
     }
 
     @PutMapping("/{id}")
-    @PreAuthorize("hasAuthority('PERMISSION_MANAGE')")
+    @PreAuthorize("hasAuthority('PERMISSION_UPDATE')")
     public ApiResponse<PermissionResponse> update(
             @PathVariable Long id,
             @Valid @RequestBody PermissionUpdateRequest request
@@ -56,7 +56,7 @@ public class PermissionController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasAuthority('PERMISSION_MANAGE')")
+    @PreAuthorize("hasAuthority('PERMISSION_DELETE')")
     public ApiResponse<Void> delete(@PathVariable Long id) {
         permissionService.delete(id);
         return ApiResponse.success(null);
