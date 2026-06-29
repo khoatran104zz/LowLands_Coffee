@@ -57,20 +57,21 @@
       "backDesc": "Không chỉ bán cà phê, Lowlands mang lại một điểm đến ấm cúng và tinh tế để học tập, trò chuyện hay gặp gỡ. Nơi kết nối những tâm hồn đồng điệu giữa cuộc sống đô thị vội vã."
     }
   },
-  "app": {
-    "title": "Đặt hàng dễ dàng hơn \n với App Lowlands",
-    "desc": "Tải app Lowlands Coffee ngay hôm nay để nhận voucher giảm 50.000đ cho đơn hàng đầu tiên, tích lũy điểm đổi quà, và tận hưởng tính năng đặt hàng trước nhận tại quầy cực kỳ nhanh chóng.",
-    "downloadOn": "Tải về trên",
-    "downloadOnGoogle": "Tải ngay tại",
-    "hello": "Xin chào, Nguyễn Văn A 👋",
-    "promoToday": "Ưu đãi hôm nay",
-    "promoFreeDrink": "Tặng ly đá xay size L",
-    "promoMinOrder": "Cho đơn hàng trên 99.000đ",
-    "recommendedMenu": "Thực đơn khuyên dùng",
-    "navHome": "Trang chủ",
-    "navMenu": "Thực đơn",
-    "navWallet": "Ví của tôi",
-    "navSettings": "Cài đặt"
+  "loyalty": {
+    "title": "Hội Viên Lowlands Club \nTích Điểm Xinh - Nhận Quà Xịn",
+    "desc": "Trở thành hội viên Lowlands Club ngay hôm nay để tận hưởng các đặc quyền đẳng cấp. Tích lũy Hạt Cà Phê qua mỗi lần thưởng thức thức uống yêu thích và quy đổi sang các sản phẩm độc quyền, đồ uống miễn phí cùng nhiều ưu đãi cá nhân hóa.",
+    "step1Title": "1. Đăng ký tài khoản",
+    "step1Desc": "Tạo tài khoản thành viên chỉ trong 30 giây và nhận ngay voucher giảm 20% cho đơn hàng đầu tiên.",
+    "step2Title": "2. Thưởng thức & Tích hạt",
+    "step2Desc": "Với mỗi 10.000đ chi tiêu tại bất kỳ cửa hàng nào hoặc khi đặt hàng trực tuyến, bạn tích lũy ngay 1 Hạt Cà Phê.",
+    "step3Title": "3. Đổi đặc quyền hấp dẫn",
+    "step3Desc": "Quy đổi hạt cà phê của bạn thành đồ uống miễn phí, bánh mì nóng hổi, hoặc quà lưu niệm thương hiệu độc bản.",
+    "cardTier": "Hội Viên Vàng (Gold Member)",
+    "cardNumber": "Thẻ số: LL-8899-2026",
+    "cardHolder": "NGUYỄN VĂN A",
+    "pointsBalance": "Số dư hạt: 188 Hạt Cà Phê",
+    "joinNow": "Đăng ký thành viên",
+    "viewBenefits": "Xem quyền lợi hội viên"
   },
   "promo1": {
     "title": "HAPPY HOUR 14:00 – 17:00",
