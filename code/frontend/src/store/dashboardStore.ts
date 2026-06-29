@@ -169,6 +169,11 @@ export const useDashboardStore = create<DashboardState>()(
       ingredients: INITIAL_INGREDIENTS,
 
       hydrateProductCatalog: async (source = "public") => {
+        if (source === "admin") {
+          if (typeof window === "undefined" || !localStorage.getItem("lowlands_token")) {
+            return;
+          }
+        }
         try {
           const [products, categories] = source === "admin"
             ? await Promise.all([getAdminProducts(), getAdminCategories()])
