@@ -1,0 +1,57 @@
+{
+  "menu": {
+    "title": "Thực đơn của chúng tôi",
+    "searchPlaceholder": "Tìm kiếm cà phê, trà...",
+    "filterPrice": "Lọc theo giá",
+    "all": "Tất cả",
+    "noProducts": "Không tìm thấy sản phẩm nào trong danh mục này.",
+    "size": "Kích cỡ",
+    "topping": "Topping thêm",
+    "priceRange": "Khoảng giá:",
+    "apiErrorTitle": "Lỗi API Backend",
+    "apiErrorDesc": "Không thể tải sản phẩm từ backend API. Frontend không dùng mock product thay thế, vui lòng kiểm tra Spring Boot API và seed data."
+  },
+  "detail": "Chi tiết sản phẩm",
+  "description": "Mô tả sản phẩm",
+  "sizeS": "Nhỏ (S)",
+  "sizeM": "Vừa (M)",
+  "sizeL": "Lớn (L)",
+  "addedToCart": "Đã thêm sản phẩm vào giỏ hàng thành công!",
+  "outOfStock": "Sản phẩm tạm thời hết hàng!",
+  "defaultDescription": "Hương vị thơm ngon đặc trưng chỉ có tại Lowlands Coffee.",
+  "cart": {
+    "title": "Giỏ Hàng Của Bạn",
+    "empty": "Giỏ hàng của bạn đang trống.",
+    "itemCount": "{count} sản phẩm",
+    "summary": "Tóm tắt đơn hàng",
+    "subtotal": "Tạm tính",
+    "discount": "Giảm giá",
+    "total": "Tổng thanh toán",
+    "checkout": "Tiến hành thanh toán",
+    "removeConfirm": "Bạn có chắc chắn muốn xóa sản phẩm này khỏi giỏ hàng?",
+    "promoCode": "Mã giảm giá",
+    "applyPromo": "Áp dụng",
+    "promoSuccess": "Áp dụng mã giảm giá thành công!",
+    "promoInvalid": "Mã giảm giá không hợp lệ hoặc đã hết hạn.",
+    "note": "Ghi chú cho đồ uống..."
+  },
+  "checkout": {
+    "title": "Thanh Toán",
+    "shippingAddress": "Địa chỉ giao hàng",
+    "paymentMethod": "Phương thức thanh toán",
+    "orderSummary": "Chi tiết đơn hàng",
+    "fullName": "Họ và tên người nhận",
+    "phone": "Số điện thoại nhận hàng",
+    "address": "Địa chỉ chi tiết (Số nhà, tên đường, phường/xã, quận/huyện...)",
+    "cashOnDelivery": "Thanh toán khi nhận hàng (COD)",
+    "bankTransfer": "Chuyển khoản ngân hàng",
+    "eWallet": "Ví điện tử (Momo / ZaloPay)",
+    "placeOrder": "Đặt hàng ngay",
+    "orderSuccess": "Đặt hàng thành công! Cảm ơn bạn đã lựa chọn Lowlands Coffee.",
+    "validation": {
+      "nameRequired": "Họ tên không được để trống",
+      "phoneInvalid": "Số điện thoại không hợp lệ (yêu cầu 10 số)",
+      "addressRequired": "Địa chỉ giao hàng không được để trống"
+    }
+  }
+}

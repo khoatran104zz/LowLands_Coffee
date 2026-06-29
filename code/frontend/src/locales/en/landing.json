@@ -1,0 +1,242 @@
+{
+  "hero": {
+    "title": "Lowlands Coffee",
+    "subtitle": "Original flavors from the lowlands - Connecting modern Vietnamese phin coffee culture."
+  },
+  "button": {
+    "exploreMenu": "Explore Menu",
+    "orderNow": "Order Now",
+    "learnMore": "View career opportunities",
+    "readStory": "Read our story"
+  },
+  "featured": {
+    "title": "Featured Products",
+    "desc": "Carefully selected drinks, bringing the signature taste of Lowlands."
+  },
+  "promo": {
+    "title": "Special Promotions",
+    "desc": "Grab attractive offers today from Lowlands Coffee."
+  },
+  "locator": {
+    "title": "Find Nearest Store",
+    "desc": "With our growing network, find a cozy Lowlands Coffee spot near you.",
+    "placeholder": "Enter city, district...",
+    "button": "Search",
+    "noStore": "No stores found.",
+    "selectStore": "Select this store",
+    "fallbackWarning": "Preview Mode: API offline. Showing mock store list. Start Spring Boot API to synchronize.",
+    "pendingTitle": "API Backend Pending Integration",
+    "pendingDesc": "The system is running in standalone Frontend development mode. Please connect and start the Spring Boot API to fetch the store list directly from the database.",
+    "mapTitle": "Lowlands Interactive Map",
+    "mapDesc": "The interactive store locator map will be displayed here once the branch geolocator system is configured.",
+    "mapReady": "Map Integration Ready"
+  },
+  "about": {
+    "title": "Our Brand Story",
+    "desc": "Lowlands Coffee was born out of an infinite love for Vietnamese coffee beans. Unlike the high mountain peaks, 'Lowlands' represents the fertile valleys and plains where heaven and earth intersect, a gathering place for life and connection. We bring Robusta and Arabica beans from the red soils of the Central Highlands to major cities, preserving the traditional phin brewing method while elevating it with a modern service experience in a warm, minimalist space.",
+    "yearsExp": "Years of experience",
+    "stores": "Stores nationwide",
+    "customers": "Trusted customers",
+    "heritage": "Taste of Vietnamese heritage",
+    "card1": {
+      "title": "100% Robusta & Arabica",
+      "desc": "Coffee beans are hand-harvested ripe red in the basalt soil of Lam Dong.",
+      "backTitle": "Premium Coffee Beans",
+      "backDesc": "Each bold Robusta and light Arabica bean is purchased directly from farmers, going through a strict screening process and roasting according to an exclusive formula to preserve the essence of the aroma."
+    },
+    "card2": {
+      "title": "Traditional Phin Brewing",
+      "desc": "Each cup of coffee is filtered from traditional phin, retaining the full Vietnamese flavor.",
+      "backTitle": "Rustic Phin Experience",
+      "backDesc": "Retaining the traditional flavor of the aluminum phin - the immortal symbol of Vietnamese coffee. Slowly extracting, each drop leaves a bold bitter taste with a sweet, charming aftertaste."
+    },
+    "card3": {
+      "title": "Connecting Space",
+      "desc": "Rustic design, close to nature, strengthening the relationships of the Vietnamese community.",
+      "backTitle": "Connecting Rendezvous",
+      "backDesc": "Not just selling coffee, Lowlands brings a cozy and sophisticated destination to study, chat, or meet. A place connecting like-minded souls amidst the busy urban life."
+    }
+  },
+  "app": {
+    "title": "Easier ordering \n with Lowlands App",
+    "desc": "Download Lowlands Coffee app today to get a 50,000đ voucher for your first order, collect points to exchange gifts, and enjoy pre-order pickup service.",
+    "downloadOn": "Download on the",
+    "downloadOnGoogle": "Get it on",
+    "hello": "Hello, John Doe 👋",
+    "promoToday": "Today's Offer",
+    "promoFreeDrink": "Free Ice Blended Size L",
+    "promoMinOrder": "For orders over 99,000đ",
+    "recommendedMenu": "Recommended Menu",
+    "navHome": "Home",
+    "navMenu": "Menu",
+    "navWallet": "My Wallet",
+    "navSettings": "Settings"
+  },
+  "promo1": {
+    "title": "HAPPY HOUR 14:00 – 17:00",
+    "subtitle": "20% OFF ALL DRINKS",
+    "desc": "Boost your afternoon energy with the bold flavors of traditional phin coffee and refreshing teas at Lowlands.",
+    "ctaText": "Order now"
+  },
+  "promo2": {
+    "title": "MORNING COMBO",
+    "subtitle": "MILK PHIN COFFEE + BANH MI FOR 49,000Đ ONLY",
+    "desc": "A complete Vietnamese breakfast: crispy banh mi paired with a traditional, rich iced milk phin coffee.",
+    "ctaText": "View combo"
+  },
+  "promo3": {
+    "title": "NEW MEMBER OFFER",
+    "subtitle": "X2 POINTS FOR THE FIRST ORDER",
+    "desc": "Join Lowlands Club today to enjoy exclusive member rewards, free shipping, and bonus points.",
+    "ctaText": "Sign up now"
+  },
+  "aboutPage": {
+    "title": "About Lowlands Coffee",
+    "subtitle": "Connecting traditional phin coffee culture with modern urban life.",
+    "journeyTitle": "Brand Journey",
+    "valuesTitle": "Core Values",
+    "foundersTitle": "Founding Team",
+    "joinTitle": "Join the Lowlands Team",
+    "joinDesc": "We are always looking for passionate, coffee-loving individuals who want to spread the Vietnamese coffee heritage.",
+    "joinButton": "View Job Opportunities",
+    "timeline": {
+      "t2021": {
+        "title": "The Spark of an Idea",
+        "desc": "Lowlands Coffee was sparked from a love of simple phin coffee and a desire to bring the flavors of the Central Highlands to the city streets."
+      },
+      "t2022": {
+        "title": "The First Store",
+        "desc": "Opened the first branch at Turtle Lake, District 3, HCMC - creating a cozy connection space for young people."
+      },
+      "t2024": {
+        "title": "Expansion Journey",
+        "desc": "Reached 30 stores in HCMC, Hanoi, and Da Nang, while establishing a direct supply chain from farming households."
+      },
+      "t2026": {
+        "title": "Modern Transformation",
+        "desc": "Launched a convenient App ordering system and smart POS counters, elevating the overall customer experience."
+      }
+    },
+    "values": {
+      "v1": {
+        "title": "Original Quality",
+        "desc": "Committed to using hand-picked ripe Robusta and Arabica beans, roasted purely with no additives."
+      },
+      "v2": {
+        "title": "Modern Experience",
+        "desc": "Leveraging technology for quick ordering and payments while keeping the phin culture intact."
+      },
+      "v3": {
+        "title": "Farmer Responsibility",
+        "desc": "Purchasing directly at premium rates to improve the livelihood of local farming families."
+      },
+      "v4": {
+        "title": "Community Connection",
+        "desc": "Every store serves as a warm local hub, sharing joy and positive energy daily."
+      }
+    }
+  },
+  "careersPage": {
+    "badge": "Careers",
+    "heroTitle": "Build the Modern \n Coffee Experience",
+    "heroDesc": "At Lowlands, we cherish every individual and aim to build a youthful, creative working environment where breakthrough ideas are welcomed.",
+    "sectionTitle": "Job Opportunities",
+    "allTypes": "All types",
+    "allLocs": "All locations",
+    "applyNow": "Apply Now",
+    "noJobs": "No matching job positions found.",
+    "cultureTitle": "Working Culture",
+    "cultureSub": "Professional Training Policy",
+    "cultureDesc": "Get free professional Barista training from basic to advanced levels. Supporting and elevating your personal career development roadmap.",
+    "formTitle": "Quick Apply",
+    "formDesc": "Please fill in the information and upload your CV.",
+    "labelName": "Full Name *",
+    "labelEmail": "Email Address *",
+    "labelPosition": "Position *",
+    "labelResume": "Upload Resume / CV (PDF) *",
+    "resumePlaceholder": "Drag and drop or click to upload CV",
+    "resumeHint": "Supported formats: PDF, Word (Max 5MB)",
+    "submitButton": "Submit Application",
+    "successTitle": "Application Submitted",
+    "successDesc": "Thank you {name}! Lowlands has received your application for the {position} position. We will reply to you via email as soon as possible.",
+    "applyOtherButton": "Apply for another position",
+    "validationError": "Please fill in all required fields!",
+    "successToast": "Your application has been submitted successfully!",
+    "jobs": {
+      "j1": "Store Manager",
+      "j2": "Professional Barista",
+      "j3": "Customer Service Staff",
+      "j4": "R&D Beverage Intern",
+      "j5": "Shift Supervisor",
+      "j6": "POS Cashier Staff",
+      "j7": "Barista Crew",
+      "negotiable": "Negotiable",
+      "million": "million",
+      "hourly": "22k - 25k/hour"
+    }
+  },
+  "supportPage": {
+    "heroTitle": "How Can We Help You?",
+    "heroDesc": "Enter your question or keywords to search for quick assistance from our customer support team.",
+    "searchPlaceholder": "Enter your question (e.g., delivery, points, cancel order...)",
+    "sectionTitle": "Support Categories",
+    "faqTitle": "Frequently Asked Questions (FAQs)",
+    "noFaq": "No matching FAQs found for your search term.",
+    "directContactTitle": "Direct Contact",
+    "hotlineTitle": "CSKH Hotline",
+    "hotlineHours": "Support from 8:00 AM - 10:00 PM daily",
+    "emailTitle": "Email Support",
+    "emailReplyTime": "Reply within 24 working hours",
+    "liveChatTitle": "Online 24/7",
+    "liveChatButton": "Chat Now",
+    "liveChatDesc": "Connect quickly with a support consultant",
+    "storesTitle": "Our Stores",
+    "featuredStores": "Featured Stores",
+    "openTime": "Opening hours",
+    "toastConnecting": "Lowlands Virtual Assistant is connecting...",
+    "categories": {
+      "c1": {
+        "title": "Online Ordering",
+        "desc": "Instructions on placing, modifying, adjusting delivery addresses, and cancelling orders."
+      },
+      "c2": {
+        "title": "Payment",
+        "desc": "Information about bank transfers, Momo, ZaloPay e-wallets, and COD."
+      },
+      "c3": {
+        "title": "Delivery",
+        "desc": "Shipping policy, shipping fees, delivery times, and logistics partners."
+      },
+      "c4": {
+        "title": "Club Member",
+        "desc": "How to register, earn reward points, and redeem voucher codes."
+      },
+      "c5": {
+        "title": "Feedback & Complaints",
+        "desc": "Send feedback about product quality and service attitude at the store."
+      }
+    },
+    "faqs": {
+      "f1": {
+        "q": "How to order online on Lowlands Coffee website?",
+        "a": "Simply go to the 'Menu' page, select your favorite drinks with your preferred size and toppings, click 'Add to Cart'. Then, access your 'Cart' in the top right corner, fill in shipping details, choose a payment method, and complete the order."
+      },
+      "f2": {
+        "q": "What is the average delivery time of Lowlands?",
+        "a": "The average delivery time is 15 to 35 minutes depending on the distance from the nearest Lowlands branch to your address. In case of weather issues or high demand, customer support will proactively contact you."
+      },
+      "f3": {
+        "q": "How do I accumulate membership points?",
+        "a": "When ordering online on the website/app while logged in, the system automatically awards points (rate: 10,000đ = 1 point). For in-store orders, simply provide your registered phone number to the cashier."
+      },
+      "f4": {
+        "q": "Can I cancel or edit my order details after placing it?",
+        "a": "To ensure drinks are served hot/cold as quickly as possible, orders are prepared immediately upon confirmation. To edit details or cancel, please call CSKH Hotline 1900 xxxx within 3 minutes of ordering."
+      },
+      "f5": {
+        "q": "What payment methods does Lowlands support?",
+        "a": "We support multiple payment methods including: Cash on Delivery (COD), dynamic QR code bank transfers, and linked e-wallets like Momo and ZaloPay."
+      }
+    }
+  }
+}

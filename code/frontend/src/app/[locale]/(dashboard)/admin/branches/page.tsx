@@ -11,9 +11,12 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useConfirm } from "@/hooks/useConfirm";
 
 export default function AdminBranchesPage() {
+  const { t } = useTranslation();
+  const confirm = useConfirm();
   const [isMounted, setIsMounted] = useState(false);
   
   // Table filters & searches
@@ -29,8 +32,6 @@ export default function AdminBranchesPage() {
   // Modal control states
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingBranch, setEditingBranch] = useState<Store | null>(null);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [deletingBranchId, setDeletingBranchId] = useState<number | null>(null);
 
   // Form input states
   const [formName, setFormName] = useState("");
@@ -42,7 +43,7 @@ export default function AdminBranchesPage() {
     setIsMounted(true);
   }, []);
 
-  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{UI_TEXT.common.loading}</div>;
+  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
 
   // Filter logic
   const filteredBranches = branches.filter((b) => {
@@ -67,7 +68,7 @@ export default function AdminBranchesPage() {
               : "bg-zinc-500/10 text-zinc-650"
           }`}
         >
-          {item.status === "active" ? UI_TEXT.common.active : UI_TEXT.common.inactive}
+          {item.status === "active" ? t("common.active") : t("common.inactive")}
         </span>
       )
     }
@@ -92,9 +93,17 @@ export default function AdminBranchesPage() {
     setIsFormOpen(true);
   };
 
-  const handleOpenDelete = (branch: Store) => {
-    setDeletingBranchId(branch.id);
-    setIsDeleteOpen(true);
+  const handleOpenDelete = async (branch: Store) => {
+    const isConfirmed = await confirm({
+      title: t("common.confirmDeleteTitle"),
+      message: t("admin.deleteBranchConfirm"),
+      confirmText: t("common.delete"),
+      cancelText: t("common.cancel")
+    });
+    if (isConfirmed) {
+      deleteBranch(branch.id);
+      toast.success("Xóa chi nhánh thành công!");
+    }
   };
 
   // Form submit handlers
@@ -126,13 +135,7 @@ export default function AdminBranchesPage() {
     setIsFormOpen(false);
   };
 
-  const handleConfirmDelete = () => {
-    if (deletingBranchId) {
-      deleteBranch(deletingBranchId);
-      toast.success("Xóa chi nhánh thành công!");
-    }
-    setIsDeleteOpen(false);
-  };
+
 
   return (
     <div className="space-y-6">
@@ -140,7 +143,7 @@ export default function AdminBranchesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-left">
         <div>
           <h1 className="text-xl font-bold text-amber-900 font-outfit uppercase tracking-wide">
-            {UI_TEXT.common.branches}
+            {t("common.branches")}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold mt-1">
             Quản lý danh sách chi nhánh hoạt động trong chuỗi Lowlands Coffee.
@@ -151,7 +154,7 @@ export default function AdminBranchesPage() {
           className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg px-4 h-10 text-xs font-semibold flex items-center space-x-2 shrink-0 self-start sm:self-auto"
         >
           <Plus className="h-4 w-4" />
-          <span>{UI_TEXT.common.add} chi nhánh</span>
+          <span>{t("common.add")} chi nhánh</span>
         </Button>
       </div>
 
@@ -167,8 +170,8 @@ export default function AdminBranchesPage() {
           value={statusFilter}
           onChange={setStatusFilter}
           options={[
-            { value: "active", label: UI_TEXT.common.active },
-            { value: "inactive", label: UI_TEXT.common.inactive }
+            { value: "active", label: t("common.active") },
+            { value: "inactive", label: t("common.inactive") }
           ]}
         />
       </div>
@@ -187,7 +190,7 @@ export default function AdminBranchesPage() {
       <Modal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        title={editingBranch ? UI_TEXT.admin.editBranch : UI_TEXT.admin.createBranch}
+        title={editingBranch ? t("admin.editBranch") : t("admin.createBranch")}
         size="md"
       >
         <form onSubmit={handleSaveBranch} className="space-y-4 text-left">
@@ -231,8 +234,8 @@ export default function AdminBranchesPage() {
                 onChange={(e) => setFormStatus(e.target.value)}
                 className="w-full h-10 px-3 py-1 bg-background border border-border text-foreground hover:bg-muted/10 rounded-lg text-xs font-medium focus:outline-none focus:ring-1 focus:ring-amber-800"
               >
-                <option value="active">{UI_TEXT.common.active}</option>
-                <option value="inactive">{UI_TEXT.common.inactive}</option>
+                <option value="active">{t("common.active")}</option>
+                <option value="inactive">{t("common.inactive")}</option>
               </select>
             </div>
           </div>
@@ -244,46 +247,19 @@ export default function AdminBranchesPage() {
               onClick={() => setIsFormOpen(false)}
               className="h-10 text-xs font-semibold rounded-lg"
             >
-              {UI_TEXT.common.cancel}
+              {t("common.cancel")}
             </Button>
             <Button
               type="submit"
               className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg h-10 text-xs font-semibold px-4"
             >
-              {UI_TEXT.common.save}
+              {t("common.save")}
             </Button>
           </div>
         </form>
       </Modal>
 
-      {/* Delete Confirmation Modal */}
-      <Modal
-        isOpen={isDeleteOpen}
-        onClose={() => setIsDeleteOpen(false)}
-        title="Xác nhận xóa chi nhánh"
-        size="sm"
-      >
-        <div className="space-y-4 text-left">
-          <p className="text-sm text-foreground/80">
-            {UI_TEXT.admin.deleteBranchConfirm}
-          </p>
-          <div className="flex justify-end space-x-2 border-t border-border/40 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteOpen(false)}
-              className="h-10 text-xs font-semibold rounded-lg"
-            >
-              {UI_TEXT.common.cancel}
-            </Button>
-            <Button
-              onClick={handleConfirmDelete}
-              className="bg-rose-600 hover:bg-rose-700 text-white rounded-lg h-10 text-xs font-semibold px-4"
-            >
-              {UI_TEXT.common.confirm}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      
     </div>
   );
 }

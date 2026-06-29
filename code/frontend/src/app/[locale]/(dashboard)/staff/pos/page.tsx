@@ -12,7 +12,8 @@ import { ProductCard } from "@/components/pos/ProductCard";
 import { POSCart } from "@/components/pos/POSCart";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/button";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useConfirm } from "@/hooks/useConfirm";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/auth.store";
 import { useRouter, useParams } from "next/navigation";
@@ -20,6 +21,8 @@ import { AccountDropdown } from "@/components/account/AccountDropdown";
 import { AccountModal } from "@/components/account/AccountModal";
 
 export default function StaffPOSPage() {
+  const { t } = useTranslation();
+  const confirm = useConfirm();
   const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
   const params = useParams();
@@ -38,9 +41,14 @@ export default function StaffPOSPage() {
     setIsAccountOpen(true);
   };
 
-  const handleLogout = () => {
-    const confirm = window.confirm("Bạn có chắc chắn muốn đăng xuất khỏi tài khoản POS?");
-    if (confirm) {
+  const handleLogout = async () => {
+    const isConfirmed = await confirm({
+      title: t("common.confirmLogoutTitle"),
+      message: t("common.confirmLogoutMessage"),
+      confirmText: t("common.logout"),
+      cancelText: t("common.cancel")
+    });
+    if (isConfirmed) {
       logout();
       router.push(`/${locale}/portal/login`);
     }
@@ -129,7 +137,7 @@ export default function StaffPOSPage() {
     );
   }
 
-  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{UI_TEXT.common.loading}</div>;
+  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
 
   // Filter products by selected category and search query
   const filteredProducts = products.filter((p) => {
@@ -619,7 +627,7 @@ export default function StaffPOSPage() {
           <div className="space-y-4 text-left">
             <div className="flex flex-col items-center justify-center text-center space-y-1 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-lg text-emerald-950 select-none">
               <CheckCircle className="h-7 w-7 text-emerald-700 animate-pulse" />
-              <span className="text-xs font-bold">{UI_TEXT.pos.checkoutSuccess}</span>
+              <span className="text-xs font-bold">{t("staff.pos.checkoutSuccess")}</span>
               <span className="text-[10px] font-black uppercase text-emerald-850">Mã đơn: {receiptData.orderCode}</span>
             </div>
 

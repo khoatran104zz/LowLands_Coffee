@@ -2,9 +2,11 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Apple, Play, Coffee } from "lucide-react";
 
 export function AppDownloadBanner() {
+  const { t } = useTranslation();
   // Coffee beans absolute coordinates for drift effect
   const beans = [
     { id: 1, size: 28, top: "15%", left: "12%", rotate: 45, delay: 0 },
@@ -58,7 +60,12 @@ export function AppDownloadBanner() {
               transition={{ duration: 0.5 }}
               className="font-heading font-extrabold text-3xl sm:text-4xl lg:text-5xl leading-tight tracking-tight uppercase"
             >
-              Đặt hàng dễ dàng hơn <br /> với App Lowlands
+              {t("landing.app.title").split("\n").map((line, idx) => (
+                <React.Fragment key={idx}>
+                  {line}
+                  {idx < t("landing.app.title").split("\n").length - 1 && <br />}
+                </React.Fragment>
+              ))}
             </motion.h2>
             <motion.p
               initial={{ opacity: 0, y: 20 }}
@@ -67,7 +74,7 @@ export function AppDownloadBanner() {
               transition={{ duration: 0.5, delay: 0.15 }}
               className="text-sm sm:text-base opacity-80 max-w-xl leading-relaxed font-semibold"
             >
-              Tải app Lowlands Coffee ngay hôm nay để nhận voucher giảm 50.000đ cho đơn hàng đầu tiên, tích lũy điểm đổi quà, và tận hưởng tính năng đặt hàng trước nhận tại quầy cực kỳ nhanh chóng.
+              {t("landing.app.desc")}
             </motion.p>
 
             <motion.div
@@ -88,7 +95,7 @@ export function AppDownloadBanner() {
               >
                 <Apple className="h-6 w-6 shrink-0 fill-current" />
                 <div className="text-left leading-tight">
-                  <div className="text-[10px] uppercase font-bold opacity-60">Tải về trên</div>
+                  <div className="text-[10px] uppercase font-bold opacity-60">{t("landing.app.downloadOn")}</div>
                   <div className="text-sm font-black font-outfit">App Store</div>
                 </div>
               </motion.a>
@@ -104,7 +111,7 @@ export function AppDownloadBanner() {
               >
                 <Play className="h-6 w-6 shrink-0 fill-current" />
                 <div className="text-left leading-tight">
-                  <div className="text-[10px] uppercase font-bold opacity-60">Tải về trên</div>
+                  <div className="text-[10px] uppercase font-bold opacity-60">{t("landing.app.downloadOnGoogle")}</div>
                   <div className="text-sm font-black font-outfit">Google Play</div>
                 </div>
               </motion.a>
@@ -142,18 +149,18 @@ export function AppDownloadBanner() {
                 {/* Simulated Content */}
                 <div className="flex-grow p-3 space-y-3 overflow-hidden text-left">
                   <div className="h-2.5 w-16 bg-neutral-300 rounded"></div>
-                  <div className="text-[10px] font-black leading-tight text-neutral-900 uppercase">Xin chào, Nguyễn Văn A 👋</div>
+                  <div className="text-[10px] font-black leading-tight text-neutral-900 uppercase">{t("landing.app.hello")}</div>
 
                   {/* Banner inside Phone */}
                   <div className="h-16 bg-[#2D1A19] text-white p-2 rounded-xl flex flex-col justify-center gap-0.5" style={{ background: "linear-gradient(135deg, #2D1A19 0%, #AA7C11 100%)" }}>
-                    <div className="text-[7px] font-bold text-accent uppercase tracking-widest leading-none">Ưu đãi hôm nay</div>
-                    <div className="text-[9px] font-black leading-tight uppercase">Tặng ly đá xay size L</div>
-                    <div className="text-[7px] opacity-75 leading-none">Cho đơn hàng trên 99.000đ</div>
+                    <div className="text-[7px] font-bold text-accent uppercase tracking-widest leading-none">{t("landing.app.promoToday")}</div>
+                    <div className="text-[9px] font-black leading-tight uppercase">{t("landing.app.promoFreeDrink")}</div>
+                    <div className="text-[7px] opacity-75 leading-none">{t("landing.app.promoMinOrder")}</div>
                   </div>
 
                   {/* Menu items inside Phone */}
                   <div className="space-y-1.5 pt-1">
-                    <div className="text-[8px] font-black text-neutral-400 uppercase tracking-widest">Thực đơn khuyên dùng</div>
+                    <div className="text-[8px] font-black text-neutral-400 uppercase tracking-widest">{t("landing.app.recommendedMenu")}</div>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="border border-border/60 rounded-xl p-1.5 flex flex-col gap-1 bg-white">
                         <div className="w-full aspect-[4/3] rounded-lg bg-neutral-200 overflow-hidden">
@@ -175,10 +182,10 @@ export function AppDownloadBanner() {
 
                 {/* Simulated Bottom Nav */}
                 <div className="bg-white border-t border-border/40 p-2.5 grid grid-cols-4 gap-1 text-center text-[7px] font-bold text-neutral-400">
-                  <div className="text-[#C8510A]">Trang chủ</div>
-                  <div>Thực đơn</div>
-                  <div>Ví của tôi</div>
-                  <div>Cài đặt</div>
+                  <div className="text-[#C8510A]">{t("landing.app.navHome")}</div>
+                  <div>{t("landing.app.navMenu")}</div>
+                  <div>{t("landing.app.navWallet")}</div>
+                  <div>{t("landing.app.navSettings")}</div>
                 </div>
               </div>
             </motion.div>

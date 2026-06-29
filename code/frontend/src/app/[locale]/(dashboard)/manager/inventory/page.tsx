@@ -11,7 +11,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
 
 const LOW_STOCK_THRESHOLD = 500;
 
@@ -29,6 +29,7 @@ const toInventoryRow = (balance: StockBalance): Ingredient => {
 };
 
 export default function ManagerInventoryPage() {
+  const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
@@ -57,7 +58,7 @@ export default function ManagerInventoryPage() {
   }, []);
 
   if (!isMounted) {
-    return <div className="text-center py-20 text-muted-foreground">{UI_TEXT.common.loading}</div>;
+    return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
   }
 
   const columns: Column<Ingredient>[] = [
@@ -159,7 +160,7 @@ export default function ManagerInventoryPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-left select-none">
         <div>
           <h1 className="text-xl font-bold text-amber-900 font-outfit uppercase tracking-wide">
-            {UI_TEXT.manager.ingredientList}
+            {t("staff.manager.ingredientList")}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold mt-1">
             Theo doi kiem kho, dinh muc nguyen vat lieu pha che va tao phieu nhap kho bo sung.
@@ -193,7 +194,7 @@ export default function ManagerInventoryPage() {
       <Modal
         isOpen={isRestockOpen}
         onClose={() => setIsRestockOpen(false)}
-        title={UI_TEXT.manager.importStockTitle}
+        title={t("staff.manager.importStockTitle")}
         size="sm"
       >
         {selectedIngredient && (
@@ -231,7 +232,7 @@ export default function ManagerInventoryPage() {
                 onClick={() => setIsRestockOpen(false)}
                 className="h-10 text-xs font-semibold rounded-lg"
               >
-                {UI_TEXT.common.cancel}
+                {t("common.cancel")}
               </Button>
               <Button
                 type="submit"

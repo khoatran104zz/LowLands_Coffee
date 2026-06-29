@@ -1,0 +1,41 @@
+{
+  "manager": {
+    "dashboardTitle": "Store Manager - Branch Reports",
+    "todayRevenue": "Today's Revenue",
+    "todayOrders": "Today's Orders",
+    "activeStaff": "On-duty Staff",
+    "inventoryWarning": "Low Ingredients",
+    "orderWorkflow": "Order Workflow",
+    "ingredientList": "Ingredients List",
+    "importStock": "Import Ingredients",
+    "importStockTitle": "Stock Inward Receipt",
+    "staffPerformance": "Staff Performance",
+    "workingShift": "Working Shift",
+    "weeklyRevenue": "Weekly Revenue",
+    "monthlyRevenue": "Monthly Revenue"
+  },
+  "pos": {
+    "coffee": "Coffee",
+    "tea": "Fruit Tea",
+    "cake": "Pastries",
+    "food": "Fast Food",
+    "cartTitle": "Current Order",
+    "emptyCart": "No items selected",
+    "addNote": "Add note...",
+    "payCash": "Cash",
+    "payCard": "Card Swipe",
+    "payQR": "Scan QR Code",
+    "checkoutSuccess": "Payment Successful!",
+    "orderCode": "Invoice Code",
+    "receiptPreview": "Retail Invoice Preview",
+    "printReceipt": "Print Invoice",
+    "close": "Close Window",
+    "customerName": "Customer",
+    "staffName": "Cashier",
+    "dateTime": "Time",
+    "cashReceived": "Cash Received",
+    "cashReturned": "Change Due",
+    "notePlaceholder": "e.g., Less milk, extra ice, split into 2 cups...",
+    "addToOrder": "+ Add to order"
+  }
+}

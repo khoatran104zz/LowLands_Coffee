@@ -3,10 +3,11 @@
 import React, { useState, useEffect } from "react";
 import { FileText, Award, Calendar, Sparkles } from "lucide-react";
 import { useDashboardStore } from "@/store/dashboardStore";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 
 export default function ManagerReportsPage() {
+  const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -16,7 +17,7 @@ export default function ManagerReportsPage() {
   const employees = useDashboardStore((state) => state.employees);
   const orders = useDashboardStore((state) => state.orders);
 
-  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{UI_TEXT.common.loading}</div>;
+  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
 
   const MY_BRANCH_ID = 2;
   const myBranchStaff = employees.filter((e) => e.branchId === MY_BRANCH_ID);
@@ -30,7 +31,7 @@ export default function ManagerReportsPage() {
       {/* Title */}
       <div className="text-left select-none">
         <h1 className="text-xl font-bold text-amber-900 font-outfit uppercase tracking-wide">
-          {UI_TEXT.common.reports} - Hồ Con Rùa
+          {t("common.reports")} - Hồ Con Rùa
         </h1>
         <p className="text-xs text-muted-foreground font-semibold mt-1">
           Báo cáo thống kê hiệu suất hoạt động, chấm công ca trực tại cửa hàng Hồ Con Rùa.

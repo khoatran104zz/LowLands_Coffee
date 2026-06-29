@@ -5,10 +5,11 @@ import { Coins, TrendingUp, Calendar, ArrowRight } from "lucide-react";
 import { useDashboardStore } from "@/store/dashboardStore";
 import { DataTable, Column } from "@/components/tables/DataTable";
 import { BarChart, LineChart, ChartDataItem } from "@/components/charts/Chart";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
 import { OrderExtended } from "@/mock/orders";
 
 export default function ManagerRevenuePage() {
+  const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -17,7 +18,7 @@ export default function ManagerRevenuePage() {
 
   const orders = useDashboardStore((state) => state.orders);
 
-  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{UI_TEXT.common.loading}</div>;
+  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
 
   // StoreId = 2: Hồ Con Rùa orders
   const MY_BRANCH_ID = 2;
@@ -65,7 +66,7 @@ export default function ManagerRevenuePage() {
       {/* Title */}
       <div className="text-left select-none">
         <h1 className="text-xl font-bold text-amber-900 font-outfit uppercase tracking-wide">
-          {UI_TEXT.common.revenue} - Hồ Con Rùa
+          {t("common.revenue")} - Hồ Con Rùa
         </h1>
         <p className="text-xs text-muted-foreground font-semibold mt-1">
           Kế toán doanh thu thực tế, lịch sử lập hóa đơn bán lẻ tại cửa hàng Hồ Con Rùa.
@@ -79,7 +80,7 @@ export default function ManagerRevenuePage() {
             <Coins className="h-6 w-6" />
           </div>
           <div>
-            <span className="text-[10px] text-muted-foreground font-bold uppercase block tracking-wider">{UI_TEXT.manager.todayRevenue}</span>
+            <span className="text-[10px] text-muted-foreground font-bold uppercase block tracking-wider">{t("staff.manager.todayRevenue")}</span>
             <span className="text-lg font-bold text-foreground font-outfit mt-0.5 block">
               {todayRevenue.toLocaleString()}đ
             </span>
@@ -91,7 +92,7 @@ export default function ManagerRevenuePage() {
             <TrendingUp className="h-6 w-6" />
           </div>
           <div>
-            <span className="text-[10px] text-muted-foreground font-bold uppercase block tracking-wider">{UI_TEXT.manager.weeklyRevenue}</span>
+            <span className="text-[10px] text-muted-foreground font-bold uppercase block tracking-wider">{t("staff.manager.weeklyRevenue")}</span>
             <span className="text-lg font-bold text-foreground font-outfit mt-0.5 block">
               {weeklyRevenue.toLocaleString()}đ
             </span>
@@ -103,7 +104,7 @@ export default function ManagerRevenuePage() {
             <Calendar className="h-6 w-6" />
           </div>
           <div>
-            <span className="text-[10px] text-muted-foreground font-bold uppercase block tracking-wider">{UI_TEXT.manager.monthlyRevenue}</span>
+            <span className="text-[10px] text-muted-foreground font-bold uppercase block tracking-wider">{t("staff.manager.monthlyRevenue")}</span>
             <span className="text-lg font-bold text-foreground font-outfit mt-0.5 block">
               {monthlyRevenue.toLocaleString()}đ
             </span>

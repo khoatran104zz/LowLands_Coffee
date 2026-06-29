@@ -1,11 +1,11 @@
 "use client";
 
 import { Link, usePathname } from "@/i18n/navigation";
-import { useTranslations } from "next-intl";
+import { useTranslation } from "@/hooks/useTranslation";
 import Image from "next/image";
 
 export function Footer() {
-  const t = useTranslations();
+  const { t } = useTranslation();
   const currentYear = new Date().getFullYear();
   const pathname = usePathname();
 
@@ -34,7 +34,7 @@ export function Footer() {
               />
             </Link>
             <p className="text-xs sm:text-sm text-muted-foreground max-w-md leading-relaxed">
-              {t("common.footerDesc")}
+              {t("footer.desc")}
             </p>
           </div>
 

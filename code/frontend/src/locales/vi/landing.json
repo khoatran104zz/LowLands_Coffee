@@ -1,0 +1,242 @@
+{
+  "hero": {
+    "title": "Lowlands Coffee",
+    "subtitle": "Hương vị nguyên bản từ vùng cao nguyên thấp - Kết nối văn hóa cà phê phin Việt Nam hiện đại."
+  },
+  "button": {
+    "exploreMenu": "Khám phá thực đơn",
+    "orderNow": "Đặt hàng ngay",
+    "learnMore": "Xem cơ hội việc làm",
+    "readStory": "Xem thêm câu chuyện"
+  },
+  "featured": {
+    "title": "Sản Phẩm Nổi Bật",
+    "desc": "Những thức uống được tuyển chọn kỹ lưỡng, mang đậm hương vị đặc trưng của Lowlands."
+  },
+  "promo": {
+    "title": "Khuyến Mãi Đặc Biệt",
+    "desc": "Nhận ngay các ưu đãi hấp dẫn hôm nay từ Lowlands Coffee."
+  },
+  "locator": {
+    "title": "Tìm Cửa Hàng Gần Nhất",
+    "desc": "Với hệ thống chi nhánh trải dài, hãy tìm một không gian ấm cúng của Lowlands Coffee gần bạn nhất.",
+    "placeholder": "Nhập tỉnh thành, quận huyện...",
+    "button": "Tìm kiếm",
+    "noStore": "Không tìm thấy chi nhánh nào.",
+    "selectStore": "Chọn cửa hàng này",
+    "fallbackWarning": "Chế độ Xem thử: API offline. Đang hiển thị danh sách cửa hàng mẫu. Khởi động Spring Boot API để đồng bộ.",
+    "pendingTitle": "API Backend Chưa Kết Nối",
+    "pendingDesc": "Hệ thống đang chạy chế độ phát triển Frontend độc lập. Vui lòng kết nối và khởi động Spring Boot API để truy xuất danh sách cửa hàng trực tiếp từ database.",
+    "mapTitle": "Bản đồ trực quan Lowlands",
+    "mapDesc": "Bản đồ định vị cửa hàng trực quan sẽ hiển thị tại đây khi hệ thống định vị chi nhánh được cấu hình.",
+    "mapReady": "Sẵn sàng tích hợp Bản đồ"
+  },
+  "about": {
+    "title": "Câu Chuyện Thương Hiệu",
+    "desc": "Lowlands Coffee ra đời từ tình yêu vô hạn với hạt cà phê Việt Nam. Khác biệt với những đồi chè, đồi cà phê cao tít tắp, 'Lowlands' đại diện cho những thung lũng, vùng bình nguyên trù phú, nơi giao thoa của đất trời và là nơi tụ hội của sự sống, sự kết nối. Chúng tôi mang hạt cà phê Robusta và Arabica hảo hạng từ đất đỏ Tây Nguyên xuống các thành phố lớn, gìn giữ phương pháp pha phin truyền thống nhưng nâng tầm với trải nghiệm dịch vụ hiện đại và không gian tối giản, ấm áp.",
+    "yearsExp": "Năm kinh nghiệm",
+    "stores": "Cửa hàng toàn quốc",
+    "customers": "Khách hàng tin dùng",
+    "heritage": "Hương vị di sản Việt Nam",
+    "card1": {
+      "title": "100% Robusta & Arabica",
+      "desc": "Hạt cà phê được thu hoạch thủ công chín đỏ tại vùng đất bazan Lâm Đồng.",
+      "backTitle": "Hạt Cà Phê Thượng Hạng",
+      "backDesc": "Từng hạt Robusta đậm vị và Arabica thanh nhẹ được thu mua trực tiếp từ nông hộ, trải qua quy trình sàng lọc nghiêm ngặt và rang xay theo công thức độc bản để giữ trọn tinh túy hương thơm."
+    },
+    "card2": {
+      "title": "Pha Phin Truyền Thống",
+      "desc": "Từng tách cà phê chắt lọc từ phin truyền thống, lưu giữ trọn vẹn hương vị Việt.",
+      "backTitle": "Trải Nghiệm Phin Mộc Mạc",
+      "backDesc": "Giữ trọn phong vị truyền thống của phin nhôm - biểu tượng bất hủ của cà phê Việt. Chiết xuất chậm rãi, từng giọt đọng lại vị đắng đậm đà, hậu ngọt kéo dài quyến rũ người thưởng thức."
+    },
+    "card3": {
+      "title": "Không Gian Kết Nối",
+      "desc": "Thiết kế mộc mạc, gần gũi với thiên nhiên, thắt chặt mối quan hệ cộng đồng Việt.",
+      "backTitle": "Điểm Hẹn Gắn Kết",
+      "backDesc": "Không chỉ bán cà phê, Lowlands mang lại một điểm đến ấm cúng và tinh tế để học tập, trò chuyện hay gặp gỡ. Nơi kết nối những tâm hồn đồng điệu giữa cuộc sống đô thị vội vã."
+    }
+  },
+  "app": {
+    "title": "Đặt hàng dễ dàng hơn \n với App Lowlands",
+    "desc": "Tải app Lowlands Coffee ngay hôm nay để nhận voucher giảm 50.000đ cho đơn hàng đầu tiên, tích lũy điểm đổi quà, và tận hưởng tính năng đặt hàng trước nhận tại quầy cực kỳ nhanh chóng.",
+    "downloadOn": "Tải về trên",
+    "downloadOnGoogle": "Tải ngay tại",
+    "hello": "Xin chào, Nguyễn Văn A 👋",
+    "promoToday": "Ưu đãi hôm nay",
+    "promoFreeDrink": "Tặng ly đá xay size L",
+    "promoMinOrder": "Cho đơn hàng trên 99.000đ",
+    "recommendedMenu": "Thực đơn khuyên dùng",
+    "navHome": "Trang chủ",
+    "navMenu": "Thực đơn",
+    "navWallet": "Ví của tôi",
+    "navSettings": "Cài đặt"
+  },
+  "promo1": {
+    "title": "HAPPY HOUR 14:00 – 17:00",
+    "subtitle": "GIẢM 20% TOÀN BỘ ĐỒ UỐNG",
+    "desc": "Nạp năng lượng buổi chiều cùng hương vị đậm đà nguyên bản của phin cà phê và trà thanh mát tại Lowlands.",
+    "ctaText": "Đặt ngay"
+  },
+  "promo2": {
+    "title": "COMBO BUỔI SÁNG",
+    "subtitle": "PHIN SỮA ĐÁ + BÁNH MÌ CHỈ 49.000Đ",
+    "desc": "Bữa sáng trọn vẹn kiểu Việt: bánh mì giòn tan kết hợp cùng ly Phin Sữa Đá truyền thống thơm ngon đậm đà.",
+    "ctaText": "Xem combo"
+  },
+  "promo3": {
+    "title": "ƯU ĐÃI THÀNH VIÊN MỚI",
+    "subtitle": "TÍCH ĐIỂM X2 CHO LẦN ORDER ĐẦU TIÊN",
+    "desc": "Trở thành hội viên Lowlands Club hôm nay để hưởng hàng ngàn ưu đãi đặc quyền, freeship và tích lũy điểm thưởng.",
+    "ctaText": "Đăng ký ngay"
+  },
+  "aboutPage": {
+    "title": "Về Lowlands Coffee",
+    "subtitle": "Nơi kết nối văn hoá cà phê phin mộc mạc và nhịp sống đô thị hiện đại.",
+    "journeyTitle": "Hành Trình Thương Hiệu",
+    "valuesTitle": "Giá Trị Cốt Lõi",
+    "foundersTitle": "Đội Ngũ Sáng Lập",
+    "joinTitle": "Gia nhập đội ngũ Lowlands",
+    "joinDesc": "Chúng tôi luôn tìm kiếm những con người nhiệt huyết, đam mê cà phê và có tinh thần gắn kết để cùng nhau lan tỏa di sản hương vị Việt.",
+    "joinButton": "Xem cơ hội việc làm",
+    "timeline": {
+      "t2021": {
+        "title": "Khởi Nguồn Ý Tưởng",
+        "desc": "Lowlands Coffee được nhen nhóm từ tình yêu hạt cà phê phin mộc mạc và mong muốn mang hương vị bazan Tây Nguyên xuống phố thị."
+      },
+      "t2022": {
+        "title": "Cửa Hàng Đầu Tiên",
+        "desc": "Khai trương chi nhánh đầu tiên tại Hồ Con Rùa, Quận 3, TP.HCM - mở ra không gian kết nối ấm cúng cho giới trẻ."
+      },
+      "t2024": {
+        "title": "Hành Trình Mở Rộng",
+        "desc": "Chạm mốc 30 cửa hàng tại TP.HCM, Hà Nội và Đà Nẵng, đồng thời xây dựng chuỗi cung ứng khép kín trực tiếp từ nông hộ."
+      },
+      "t2026": {
+        "title": "Chuyển Đổi Hiện Đại",
+        "desc": "Ra mắt hệ thống App đặt hàng tiện lợi cùng mô hình POS tại quầy thông minh, nâng tầm trải nghiệm của khách hàng."
+      }
+    },
+    "values": {
+      "v1": {
+        "title": "Chất Lượng Nguyên Bản",
+        "desc": "Cam kết sử dụng hạt Robusta và Arabica chín đỏ, được rang xay mộc mạc không pha tạp."
+      },
+      "v2": {
+        "title": "Trải Nghiệm Hiện Đại",
+        "desc": "Ứng dụng công nghệ để khách hàng đặt món và thanh toán nhanh chóng nhưng vẫn trọn vẹn văn hoá phin."
+      },
+      "v3": {
+        "title": "Trách Nhiệm Nông Hộ",
+        "desc": "Thu mua trực tiếp với giá cao hơn thị trường để cải thiện đời sống cho nông dân các vùng đất đỏ."
+      },
+      "v4": {
+        "title": "Kết Nối Cộng Đồng",
+        "desc": "Mỗi cửa hàng là một không gian tụ hội gần gũi, nơi chia sẻ niềm vui và năng lượng tích cực mỗi ngày."
+      }
+    }
+  },
+  "careersPage": {
+    "badge": "Tuyển dụng nhân sự",
+    "heroTitle": "Đồng Hành Kiến Tạo \n Trải Nghiệm Cà Phê Mới",
+    "heroDesc": "Tại Lowlands, chúng tôi trân trọng mỗi cá nhân và mong muốn tạo dựng một môi trường làm việc trẻ trung, sáng tạo, nơi mọi ý tưởng đột phá đều được chào đón.",
+    "sectionTitle": "Cơ Hội Việc Làm",
+    "allTypes": "Tất cả loại hình",
+    "allLocs": "Tất cả khu vực",
+    "applyNow": "Ứng tuyển ngay",
+    "noJobs": "Không tìm thấy vị trí tuyển dụng nào phù hợp.",
+    "cultureTitle": "Văn Hóa Làm Việc",
+    "cultureSub": "Chính sách đào tạo bài bản",
+    "cultureDesc": "Được đào tạo tay nghề Barista chuyên nghiệp từ cơ bản đến nâng cao hoàn toàn miễn phí. Hỗ trợ định hướng và nâng tầm lộ trình phát triển sự nghiệp cá nhân.",
+    "formTitle": "Ứng Tuyển Nhanh",
+    "formDesc": "Vui lòng điền thông tin và tải lên CV ứng tuyển cá nhân.",
+    "labelName": "Họ và tên *",
+    "labelEmail": "Địa chỉ Email *",
+    "labelPosition": "Vị trí ứng tuyển *",
+    "labelResume": "Tải lên hồ sơ / CV (PDF) *",
+    "resumePlaceholder": "Kéo thả hoặc nhấp chọn để tải CV",
+    "resumeHint": "Định dạng hỗ trợ: PDF, Word (Max 5MB)",
+    "submitButton": "Gửi hồ sơ ứng tuyển",
+    "successTitle": "Gửi Hồ Sơ Thành Công",
+    "successDesc": "Cảm ơn ứng viên {name}! Lowlands đã tiếp nhận thông tin ứng tuyển vị trí {position}. Chúng tôi sẽ phản hồi lại bạn qua email sớm nhất có thể.",
+    "applyOtherButton": "Nộp đơn ứng tuyển khác",
+    "validationError": "Vui lòng điền đầy đủ thông tin bắt buộc!",
+    "successToast": "Hồ sơ ứng tuyển của bạn đã được gửi thành công!",
+    "jobs": {
+      "j1": "Cửa Hàng Trưởng (Store Manager)",
+      "j2": "Barista Chuyên Nghiệp",
+      "j3": "Nhân Viên Phục Vụ Khách Hàng",
+      "j4": "Thực Tập Sinh R&D Đồ Uống",
+      "j5": "Giám Sát Ca Làm Việc",
+      "j6": "Nhân Viên Thu Ngân POS",
+      "j7": "Nhân Viên Pha Chế (Barista)",
+      "negotiable": "Thỏa thuận",
+      "million": "triệu",
+      "hourly": "22k - 25k/giờ"
+    }
+  },
+  "supportPage": {
+    "heroTitle": "Bạn Cần Giúp Đỡ Gì?",
+    "heroDesc": "Nhập câu hỏi hoặc từ khóa tìm kiếm để tra cứu thông tin hỗ trợ nhanh chóng từ bộ phận hỗ trợ khách hàng của chúng tôi.",
+    "searchPlaceholder": "Nhập câu hỏi của bạn (ví dụ: giao hàng, tích điểm, hủy đơn...)",
+    "sectionTitle": "Danh Mục Hỗ Trợ",
+    "faqTitle": "Câu Hỏi Thường Gặp (FAQs)",
+    "noFaq": "Không tìm thấy câu hỏi thường gặp nào phù hợp với từ khoá.",
+    "directContactTitle": "Liên Hệ Trực Tiếp",
+    "hotlineTitle": "Tổng đài CSKH",
+    "hotlineHours": "Hỗ trợ từ 8:00 - 22:00 hàng ngày",
+    "emailTitle": "Hỗ trợ qua Email",
+    "emailReplyTime": "Phản hồi trong vòng 24 giờ làm việc",
+    "liveChatTitle": "Trực tuyến 24/7",
+    "liveChatButton": "Nhắn tin ngay",
+    "liveChatDesc": "Kết nối nhanh chóng với tư vấn viên",
+    "storesTitle": "Hệ Thống Cửa Hàng",
+    "featuredStores": "Cửa Hàng Nổi Bật",
+    "openTime": "Giờ mở cửa",
+    "toastConnecting": "Trợ lý ảo Lowlands đang được kết nối...",
+    "categories": {
+      "c1": {
+        "title": "Đặt hàng online",
+        "desc": "Hướng dẫn đặt món, thay đổi món, điều chỉnh địa chỉ giao hàng và huỷ đơn."
+      },
+      "c2": {
+        "title": "Thanh toán",
+        "desc": "Thông tin về cổng chuyển khoản, thanh toán ví điện tử Momo, ZaloPay và COD."
+      },
+      "c3": {
+        "title": "Giao hàng",
+        "desc": "Chính sách vận chuyển, phí giao hàng, thời gian nhận hàng và đối tác giao nhận."
+      },
+      "c4": {
+        "title": "Hội viên Club",
+        "desc": "Cách thức đăng ký, tích lũy điểm thưởng, đổi mã voucher ưu đãi."
+      },
+      "c5": {
+        "title": "Góp ý & Khiếu nại",
+        "desc": "Gửi ý kiến phản hồi về chất lượng sản phẩm và thái độ phục vụ tại cửa hàng."
+      }
+    },
+    "faqs": {
+      "f1": {
+        "q": "Cách đặt hàng online trên website Lowlands Coffee?",
+        "a": "Bạn chỉ cần di chuyển đến trang 'Thực đơn', chọn các món nước yêu thích kèm size và topping mong muốn, nhấn 'Thêm vào giỏ'. Sau đó, truy cập vào 'Giỏ hàng' của bạn ở góc trên bên phải, điền thông tin giao hàng và chọn phương thức thanh toán rồi hoàn tất đặt đơn."
+      },
+      "f2": {
+        "q": "Thời gian giao hàng trung bình của Lowlands là bao lâu?",
+        "a": "Thời gian giao hàng trung bình từ 15 đến 35 phút tùy thuộc vào khoảng cách từ chi nhánh Lowlands gần nhất đến địa chỉ của bạn. Nếu có bất kỳ sự cố thời tiết hay quá tải, tổng đài chăm sóc khách hàng sẽ chủ động liên hệ thông báo."
+      },
+      "f3": {
+        "q": "Làm thế nào để tích lũy điểm thành viên?",
+        "a": "Mỗi khi đặt hàng trực tuyến trên website/app khi đã đăng nhập tài khoản, hệ thống sẽ tự động cộng điểm thưởng (với tỷ lệ quy đổi 10.000đ = 1 điểm). Khi mua trực tiếp tại quầy, bạn chỉ cần đọc số điện thoại đã đăng ký cho thu ngân để được tích lũy điểm."
+      },
+      "f4": {
+        "q": "Tôi có thể hủy hoặc chỉnh sửa thông tin đơn hàng sau khi đặt không?",
+        "a": "Để bảo vệ quyền lợi và đảm bảo đồ uống được giao nóng/lạnh nhanh nhất, đơn hàng sau khi xác nhận sẽ được pha chế ngay. Nếu muốn thay đổi thông tin chi tiết hoặc hủy đơn, vui lòng gọi điện trực tiếp đến Hotline CSKH 1900 xxxx trong vòng 3 phút kể từ khi đặt đơn."
+      },
+      "f5": {
+        "q": "Lowlands hỗ trợ những hình thức thanh toán nào?",
+        "a": "Chúng tôi hỗ trợ đa dạng phương thức thanh toán bao gồm: Tiền mặt khi nhận hàng (COD), Chuyển khoản ngân hàng qua mã QR động, và các ví điện tử liên kết phổ biến như Momo, ZaloPay."
+      }
+    }
+  }
+}

@@ -10,9 +10,12 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useConfirm } from "@/hooks/useConfirm";
 
 export default function AdminCategoriesPage() {
+  const { t } = useTranslation();
+  const confirm = useConfirm();
   const [isMounted, setIsMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -24,8 +27,6 @@ export default function AdminCategoriesPage() {
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [deletingCategoryId, setDeletingCategoryId] = useState<number | null>(null);
 
   const [formName, setFormName] = useState("");
   const [formDesc, setFormDesc] = useState("");
@@ -36,7 +37,7 @@ export default function AdminCategoriesPage() {
     void hydrateProductCatalog("admin");
   }, [hydrateProductCatalog]);
 
-  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{UI_TEXT.common.loading}</div>;
+  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
 
   const columns: Column<Category>[] = [
     { key: "id", header: "ID" },
@@ -53,7 +54,7 @@ export default function AdminCategoriesPage() {
               : "bg-zinc-500/10 text-zinc-650"
           }`}
         >
-          {item.status === "active" ? UI_TEXT.common.active : UI_TEXT.common.inactive}
+          {item.status === "active" ? t("common.active") : t("common.inactive")}
         </span>
       )
     }
@@ -75,9 +76,17 @@ export default function AdminCategoriesPage() {
     setIsFormOpen(true);
   };
 
-  const handleOpenDelete = (category: Category) => {
-    setDeletingCategoryId(category.id);
-    setIsDeleteOpen(true);
+  const handleOpenDelete = async (category: Category) => {
+    const isConfirmed = await confirm({
+      title: t("common.confirmDeleteTitle"),
+      message: t("admin.deleteCategoryConfirm"),
+      confirmText: t("common.delete"),
+      cancelText: t("common.cancel")
+    });
+    if (isConfirmed) {
+      deleteCategory(category.id);
+      toast.success("Xóa danh mục thành công!");
+    }
   };
 
   const handleSaveCategory = (e: React.FormEvent) => {
@@ -106,13 +115,7 @@ export default function AdminCategoriesPage() {
     setIsFormOpen(false);
   };
 
-  const handleConfirmDelete = () => {
-    if (deletingCategoryId) {
-      deleteCategory(deletingCategoryId);
-      toast.success("Xóa danh mục thành công!");
-    }
-    setIsDeleteOpen(false);
-  };
+
 
   return (
     <div className="space-y-6">
@@ -120,7 +123,7 @@ export default function AdminCategoriesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-left">
         <div>
           <h1 className="text-xl font-bold text-amber-900 font-outfit uppercase tracking-wide">
-            {UI_TEXT.common.categories}
+            {t("common.categories")}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold mt-1">
             Thiết lập danh sách phân nhóm sản phẩm (Cà phê, Trà, Bánh ngọt, v.v.).
@@ -131,7 +134,7 @@ export default function AdminCategoriesPage() {
           className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg px-4 h-10 text-xs font-semibold flex items-center space-x-2 shrink-0 self-start sm:self-auto"
         >
           <Plus className="h-4 w-4" />
-          <span>{UI_TEXT.common.add} danh mục</span>
+          <span>{t("common.add")} danh mục</span>
         </Button>
       </div>
 
@@ -158,7 +161,7 @@ export default function AdminCategoriesPage() {
       <Modal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        title={editingCategory ? UI_TEXT.admin.editCategory : UI_TEXT.admin.createCategory}
+        title={editingCategory ? t("admin.editCategory") : t("admin.createCategory")}
         size="md"
       >
         <form onSubmit={handleSaveCategory} className="space-y-4 text-left">
@@ -190,8 +193,8 @@ export default function AdminCategoriesPage() {
               onChange={(e) => setFormStatus(e.target.value)}
               className="w-full h-10 px-3 py-1 bg-background border border-border text-foreground hover:bg-muted/10 rounded-lg text-xs font-medium focus:outline-none"
             >
-              <option value="active">{UI_TEXT.common.active}</option>
-              <option value="inactive">{UI_TEXT.common.inactive}</option>
+              <option value="active">{t("common.active")}</option>
+              <option value="inactive">{t("common.inactive")}</option>
             </select>
           </div>
 
@@ -202,46 +205,19 @@ export default function AdminCategoriesPage() {
               onClick={() => setIsFormOpen(false)}
               className="h-10 text-xs font-semibold rounded-lg"
             >
-              {UI_TEXT.common.cancel}
+              {t("common.cancel")}
             </Button>
             <Button
               type="submit"
               className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg h-10 text-xs font-semibold px-4"
             >
-              {UI_TEXT.common.save}
+              {t("common.save")}
             </Button>
           </div>
         </form>
       </Modal>
 
-      {/* Delete Confirmation */}
-      <Modal
-        isOpen={isDeleteOpen}
-        onClose={() => setIsDeleteOpen(false)}
-        title="Xác nhận xóa danh mục"
-        size="sm"
-      >
-        <div className="space-y-4 text-left">
-          <p className="text-sm text-foreground/80">
-            {UI_TEXT.admin.deleteCategoryConfirm}
-          </p>
-          <div className="flex justify-end space-x-2 border-t border-border/40 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteOpen(false)}
-              className="h-10 text-xs font-semibold rounded-lg"
-            >
-              {UI_TEXT.common.cancel}
-            </Button>
-            <Button
-              onClick={handleConfirmDelete}
-              className="bg-rose-600 hover:bg-rose-700 text-white rounded-lg h-10 text-xs font-semibold px-4"
-            >
-              {UI_TEXT.common.confirm}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      
     </div>
   );
 }

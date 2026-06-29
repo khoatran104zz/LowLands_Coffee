@@ -10,6 +10,7 @@ import { loginUser } from "@/services/auth.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRouter, useParams } from "next/navigation";
+import { useTranslation } from "@/hooks/useTranslation";
 import { toast } from "sonner";
 import { ShieldAlert, LogIn, Lock, Mail } from "lucide-react";
 import Image from "next/image";
@@ -21,10 +22,11 @@ export default function PortalLoginPage() {
   const login = useAuthStore((state) => state.login);
   const logout = useAuthStore((state) => state.logout);
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
 
   const formSchema = zod.object({
-    email: zod.string().email({ message: "Email không hợp lệ" }),
-    password: zod.string().min(6, { message: "Mật khẩu phải có ít nhất 6 ký tự" }),
+    email: zod.string().email({ message: "auth.validation.emailInvalid" }),
+    password: zod.string().min(6, { message: "auth.validation.passwordMinLength" }),
   });
 
   type FormData = zod.infer<typeof formSchema>;
@@ -49,14 +51,14 @@ export default function PortalLoginPage() {
       const roleUpper = res.user.roleName?.toUpperCase();
       
       if (roleUpper === "CUSTOMER") {
-        toast.error("Tài khoản khách hàng không có quyền truy cập cổng thông tin nội bộ!");
+        toast.error(t("auth.error.customerAccessDenied"));
         logout();
         return;
       }
       
       login(res.user, res.accessToken);
       localStorage.setItem("lowlands_refresh_token", res.refreshToken);
-      toast.success("Đăng nhập cổng quản trị thành công!");
+      toast.success(t("auth.success.portalLogin"));
       
       if (roleUpper === "ADMIN") {
         router.push(`/${locale}/admin/dashboard`);
@@ -69,7 +71,7 @@ export default function PortalLoginPage() {
       }
     } catch (err) {
       console.warn("Portal login failed", err);
-      toast.error("Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản và mật khẩu.");
+      toast.error(t("auth.error.portalLoginFailed"));
     } finally {
       setLoading(false);
     }
@@ -95,7 +97,7 @@ export default function PortalLoginPage() {
           </div>
           <div className="flex items-center gap-1.5 mt-2 bg-amber-500/10 border border-amber-500/20 text-amber-500 px-3 py-1 rounded-full">
             <ShieldAlert className="h-3.5 w-3.5" />
-            <span className="text-[10px] font-bold uppercase tracking-wider">Cổng quản trị nội bộ</span>
+            <span className="text-[10px] font-bold uppercase tracking-wider">{t("auth.portal.title")}</span>
           </div>
         </div>
 
@@ -103,7 +105,7 @@ export default function PortalLoginPage() {
         <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-5 text-left">
           {/* Email field */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Tài khoản Email</label>
+            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">{t("auth.email")}</label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-zinc-500">
                 <Mail className="h-4 w-4" />
@@ -116,13 +118,13 @@ export default function PortalLoginPage() {
               />
             </div>
             {errors.email && (
-              <span className="text-xs text-rose-500 font-semibold">{errors.email.message}</span>
+              <span className="text-xs text-rose-500 font-semibold">{t(errors.email.message || "")}</span>
             )}
           </div>
 
           {/* Password field */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">Mật khẩu bảo mật</label>
+            <label className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">{t("auth.password")}</label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3.5 pointer-events-none text-zinc-500">
                 <Lock className="h-4 w-4" />
@@ -135,7 +137,7 @@ export default function PortalLoginPage() {
               />
             </div>
             {errors.password && (
-              <span className="text-xs text-rose-500 font-semibold">{errors.password.message}</span>
+              <span className="text-xs text-rose-500 font-semibold">{t(errors.password.message || "")}</span>
             )}
           </div>
 
@@ -146,12 +148,12 @@ export default function PortalLoginPage() {
             className="w-full bg-amber-500 hover:bg-amber-400 text-zinc-950 font-extrabold text-sm h-11 rounded-xl shadow-lg shadow-amber-500/10 flex items-center justify-center gap-2 mt-4 hover:scale-[1.01] transition-transform duration-200"
           >
             <LogIn className="h-4 w-4" />
-            <span>{loading ? "Đang xác thực..." : "ĐĂNG NHẬP HỆ THỐNG"}</span>
+            <span>{loading ? t("common.loading") : t("auth.portal.loginButton")}</span>
           </Button>
         </form>
 
         <div className="text-center text-xs text-zinc-650 border-t border-zinc-800/80 pt-4">
-          Hệ thống giám sát nội bộ Lowlands Coffee. Mọi hành vi truy cập trái phép sẽ bị xử lý.
+          {t("auth.portal.securityWarning")}
         </div>
       </div>
     </div>

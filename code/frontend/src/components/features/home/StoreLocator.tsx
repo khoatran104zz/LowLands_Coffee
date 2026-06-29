@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslation } from "@/hooks/useTranslation";
 import { getStores } from "@/services/auth.service";
 import { Store } from "@/types";
 import { Input } from "@/components/ui/input";
@@ -40,8 +40,7 @@ const MOCK_STORES: Store[] = [
 ];
 
 export function StoreLocator() {
-  const t = useTranslations("home");
-  const tCommon = useTranslations("common");
+  const { t } = useTranslation();
   const [searchQuery, setSearchQuery] = useState("");
   const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(false);
@@ -80,10 +79,10 @@ export function StoreLocator() {
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-12">
           <h2 className="font-heading font-extrabold text-3xl text-primary tracking-tight">
-            {t("locatorTitle")}
+            {t("landing.locator.title")}
           </h2>
           <p className="mt-4 text-sm sm:text-base text-muted-foreground">
-            {t("locatorDesc")}
+            {t("landing.locator.desc")}
           </p>
         </div>
 
@@ -95,7 +94,7 @@ export function StoreLocator() {
               <div className="relative flex-grow">
                 <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder={t("searchStorePlaceholder")}
+                  placeholder={t("landing.locator.placeholder")}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-9"
@@ -103,7 +102,7 @@ export function StoreLocator() {
                 />
               </div>
               <Button variant="default">
-                {t("findStoreButton")}
+                {t("landing.locator.button")}
               </Button>
             </div>
 
@@ -112,7 +111,7 @@ export function StoreLocator() {
               {loading && (
                 <div className="flex flex-col gap-3 py-6 justify-center items-center">
                   <div className="h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-                  <span className="text-xs text-muted-foreground">{tCommon("loading")}</span>
+                  <span className="text-xs text-muted-foreground">{t("common.loading")}</span>
                 </div>
               )}
 
@@ -120,7 +119,7 @@ export function StoreLocator() {
                 <div className="flex items-start gap-2 bg-accent/10 border border-accent/20 px-3 py-2.5 rounded-lg mb-1">
                   <AlertCircle className="h-4.5 w-4.5 text-accent shrink-0 mt-0.5" />
                   <span className="text-xs leading-normal text-foreground/80">
-                    <strong>Chế độ Xem thử:</strong> API offline. Đang hiển thị danh sách cửa hàng mẫu. Khởi động Spring Boot API để đồng bộ.
+                    {t("landing.locator.fallbackWarning")}
                   </span>
                 </div>
               )}
@@ -128,16 +127,16 @@ export function StoreLocator() {
               {error === "api_not_connected" && (
                 <div className="flex flex-col items-center justify-center text-center p-6 gap-3">
                   <AlertCircle className="h-8 w-8 text-accent animate-bounce" />
-                  <h4 className="text-sm font-bold text-foreground">API Backend Pending Integration</h4>
+                  <h4 className="text-sm font-bold text-foreground">{t("landing.locator.pendingTitle")}</h4>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Hệ thống đang chạy chế độ phát triển Frontend độc lập. Vui lòng kết nối và khởi động Spring Boot API để truy xuất danh sách cửa hàng trực tiếp từ database.
+                    {t("landing.locator.pendingDesc")}
                   </p>
                 </div>
               )}
 
               {showList && filteredStores.length === 0 && (
                 <p className="text-xs text-muted-foreground text-center py-8">
-                  {tCommon("empty")}
+                  {t("common.empty")}
                 </p>
               )}
 
@@ -166,12 +165,12 @@ export function StoreLocator() {
               <div className="rounded-full bg-primary/10 p-4 mb-4">
                 <MapPin className="h-10 w-10 text-primary" />
               </div>
-              <h4 className="text-lg font-bold text-primary uppercase tracking-wider">Lowlands Interactive Map</h4>
+              <h4 className="text-lg font-bold text-primary uppercase tracking-wider">{t("landing.locator.mapTitle")}</h4>
               <p className="text-sm text-muted-foreground max-w-md mt-2">
-                Bản đồ định vị cửa hàng trực quan sẽ hiển thị tại đây khi hệ thống định vị chi nhánh được cấu hình.
+                {t("landing.locator.mapDesc")}
               </p>
               <div className="absolute bottom-4 right-4 bg-card border border-border px-3 py-1.5 rounded-lg text-[10px] text-muted-foreground shadow-sm">
-                Next.js Map Integration Ready
+                {t("landing.locator.mapReady")}
               </div>
             </div>
           </div>

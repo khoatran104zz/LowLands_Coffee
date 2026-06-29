@@ -5,10 +5,11 @@ import { Employee } from "@/mock/employees";
 import { useDashboardStore } from "@/store/dashboardStore";
 import { DataTable, Column } from "@/components/tables/DataTable";
 import { SearchBar } from "@/components/tables/SearchBar";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Sparkles } from "lucide-react";
 
 export default function ManagerStaffPage() {
+  const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -18,7 +19,7 @@ export default function ManagerStaffPage() {
     setIsMounted(true);
   }, []);
 
-  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{UI_TEXT.common.loading}</div>;
+  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
 
   // StoreId = 2 Hồ Con Rùa branch employees ONLY
   const MY_BRANCH_ID = 2;
@@ -61,7 +62,7 @@ export default function ManagerStaffPage() {
     <div className="space-y-6 text-left">
       <div>
         <h1 className="text-xl font-bold text-amber-900 font-outfit uppercase tracking-wide">
-          {UI_TEXT.common.employees} - Hồ Con Rùa
+          {t("common.employees")} - Hồ Con Rùa
         </h1>
         <p className="text-xs text-muted-foreground font-semibold mt-1">
           Theo dõi ca làm việc đăng ký, hiệu suất pha chế và chấm công nhân viên tại chi nhánh.

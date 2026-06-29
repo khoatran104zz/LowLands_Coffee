@@ -1,7 +1,7 @@
 "use client";
 
 import { Link } from "@/i18n/navigation";
-import { useTranslations } from "next-intl";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Product } from "@/types";
 import { ArrowRight, ShoppingBag } from "lucide-react";
 import Image from "next/image";
@@ -11,7 +11,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product }: ProductCardProps) {
-  const t = useTranslations("common");
+  const { t } = useTranslation();
 
   // Get starting price from variants
   const startingPrice = product.variants && product.variants.length > 0
@@ -49,14 +49,14 @@ export function ProductCard({ product }: ProductCardProps) {
           {product.name}
         </h3>
         <p className="text-xs text-muted-foreground line-clamp-2 min-h-[32px] leading-relaxed">
-          {product.description || "Hương vị thơm ngon đặc trưng chỉ có tại Lowlands Coffee."}
+          {product.description || t("product.defaultDescription")}
         </p>
 
         {/* Pricing and Action */}
         <div className="flex items-center justify-between mt-auto pt-3 border-t border-border/40">
           <div className="flex flex-col">
             <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
-              {t("price")}
+              {t("common.price")}
             </span>
             <span className="text-sm sm:text-base font-extrabold text-primary">
               {formattedPrice}

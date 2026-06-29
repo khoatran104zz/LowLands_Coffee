@@ -5,7 +5,8 @@ import { useParams, useRouter, usePathname } from "next/navigation";
 import { Menu, LogOut, RefreshCw, Sparkles } from "lucide-react";
 import { Sidebar } from "./Sidebar";
 import { Button } from "@/components/ui/button";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useConfirm } from "@/hooks/useConfirm";
 import { useAuthStore } from "@/store/auth.store";
 import { AccountDropdown } from "../account/AccountDropdown";
 import { AccountModal } from "../account/AccountModal";
@@ -20,6 +21,8 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
   const router = useRouter();
   const pathname = usePathname();
   const locale = (params?.locale as string) || "vi";
+  const { t } = useTranslation();
+  const confirm = useConfirm();
 
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isAccountOpen, setIsAccountOpen] = useState(false);
@@ -61,9 +64,14 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
     setIsAccountOpen(true);
   };
 
-  const handleLogout = () => {
-    const confirm = window.confirm("Bạn có chắc chắn muốn đăng xuất tài khoản quản trị?");
-    if (confirm) {
+  const handleLogout = async () => {
+    const isConfirmed = await confirm({
+      title: t("common.confirmLogoutTitle"),
+      message: t("common.confirmLogoutMessage"),
+      confirmText: t("common.logout"),
+      cancelText: t("common.cancel")
+    });
+    if (isConfirmed) {
       logout();
       router.push(`/${locale}/portal/login`);
     }
@@ -80,26 +88,26 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
     return (
       <div className="h-screen w-screen bg-zinc-950 flex flex-col items-center justify-center gap-3 text-amber-500 font-sans select-none">
         <RefreshCw className="h-8 w-8 animate-spin" />
-        <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">Đang tải và xác thực...</span>
+        <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">{t("common.loading")}</span>
       </div>
     );
   }
 
   // Derive title from active route
   const getHeaderTitle = () => {
-    if (pathname.includes("/dashboard")) return UI_TEXT.common.dashboard;
-    if (pathname.includes("/branches")) return UI_TEXT.common.branches;
-    if (pathname.includes("/products")) return UI_TEXT.common.products;
-    if (pathname.includes("/categories")) return UI_TEXT.common.categories;
-    if (pathname.includes("/employees")) return UI_TEXT.common.employees;
-    if (pathname.includes("/customers")) return UI_TEXT.common.customers;
-    if (pathname.includes("/orders")) return UI_TEXT.common.orders;
-    if (pathname.includes("/promotions")) return UI_TEXT.common.promotions;
-    if (pathname.includes("/reports")) return UI_TEXT.common.reports;
-    if (pathname.includes("/inventory")) return UI_TEXT.common.inventory;
-    if (pathname.includes("/staff")) return UI_TEXT.manager.workingShift;
-    if (pathname.includes("/revenue")) return UI_TEXT.common.revenue;
-    return UI_TEXT.common.dashboard;
+    if (pathname.includes("/dashboard")) return t("common.dashboard");
+    if (pathname.includes("/branches")) return t("common.branches");
+    if (pathname.includes("/products")) return t("common.products");
+    if (pathname.includes("/categories")) return t("common.categories");
+    if (pathname.includes("/employees")) return t("common.employees");
+    if (pathname.includes("/customers")) return t("common.customers");
+    if (pathname.includes("/orders")) return t("common.orders");
+    if (pathname.includes("/promotions")) return t("common.promotions");
+    if (pathname.includes("/reports")) return t("common.reports");
+    if (pathname.includes("/inventory")) return t("common.inventory");
+    if (pathname.includes("/staff")) return t("staff.manager.workingShift");
+    if (pathname.includes("/revenue")) return t("common.revenue");
+    return t("common.dashboard");
   };
 
   const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -158,16 +166,16 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
             <div className="flex items-center space-x-2 bg-muted/60 hover:bg-muted border border-border/80 rounded-lg px-2.5 py-1.5 transition-colors">
               <Sparkles className="h-3.5 w-3.5 text-amber-800 animate-pulse" />
               <span className="text-[10px] font-bold text-muted-foreground uppercase whitespace-nowrap">
-                Chế độ Test:
+                {t("common.testMode")}
               </span>
               <select
                 value={role === "admin" ? "admin" : "manager"}
                 onChange={handleRoleChange}
                 className="bg-transparent text-xs font-bold text-amber-900 focus:outline-none cursor-pointer pr-1"
               >
-                <option value="admin">Hệ thống Admin</option>
-                <option value="manager">Quản lý Cửa hàng</option>
-                <option value="pos">Màn hình POS</option>
+                <option value="admin">{t("common.adminSystem")}</option>
+                <option value="manager">{t("common.branchManagement")}</option>
+                <option value="pos">{t("common.pos")}</option>
               </select>
             </div>
 

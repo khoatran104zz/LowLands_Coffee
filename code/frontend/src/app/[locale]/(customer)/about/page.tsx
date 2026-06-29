@@ -2,6 +2,7 @@
 
 import React from "react";
 import { motion } from "framer-motion";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Link } from "@/i18n/navigation";
 import { Shield, Sparkles, Heart, Users, ArrowRight } from "lucide-react";
 
@@ -24,33 +25,35 @@ interface Founder {
 }
 
 export default function AboutPage() {
+  const { t } = useTranslation();
+
   const timeline: TimelineEvent[] = [
-    { year: "2021", title: "Khởi Nguồn Ý Tưởng", desc: "Lowlands Coffee được nhen nhóm từ tình yêu hạt cà phê phin mộc mạc và mong muốn mang hương vị bazan Tây Nguyên xuống phố thị." },
-    { year: "2022", title: "Cửa Hàng Đầu Tiên", desc: "Khai trương chi nhánh đầu tiên tại Hồ Con Rùa, Quận 3, TP.HCM - mở ra không gian kết nối ấm cúng cho giới trẻ." },
-    { year: "2024", title: "Hành Trình Mở Rộng", desc: "Chạm mốc 30 cửa hàng tại TP.HCM, Hà Nội và Đà Nẵng, đồng thời xây dựng chuỗi cung ứng khép kín trực tiếp từ nông hộ." },
-    { year: "2026", title: "Chuyển Đổi Hiện Đại", desc: "Ra mắt hệ thống App đặt hàng tiện lợi cùng mô hình POS tại quầy thông minh, nâng tầm trải nghiệm của khách hàng." }
+    { year: "2021", title: t("landing.aboutPage.timeline.t2021.title"), desc: t("landing.aboutPage.timeline.t2021.desc") },
+    { year: "2022", title: t("landing.aboutPage.timeline.t2022.title"), desc: t("landing.aboutPage.timeline.t2022.desc") },
+    { year: "2024", title: t("landing.aboutPage.timeline.t2024.title"), desc: t("landing.aboutPage.timeline.t2024.desc") },
+    { year: "2026", title: t("landing.aboutPage.timeline.t2026.title"), desc: t("landing.aboutPage.timeline.t2026.desc") }
   ];
 
   const values: ValueCard[] = [
     { 
       icon: <Shield className="h-6 w-6 text-[#C8510A]" />, 
-      title: "Chất Lượng Nguyên Bản", 
-      desc: "Cam kết sử dụng hạt Robusta và Arabica chín đỏ, được rang xay mộc mạc không pha tạp." 
+      title: t("landing.aboutPage.values.v1.title"), 
+      desc: t("landing.aboutPage.values.v1.desc") 
     },
     { 
       icon: <Sparkles className="h-6 w-6 text-[#C8510A]" />, 
-      title: "Trải Nghiệm Hiện Đại", 
-      desc: "Ứng dụng công nghệ để khách hàng đặt món và thanh toán nhanh chóng nhưng vẫn trọn vẹn văn hoá phin." 
+      title: t("landing.aboutPage.values.v2.title"), 
+      desc: t("landing.aboutPage.values.v2.desc") 
     },
     { 
       icon: <Heart className="h-6 w-6 text-[#C8510A]" />, 
-      title: "Trách Nhiệm Nông Hộ", 
-      desc: "Thu mua trực tiếp với giá cao hơn thị trường để cải thiện đời sống cho nông dân các vùng đất đỏ." 
+      title: t("landing.aboutPage.values.v3.title"), 
+      desc: t("landing.aboutPage.values.v3.desc") 
     },
     { 
       icon: <Users className="h-6 w-6 text-[#C8510A]" />, 
-      title: "Kết Nối Cộng Đồng", 
-      desc: "Mỗi cửa hàng là một không gian tụ hội gần gũi, nơi chia sẻ niềm vui và năng lượng tích cực mỗi ngày." 
+      title: t("landing.aboutPage.values.v4.title"), 
+      desc: t("landing.aboutPage.values.v4.desc") 
     }
   ];
 
@@ -79,7 +82,7 @@ export default function AboutPage() {
             transition={{ duration: 0.6 }}
             className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tight uppercase"
           >
-            Về Lowlands Coffee
+            {t("landing.aboutPage.title")}
           </motion.h1>
           <motion.div 
             initial={{ width: 0 }}
@@ -93,7 +96,7 @@ export default function AboutPage() {
             transition={{ duration: 0.6, delay: 0.3 }}
             className="text-xs sm:text-sm md:text-base font-semibold mt-4 max-w-xl mx-auto tracking-wide"
           >
-            Nơi kết nối văn hoá cà phê phin mộc mạc và nhịp sống đô thị hiện đại.
+            {t("landing.aboutPage.subtitle")}
           </motion.p>
         </div>
       </section>
@@ -103,7 +106,7 @@ export default function AboutPage() {
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="font-heading font-extrabold text-3xl text-primary uppercase tracking-tight">Hành Trình Thương Hiệu</h2>
+            <h2 className="font-heading font-extrabold text-3xl text-primary uppercase tracking-tight">{t("landing.aboutPage.journeyTitle")}</h2>
             <div className="w-12 h-0.5 bg-accent mx-auto mt-3 rounded-full" />
           </div>
 
@@ -146,7 +149,7 @@ export default function AboutPage() {
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="font-heading font-extrabold text-3xl text-primary uppercase tracking-tight">Giá Trị Cốt Lõi</h2>
+            <h2 className="font-heading font-extrabold text-3xl text-primary uppercase tracking-tight">{t("landing.aboutPage.valuesTitle")}</h2>
             <div className="w-12 h-0.5 bg-accent mx-auto mt-3 rounded-full" />
           </div>
 
@@ -178,7 +181,7 @@ export default function AboutPage() {
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           
           <div className="text-center max-w-2xl mx-auto mb-16">
-            <h2 className="font-heading font-extrabold text-3xl text-primary uppercase tracking-tight">Đội Ngũ Sáng Lập</h2>
+            <h2 className="font-heading font-extrabold text-3xl text-primary uppercase tracking-tight">{t("landing.aboutPage.foundersTitle")}</h2>
             <div className="w-12 h-0.5 bg-accent mx-auto mt-3 rounded-full" />
           </div>
 
@@ -214,9 +217,9 @@ export default function AboutPage() {
       {/* 5. bottom CTA recruitment */}
       <section className="py-16 text-white border-t border-border/20 text-center" style={{ background: "linear-gradient(135deg, #2D1A19 0%, #1A0D0C 100%)" }}>
         <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 flex flex-col items-center gap-4">
-          <h2 className="font-heading font-black text-2xl sm:text-3xl uppercase tracking-tight">Gia nhập đội ngũ Lowlands</h2>
+          <h2 className="font-heading font-black text-2xl sm:text-3xl uppercase tracking-tight">{t("landing.aboutPage.joinTitle")}</h2>
           <p className="text-xs sm:text-sm opacity-80 max-w-xl leading-relaxed">
-            Chúng tôi luôn tìm kiếm những con người nhiệt huyết, đam mê cà phê và có tinh thần gắn kết để cùng nhau lan tỏa di sản hương vị Việt.
+            {t("landing.aboutPage.joinDesc")}
           </p>
           <div className="pt-2">
             <Link href="/careers">
@@ -225,7 +228,7 @@ export default function AboutPage() {
                 whileTap={{ scale: 0.98 }}
                 className="inline-flex items-center gap-1.5 bg-[#C8510A] hover:bg-[#B04308] text-white font-extrabold text-xs px-5 py-3 rounded-full shadow-md cursor-pointer transition-all uppercase tracking-wider"
               >
-                <span>Xem cơ hội việc làm</span>
+                <span>{t("landing.aboutPage.joinButton")}</span>
                 <ArrowRight className="h-4 w-4" />
               </motion.div>
             </Link>

@@ -6,7 +6,7 @@ import { ProfileCard } from "./ProfileCard";
 import { SecuritySettings } from "./SecuritySettings";
 import { PermissionList } from "./PermissionList";
 import { useAuthStore } from "@/store/auth.store";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
 import { User, Shield, Sliders, KeyRound, Check, RefreshCw, Moon, Sun, Bell, Mail, Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -18,6 +18,7 @@ interface AccountModalProps {
 }
 
 export function AccountModal({ isOpen, onClose, defaultTab = "profile" }: AccountModalProps) {
+  const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState(defaultTab);
   const user = useAuthStore((state) => state.user);
 
@@ -47,17 +48,17 @@ export function AccountModal({ isOpen, onClose, defaultTab = "profile" }: Accoun
   };
 
   const tabs = [
-    { id: "profile", label: UI_TEXT.account.profileInfo, icon: User },
-    { id: "security", label: UI_TEXT.account.security, icon: KeyRound },
-    { id: "preferences", label: UI_TEXT.account.preferences, icon: Sliders },
-    { id: "permissions", label: UI_TEXT.account.permissions, icon: Shield },
+    { id: "profile", label: t("auth.account.profileInfo"), icon: User },
+    { id: "security", label: t("auth.account.security"), icon: KeyRound },
+    { id: "preferences", label: t("auth.account.preferences"), icon: Sliders },
+    { id: "permissions", label: t("auth.account.permissions"), icon: Shield },
   ];
 
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={UI_TEXT.account.title}
+      title={t("auth.account.title")}
       size="xl"
     >
       <div className="flex flex-col lg:flex-row gap-6 h-[560px] lg:h-[480px] -m-1 text-zinc-800 dark:text-zinc-200">
@@ -96,7 +97,7 @@ export function AccountModal({ isOpen, onClose, defaultTab = "profile" }: Accoun
             <div className="bg-white dark:bg-zinc-900/45 border border-zinc-200/80 dark:border-zinc-850 p-6 rounded-2xl text-left flex flex-col gap-4">
               <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800/80 pb-2.5 mb-2 select-none flex items-center gap-1.5">
                 <Sliders className="h-4 w-4 text-zinc-400" />
-                <span>{UI_TEXT.account.preferences}</span>
+                <span>{t("auth.account.preferences")}</span>
               </h3>
 
               <form onSubmit={handleSavePreferences} className="space-y-4">
@@ -105,7 +106,7 @@ export function AccountModal({ isOpen, onClose, defaultTab = "profile" }: Accoun
                   <div className="space-y-0.5">
                     <span className="text-xs font-bold text-zinc-850 dark:text-zinc-200 flex items-center gap-1.5">
                       <Languages className="h-4 w-4 text-zinc-400" />
-                      <span>{UI_TEXT.account.language}</span>
+                      <span>{t("auth.account.language")}</span>
                     </span>
                     <span className="block text-[10px] text-zinc-400 font-medium">Ngôn ngữ giao diện hệ thống</span>
                   </div>
@@ -124,7 +125,7 @@ export function AccountModal({ isOpen, onClose, defaultTab = "profile" }: Accoun
                   <div className="space-y-0.5">
                     <span className="text-xs font-bold text-zinc-850 dark:text-zinc-200 flex items-center gap-1.5">
                       {darkMode ? <Moon className="h-4 w-4 text-zinc-400" /> : <Sun className="h-4 w-4 text-zinc-400" />}
-                      <span>{UI_TEXT.account.darkMode}</span>
+                      <span>{t("auth.account.darkMode")}</span>
                     </span>
                     <span className="block text-[10px] text-zinc-400 font-medium">Bật chế độ giao diện tối</span>
                   </div>
@@ -148,7 +149,7 @@ export function AccountModal({ isOpen, onClose, defaultTab = "profile" }: Accoun
                   <div className="space-y-0.5">
                     <span className="text-xs font-bold text-zinc-850 dark:text-zinc-200 flex items-center gap-1.5">
                       <Bell className="h-4 w-4 text-zinc-400" />
-                      <span>{UI_TEXT.account.notifyOrders}</span>
+                      <span>{t("auth.account.notifyOrders")}</span>
                     </span>
                     <span className="block text-[10px] text-zinc-400 font-medium">Nhận thông báo âm thanh và pop-up đơn mới</span>
                   </div>
@@ -172,7 +173,7 @@ export function AccountModal({ isOpen, onClose, defaultTab = "profile" }: Accoun
                   <div className="space-y-0.5">
                     <span className="text-xs font-bold text-zinc-850 dark:text-zinc-200 flex items-center gap-1.5">
                       <Mail className="h-4 w-4 text-zinc-400" />
-                      <span>{UI_TEXT.account.notifyMarketing}</span>
+                      <span>{t("auth.account.notifyMarketing")}</span>
                     </span>
                     <span className="block text-[10px] text-zinc-400 font-medium">Nhận thông tin cập nhật chương trình khuyến mãi</span>
                   </div>

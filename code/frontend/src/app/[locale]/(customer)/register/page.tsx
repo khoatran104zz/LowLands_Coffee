@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslation } from "@/hooks/useTranslation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as zod from "zod";
@@ -14,24 +14,23 @@ import { toast } from "sonner";
 import { UserPlus } from "lucide-react";
 
 export default function RegisterPage() {
-  const t = useTranslations("auth");
-  const tCommon = useTranslations("common");
+  const { t } = useTranslation();
   const router = useRouter();
   const login = useAuthStore((state) => state.login);
   const [loading, setLoading] = useState(false);
 
   const formSchema = zod.object({
     fullName: zod.string()
-      .min(1, { message: "Full name is required" })
-      .max(100, { message: "Full name must not exceed 100 characters" }),
+      .min(1, { message: "auth.validation.fullNameRequired" })
+      .max(100, { message: "auth.validation.fullNameMaxLength" }),
     email: zod.string()
-      .min(1, { message: "Email is required" })
-      .email({ message: "Invalid email" })
-      .max(100, { message: "Email must not exceed 100 characters" }),
-    phone: zod.string().regex(/^0[0-9]{9}$/, { message: "Phone must have 10 digits and start with 0" }),
+      .min(1, { message: "auth.validation.emailRequired" })
+      .email({ message: "auth.validation.emailInvalid" })
+      .max(100, { message: "auth.validation.emailMaxLength" }),
+    phone: zod.string().regex(/^0[0-9]{9}$/, { message: "auth.validation.phoneInvalid" }),
     password: zod.string()
-      .min(6, { message: "Password must be at least 6 characters" })
-      .max(100, { message: "Password must be at least 6 characters" }),
+      .min(6, { message: "auth.validation.passwordMinLength" })
+      .max(100, { message: "auth.validation.passwordMaxLength" }),
   });
 
   type FormData = zod.infer<typeof formSchema>;
@@ -60,11 +59,11 @@ export default function RegisterPage() {
         password: data.password,
       });
       login(res.user, res.accessToken, res.refreshToken);
-      toast.success(t("registerButton") + " success");
+      toast.success(t("auth.success.register"));
       router.push("/");
     } catch (err) {
       console.warn("Registration failed", err);
-      toast.error(t("registerFailed"));
+      toast.error(t("auth.error.registerFailed"));
     } finally {
       setLoading(false);
     }
@@ -76,26 +75,26 @@ export default function RegisterPage() {
         <div className="w-full max-w-md border border-border/80 rounded-2xl p-8 bg-card shadow-sm flex flex-col gap-6">
           <div className="text-center">
             <h1 className="font-heading font-extrabold text-2xl text-primary tracking-tight">
-              {t("registerTitle")}
+              {t("auth.registerTitle")}
             </h1>
             <div className="w-12 h-1 bg-accent rounded-full mx-auto mt-3" />
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground">{t("fullName")}</label>
+              <label className="text-xs font-bold text-muted-foreground">{t("auth.fullName")}</label>
               <Input
                 {...register("fullName")}
                 placeholder="Nguyen Van A"
                 className="border-border text-xs sm:text-sm h-10"
               />
               {errors.fullName && (
-                <span className="text-xs text-destructive font-semibold">{errors.fullName.message}</span>
+                <span className="text-xs text-destructive font-semibold">{t(errors.fullName.message || "")}</span>
               )}
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground">{t("email")}</label>
+              <label className="text-xs font-bold text-muted-foreground">{t("auth.email")}</label>
               <Input
                 type="email"
                 {...register("email")}
@@ -103,24 +102,24 @@ export default function RegisterPage() {
                 className="border-border text-xs sm:text-sm h-10"
               />
               {errors.email && (
-                <span className="text-xs text-destructive font-semibold">{errors.email.message}</span>
+                <span className="text-xs text-destructive font-semibold">{t(errors.email.message || "")}</span>
               )}
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground">{t("phone")}</label>
+              <label className="text-xs font-bold text-muted-foreground">{t("auth.phone")}</label>
               <Input
                 {...register("phone")}
                 placeholder="0987654321"
                 className="border-border text-xs sm:text-sm h-10"
               />
               {errors.phone && (
-                <span className="text-xs text-destructive font-semibold">{errors.phone.message}</span>
+                <span className="text-xs text-destructive font-semibold">{t(errors.phone.message || "")}</span>
               )}
             </div>
 
             <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-bold text-muted-foreground">{t("password")}</label>
+              <label className="text-xs font-bold text-muted-foreground">{t("auth.password")}</label>
               <Input
                 type="password"
                 {...register("password")}
@@ -128,19 +127,19 @@ export default function RegisterPage() {
                 className="border-border text-xs sm:text-sm h-10"
               />
               {errors.password && (
-                <span className="text-xs text-destructive font-semibold">{errors.password.message}</span>
+                <span className="text-xs text-destructive font-semibold">{t(errors.password.message || "")}</span>
               )}
             </div>
 
             <Button type="submit" disabled={loading} className="w-full rounded-full gap-2 mt-2 h-10 font-bold text-sm">
               <UserPlus className="h-4 w-4" />
-              <span>{loading ? tCommon("loading") : t("registerButton")}</span>
+              <span>{loading ? t("common.loading") : t("auth.registerButton")}</span>
             </Button>
           </form>
 
           <div className="text-center text-xs text-muted-foreground border-t border-border/50 pt-4">
             <Link href="/login" className="hover:text-primary hover:underline font-semibold">
-              {t("hasAccount")}
+              {t("auth.hasAccount")}
             </Link>
           </div>
         </div>

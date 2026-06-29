@@ -3,10 +3,11 @@
 import React, { useState, useEffect } from "react";
 import { BarChart, LineChart, PieChart, ChartDataItem } from "@/components/charts/Chart";
 import { useDashboardStore } from "@/store/dashboardStore";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
 import { FileText, TrendingUp, ShoppingCart, HelpCircle } from "lucide-react";
 
 export default function AdminReportsPage() {
+  const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -16,7 +17,7 @@ export default function AdminReportsPage() {
   const orders = useDashboardStore((state) => state.orders);
   const branches = useDashboardStore((state) => state.branches);
 
-  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{UI_TEXT.common.loading}</div>;
+  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
 
   // Compute analytics
   const completedOrders = orders.filter((o) => o.status === "completed");
@@ -66,7 +67,7 @@ export default function AdminReportsPage() {
       {/* Title */}
       <div className="text-left select-none">
         <h1 className="text-xl font-bold text-amber-900 font-outfit uppercase tracking-wide">
-          {UI_TEXT.common.reports}
+          {t("common.reports")}
         </h1>
         <p className="text-xs text-muted-foreground font-semibold mt-1">
           Xem phân tích báo cáo doanh thu, sản lượng đơn và hành vi thanh toán toàn diện.

@@ -7,11 +7,12 @@ import { updateProfile } from "@/services/auth.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
 import { User as UserIcon, Mail, Phone, Shield, Calendar, RefreshCw } from "lucide-react";
 import Image from "next/image";
 
 export function ProfileCard() {
+  const { t } = useTranslation();
   const user = useAuthStore((state) => state.user);
   const updateUserStore = useAuthStore((state) => state.updateUser);
 
@@ -32,7 +33,7 @@ export function ProfileCard() {
     try {
       const updatedUser = await updateProfile({ fullName: fullName.trim(), phone: phone.trim() });
       updateUserStore(updatedUser);
-      toast.success(UI_TEXT.account.saveSuccess);
+      toast.success(t("auth.account.saveSuccess"));
     } catch (err) {
       console.error("Failed to update profile", err);
       toast.error("Không thể cập nhật hồ sơ cá nhân.");
@@ -67,20 +68,20 @@ export function ProfileCard() {
 
         <div className="w-full border-t border-zinc-200/60 dark:border-zinc-800/80 pt-4 mt-2 text-zinc-500 text-[10px] font-bold uppercase tracking-wider flex items-center justify-center gap-1.5">
           <Calendar className="h-3.5 w-3.5 text-zinc-400" />
-          <span>{UI_TEXT.account.joinedDate}: {user.createdAt ? new Date(user.createdAt).toLocaleDateString("vi-VN") : "Hôm nay"}</span>
+          <span>{t("auth.account.joinedDate")}: {user.createdAt ? new Date(user.createdAt).toLocaleDateString("vi-VN") : "Hôm nay"}</span>
         </div>
       </div>
 
       {/* Right Column: Editable Profile fields */}
       <div className="md:col-span-2 bg-white dark:bg-zinc-900/40 border border-zinc-200/80 dark:border-zinc-850 p-6 rounded-2xl flex flex-col gap-5">
         <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest border-b border-zinc-100 dark:border-zinc-800/80 pb-2.5 mb-2 select-none">
-          {UI_TEXT.account.profileInfo}
+          {t("auth.account.profileInfo")}
         </h3>
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           {/* Full Name */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">{UI_TEXT.account.fullName} *</label>
+            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">{t("auth.account.fullName")} *</label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400 pointer-events-none">
                 <UserIcon className="h-4 w-4" />
@@ -97,7 +98,7 @@ export function ProfileCard() {
 
           {/* Email (Read-only) */}
           <div className="flex flex-col gap-1.5 opacity-75">
-            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">{UI_TEXT.account.email} (Định danh)</label>
+            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">{t("auth.account.email")} (Định danh)</label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400 pointer-events-none">
                 <Mail className="h-4 w-4" />
@@ -114,7 +115,7 @@ export function ProfileCard() {
 
           {/* Phone */}
           <div className="flex flex-col gap-1.5">
-            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">{UI_TEXT.account.phone}</label>
+            <label className="text-[10px] font-bold text-zinc-500 uppercase tracking-wider">{t("auth.account.phone")}</label>
             <div className="relative">
               <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-zinc-400 pointer-events-none">
                 <Phone className="h-4 w-4" />
@@ -136,7 +137,7 @@ export function ProfileCard() {
               className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg h-10 px-5 text-xs font-bold flex items-center space-x-2"
             >
               {loading && <RefreshCw className="h-3.5 w-3.5 animate-spin" />}
-              <span>{loading ? "Đang lưu..." : UI_TEXT.account.editProfile}</span>
+              <span>{loading ? "Đang lưu..." : t("auth.account.editProfile")}</span>
             </Button>
           </div>
         </form>

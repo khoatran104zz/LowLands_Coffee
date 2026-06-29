@@ -11,9 +11,12 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
+import { useConfirm } from "@/hooks/useConfirm";
 
 export default function AdminEmployeesPage() {
+  const { t } = useTranslation();
+  const confirm = useConfirm();
   const [isMounted, setIsMounted] = useState(false);
 
   // Filters & searches
@@ -31,8 +34,6 @@ export default function AdminEmployeesPage() {
   // Modal controls
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingEmployee, setEditingEmployee] = useState<Employee | null>(null);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [deletingEmployeeId, setDeletingEmployeeId] = useState<number | null>(null);
 
   // Form input states
   const [formName, setFormName] = useState("");
@@ -50,7 +51,7 @@ export default function AdminEmployeesPage() {
     hydrateUsers();
   }, [hydrateUsers]);
 
-  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{UI_TEXT.common.loading}</div>;
+  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
 
   // Filter employees by branch
   const filteredEmployees = employees.filter((e) => {
@@ -128,9 +129,21 @@ export default function AdminEmployeesPage() {
     setIsFormOpen(true);
   };
 
-  const handleOpenDelete = (emp: Employee) => {
-    setDeletingEmployeeId(emp.id);
-    setIsDeleteOpen(true);
+  const handleOpenDelete = (employee: Employee) => {
+    confirm({
+      title: t("common.confirmDeleteTitle"),
+      message: t("admin.deleteEmployeeConfirm"),
+      confirmText: t("common.delete"),
+      cancelText: t("common.cancel"),
+      onConfirm: async () => {
+        try {
+          await deleteEmployee(employee.id);
+          toast.success("Đã thôi việc nhân viên thành công!");
+        } catch (err) {
+          toast.error("Thao tác thất bại.");
+        }
+      }
+    });
   };
 
   const handleSaveEmployee = async (e: React.FormEvent) => {
@@ -180,17 +193,7 @@ export default function AdminEmployeesPage() {
     }
   };
 
-  const handleConfirmDelete = async () => {
-    if (deletingEmployeeId) {
-      try {
-        await deleteEmployee(deletingEmployeeId);
-        toast.success("Đã thôi việc nhân viên thành công!");
-      } catch (err) {
-        toast.error("Thao tác thất bại.");
-      }
-    }
-    setIsDeleteOpen(false);
-  };
+
 
   return (
     <div className="space-y-6">
@@ -198,7 +201,7 @@ export default function AdminEmployeesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-left">
         <div>
           <h1 className="text-xl font-bold text-amber-900 font-outfit uppercase tracking-wide">
-            {UI_TEXT.common.employees}
+            {t("common.employees")}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold mt-1">
             Quản lý tài khoản nội bộ, lịch ca làm việc và phân quyền của toàn chuỗi cửa hàng.
@@ -243,7 +246,7 @@ export default function AdminEmployeesPage() {
       <Modal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        title={editingEmployee ? UI_TEXT.admin.editEmployee : UI_TEXT.admin.createEmployee}
+        title={editingEmployee ? t("admin.editEmployee") : t("admin.createEmployee")}
         size="md"
       >
         <form onSubmit={handleSaveEmployee} className="space-y-4 text-left">
@@ -359,46 +362,19 @@ export default function AdminEmployeesPage() {
               onClick={() => setIsFormOpen(false)}
               className="h-10 text-xs font-semibold rounded-lg"
             >
-              {UI_TEXT.common.cancel}
+              {t("common.cancel")}
             </Button>
             <Button
               type="submit"
               className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg h-10 text-xs font-semibold px-4"
             >
-              {UI_TEXT.common.save}
+              {t("common.save")}
             </Button>
           </div>
         </form>
       </Modal>
 
-      {/* Delete confirmation */}
-      <Modal
-        isOpen={isDeleteOpen}
-        onClose={() => setIsDeleteOpen(false)}
-        title="Xác nhận dừng hợp đồng làm việc"
-        size="sm"
-      >
-        <div className="space-y-4 text-left">
-          <p className="text-sm text-foreground/80">
-            {UI_TEXT.admin.deleteEmployeeConfirm}
-          </p>
-          <div className="flex justify-end space-x-2 border-t border-border/40 pt-4">
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleteOpen(false)}
-              className="h-10 text-xs font-semibold rounded-lg"
-            >
-              {UI_TEXT.common.cancel}
-            </Button>
-            <Button
-              onClick={handleConfirmDelete}
-              className="bg-rose-600 hover:bg-rose-700 text-white rounded-lg h-10 text-xs font-semibold px-4"
-            >
-              {UI_TEXT.common.confirm}
-            </Button>
-          </div>
-        </div>
-      </Modal>
+      
     </div>
   );
 }

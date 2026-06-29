@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useRef } from "react";
-import { useTranslations } from "next-intl";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Coffee, MapPin, Sparkles, Award } from "lucide-react";
 import { motion, useInView } from "framer-motion";
 
@@ -42,7 +42,7 @@ function Counter({ value, suffix = "", duration = 2.5 }: CounterProps) {
 }
 
 export function AboutBrand() {
-  const t = useTranslations("home");
+  const { t } = useTranslation();
 
   // Animations variants
   const textVariants = {
@@ -128,7 +128,7 @@ export function AboutBrand() {
               variants={paragraphVariants}
               className="font-heading font-extrabold text-3xl sm:text-4xl text-primary tracking-tight"
             >
-              {t("aboutTitle")}
+              {t("landing.about.title")}
             </motion.h2>
             <motion.div 
               variants={paragraphVariants}
@@ -139,7 +139,7 @@ export function AboutBrand() {
               variants={paragraphVariants}
               className="text-sm sm:text-base text-muted-foreground leading-relaxed text-justify mt-2"
             >
-              {t("aboutDesc")}
+              {t("landing.about.desc")}
             </motion.p>
 
             {/* Counters grid */}
@@ -149,15 +149,15 @@ export function AboutBrand() {
             >
               <div className="flex flex-col gap-1">
                 <Counter value={5} suffix="+" />
-                <span className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider">Năm kinh nghiệm</span>
+                <span className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("landing.about.yearsExp")}</span>
               </div>
               <div className="flex flex-col gap-1">
                 <Counter value={50} suffix="+" />
-                <span className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider">Cửa hàng toàn quốc</span>
+                <span className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("landing.about.stores")}</span>
               </div>
               <div className="flex flex-col gap-1">
                 <Counter value={100} suffix="K+" /> {/* Representing 1 million dynamically as 1000K+ or similar, value=100 for 100K+ registered members or 1M+ cups */}
-                <span className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider">Khách hàng tin dùng</span>
+                <span className="text-[10px] sm:text-xs font-bold text-muted-foreground uppercase tracking-wider">{t("landing.about.customers")}</span>
               </div>
             </motion.div>
           </motion.div>
@@ -181,7 +181,7 @@ export function AboutBrand() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent flex items-end p-6">
                 <div className="flex items-center gap-2.5 text-white">
                   <Award className="h-5 w-5 text-accent animate-pulse" />
-                  <span className="text-xs sm:text-sm font-extrabold uppercase tracking-widest font-outfit">Hương vị di sản Việt Nam</span>
+                  <span className="text-xs sm:text-sm font-extrabold uppercase tracking-widest font-outfit">{t("landing.about.heritage")}</span>
                 </div>
               </div>
             </motion.div>
@@ -197,16 +197,16 @@ export function AboutBrand() {
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground mb-1">
                       <Coffee className="h-5 w-5" />
                     </div>
-                    <h4 className="text-sm font-black text-primary uppercase tracking-wide">100% Robusta &amp; Arabica</h4>
+                    <h4 className="text-sm font-black text-primary uppercase tracking-wide">{t("landing.about.card1.title")}</h4>
                     <p className="text-[11px] text-muted-foreground leading-normal text-left">
-                      Hạt cà phê được thu hoạch thủ công chín đỏ tại vùng đất bazan Lâm Đồng.
+                      {t("landing.about.card1.desc")}
                     </p>
                   </div>
                   {/* Back */}
                   <div className="flip-card-back">
-                    <h4 className="text-xs font-black text-accent uppercase tracking-wider">Hạt Cà Phê Thượng Hạng</h4>
+                    <h4 className="text-xs font-black text-accent uppercase tracking-wider">{t("landing.about.card1.backTitle")}</h4>
                     <p className="text-[10px] leading-relaxed opacity-90 text-justify">
-                      Từng hạt Robusta đậm vị và Arabica thanh nhẹ được thu mua trực tiếp từ nông hộ, trải qua quy trình sàng lọc nghiêm ngặt và rang xay theo công thức độc bản để giữ trọn tinh túy hương thơm.
+                      {t("landing.about.card1.backDesc")}
                     </p>
                   </div>
                 </div>
@@ -220,16 +220,16 @@ export function AboutBrand() {
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-accent text-accent-foreground mb-1">
                       <Sparkles className="h-5 w-5" />
                     </div>
-                    <h4 className="text-sm font-black text-primary uppercase tracking-wide">Pha Phin Truyền Thống</h4>
+                    <h4 className="text-sm font-black text-primary uppercase tracking-wide">{t("landing.about.card2.title")}</h4>
                     <p className="text-[11px] text-muted-foreground leading-normal text-left">
-                      Từng tách cà phê chắt lọc từ phin truyền thống, lưu giữ trọn vẹn hương vị Việt.
+                      {t("landing.about.card2.desc")}
                     </p>
                   </div>
                   {/* Back */}
                   <div className="flip-card-back">
-                    <h4 className="text-xs font-black text-accent uppercase tracking-wider">Trải Nghiệm Phin Mộc Mạc</h4>
+                    <h4 className="text-xs font-black text-accent uppercase tracking-wider">{t("landing.about.card2.backTitle")}</h4>
                     <p className="text-[10px] leading-relaxed opacity-90 text-justify">
-                      Giữ trọn phong vị truyền thống của phin nhôm - biểu tượng bất hủ của cà phê Việt. Chiết xuất chậm rãi, từng giọt đọng lại vị đắng đậm đà, hậu ngọt kéo dài quyến rũ người thưởng thức.
+                      {t("landing.about.card2.backDesc")}
                     </p>
                   </div>
                 </div>
@@ -243,16 +243,16 @@ export function AboutBrand() {
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary mb-1">
                       <MapPin className="h-5 w-5" />
                     </div>
-                    <h4 className="text-sm font-black text-primary uppercase tracking-wide">Không Gian Kết Nối</h4>
+                    <h4 className="text-sm font-black text-primary uppercase tracking-wide">{t("landing.about.card3.title")}</h4>
                     <p className="text-[11px] text-muted-foreground leading-normal text-left">
-                      Thiết kế mộc mạc, gần gũi với thiên nhiên, thắt chặt mối quan hệ cộng đồng Việt.
+                      {t("landing.about.card3.desc")}
                     </p>
                   </div>
                   {/* Back */}
                   <div className="flip-card-back">
-                    <h4 className="text-xs font-black text-accent uppercase tracking-wider">Điểm Hẹn Gắn Kết</h4>
+                    <h4 className="text-xs font-black text-accent uppercase tracking-wider">{t("landing.about.card3.backTitle")}</h4>
                     <p className="text-[10px] leading-relaxed opacity-90 text-justify">
-                      Không chỉ bán cà phê, Lowlands mang lại một điểm đến ấm cúng và tinh tế để học tập, trò chuyện hay gặp gỡ. Nơi kết nối những tâm hồn đồng điệu giữa cuộc sống đô thị vội vã.
+                      {t("landing.about.card3.backDesc")}
                     </p>
                   </div>
                 </div>

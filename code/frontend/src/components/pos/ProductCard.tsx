@@ -4,7 +4,7 @@ import { Product, ProductVariant, Topping } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/Modal";
 import { Checkbox } from "@/components/ui/checkbox";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface ProductCardProps {
   product: Product;
@@ -17,6 +17,7 @@ interface ProductCardProps {
 }
 
 export function ProductCard({ product, onAddToCart }: ProductCardProps) {
+  const { t } = useTranslation();
   const [isConfigOpen, setIsConfigOpen] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant>(
     product.variants?.[0] || { id: 0, productId: product.id, size: "S", price: 0, status: "active" }
@@ -208,12 +209,12 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           {/* Special notes */}
           <div className="space-y-2">
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block text-left">
-              {UI_TEXT.pos.addNote}
+              {t("staff.pos.addNote")}
             </label>
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder="Ví dụ: Ít sữa, nhiều đá, chia 2 ly..."
+              placeholder={t("staff.pos.notePlaceholder")}
               className="w-full p-3 border border-border bg-background text-foreground text-xs font-medium rounded-lg h-16 focus:outline-none focus:ring-1 focus:ring-[#C8510A] focus:border-[#C8510A] resize-none transition-colors"
             />
           </div>
@@ -221,20 +222,20 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           {/* Actions */}
           <div className="flex items-center justify-between border-t border-border/60 pt-4 mt-2">
             <div className="text-left">
-              <span className="text-xs text-muted-foreground block font-medium">Tổng số tiền:</span>
+              <span className="text-xs text-muted-foreground block font-medium">{t("common.total")}:</span>
               <span className="text-base font-black text-[#C8510A] font-outfit">
                 {currentTotal.toLocaleString()}đ
               </span>
             </div>
             <div className="flex space-x-2">
               <Button variant="outline" onClick={() => setIsConfigOpen(false)} className="rounded-lg h-9 text-xs font-semibold">
-                {UI_TEXT.common.cancel}
+                {t("common.cancel")}
               </Button>
               <Button 
                 onClick={handleConfirmAdd} 
                 className="bg-[#C8510A] hover:bg-[#B04308] text-white rounded-lg h-9 text-xs font-semibold px-5"
               >
-                + Thêm vào đơn
+                {t("staff.pos.addToOrder")}
               </Button>
             </div>
           </div>

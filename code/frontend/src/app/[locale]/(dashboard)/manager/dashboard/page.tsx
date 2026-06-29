@@ -6,9 +6,10 @@ import { StatsCard } from "@/components/dashboard/StatsCard";
 import { BarChart, PieChart, ChartDataItem } from "@/components/charts/Chart";
 import { useDashboardStore } from "@/store/dashboardStore";
 import { getManagerDashboardSummary, ManagerDashboardSummary } from "@/services/dashboard.service";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function ManagerDashboardPage() {
+  const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
   const [summary, setSummary] = useState<ManagerDashboardSummary | null>(null);
   const [summaryError, setSummaryError] = useState<string | null>(null);
@@ -30,7 +31,7 @@ export default function ManagerDashboardPage() {
   const employees = useDashboardStore((state) => state.employees);
   const ingredients = useDashboardStore((state) => state.ingredients);
 
-  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{UI_TEXT.common.loading}</div>;
+  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
 
   // We manage StoreId = 2: "Lowlands Coffee - Hồ Con Rùa"
   const MY_BRANCH_ID = 2;
@@ -96,7 +97,7 @@ export default function ManagerDashboardPage() {
       {/* Title */}
       <div className="text-left select-none">
         <h1 className="text-xl font-bold text-amber-900 font-outfit uppercase tracking-wide">
-          {UI_TEXT.manager.dashboardTitle}
+          {t("staff.manager.dashboardTitle")}
         </h1>
         <p className="text-xs text-muted-foreground font-semibold mt-1">
           Báo cáo thống kê trực quan chi nhánh Hồ Con Rùa (Quận 3, TP. Hồ Chí Minh).
@@ -110,25 +111,25 @@ export default function ManagerDashboardPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
-          title={UI_TEXT.manager.todayRevenue}
+          title={t("staff.manager.todayRevenue")}
           value={`${displayRevenue.toLocaleString()}đ`}
           icon={DollarSign}
           description="Doanh số thực tế hôm nay"
         />
         <StatsCard
-          title={UI_TEXT.manager.todayOrders}
+          title={t("staff.manager.todayOrders")}
           value={displayOrders}
           icon={ShoppingBag}
           description="Tổng hóa đơn lập ca"
         />
         <StatsCard
-          title={UI_TEXT.manager.activeStaff}
+          title={t("staff.manager.activeStaff")}
           value={`${activeEmployeesCount} nhân sự`}
           icon={Users}
           description="Đang chấm công đi làm"
         />
         <StatsCard
-          title={UI_TEXT.manager.inventoryWarning}
+          title={t("staff.manager.inventoryWarning")}
           value={`${displayInventoryWarnings} mặt hàng`}
           icon={AlertTriangle}
           description="Cần nhập hàng ngay"

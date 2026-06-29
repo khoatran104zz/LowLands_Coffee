@@ -21,7 +21,7 @@ import {
   X
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { UI_TEXT } from "@/constants/ui-text";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface SidebarProps {
   role: "admin" | "manager";
@@ -31,27 +31,28 @@ interface SidebarProps {
 
 export function Sidebar({ role, locale, onCloseMobile }: SidebarProps) {
   const pathname = usePathname();
+  const { t } = useTranslation();
 
   // Navigation configurations based on role
   const adminLinks = [
-    { href: `/${locale}/admin/dashboard`, label: UI_TEXT.common.dashboard, icon: LayoutDashboard },
-    { href: `/${locale}/admin/branches`, label: UI_TEXT.common.branches, icon: Store },
-    { href: `/${locale}/admin/products`, label: UI_TEXT.common.products, icon: Coffee },
-    { href: `/${locale}/admin/categories`, label: UI_TEXT.common.categories, icon: FolderTree },
-    { href: `/${locale}/admin/employees`, label: UI_TEXT.common.employees, icon: Users2 },
-    { href: `/${locale}/admin/customers`, label: UI_TEXT.common.customers, icon: UserCheck },
-    { href: `/${locale}/admin/orders`, label: UI_TEXT.common.orders, icon: Receipt },
-    { href: `/${locale}/admin/promotions`, label: UI_TEXT.common.promotions, icon: Tag },
-    { href: `/${locale}/admin/reports`, label: UI_TEXT.common.reports, icon: LineChart },
+    { href: `/${locale}/admin/dashboard`, label: t("common.dashboard"), icon: LayoutDashboard },
+    { href: `/${locale}/admin/branches`, label: t("common.branches"), icon: Store },
+    { href: `/${locale}/admin/products`, label: t("common.products"), icon: Coffee },
+    { href: `/${locale}/admin/categories`, label: t("common.categories"), icon: FolderTree },
+    { href: `/${locale}/admin/employees`, label: t("common.employees"), icon: Users2 },
+    { href: `/${locale}/admin/customers`, label: t("common.customers"), icon: UserCheck },
+    { href: `/${locale}/admin/orders`, label: t("common.orders"), icon: Receipt },
+    { href: `/${locale}/admin/promotions`, label: t("common.promotions"), icon: Tag },
+    { href: `/${locale}/admin/reports`, label: t("common.reports"), icon: LineChart },
   ];
 
   const managerLinks = [
-    { href: `/${locale}/manager/dashboard`, label: UI_TEXT.common.dashboard, icon: LayoutDashboard },
-    { href: `/${locale}/manager/orders`, label: UI_TEXT.common.orders, icon: Receipt },
-    { href: `/${locale}/manager/inventory`, label: UI_TEXT.common.inventory, icon: Warehouse },
-    { href: `/${locale}/manager/staff`, label: UI_TEXT.manager.workingShift, icon: Users2 },
-    { href: `/${locale}/manager/revenue`, label: UI_TEXT.common.revenue, icon: Coins },
-    { href: `/${locale}/manager/reports`, label: UI_TEXT.common.reports, icon: LineChart },
+    { href: `/${locale}/manager/dashboard`, label: t("common.dashboard"), icon: LayoutDashboard },
+    { href: `/${locale}/manager/orders`, label: t("common.orders"), icon: Receipt },
+    { href: `/${locale}/manager/inventory`, label: t("common.inventory"), icon: Warehouse },
+    { href: `/${locale}/manager/staff`, label: t("staff.manager.workingShift"), icon: Users2 },
+    { href: `/${locale}/manager/revenue`, label: t("common.revenue"), icon: Coins },
+    { href: `/${locale}/manager/reports`, label: t("common.reports"), icon: LineChart },
   ];
 
   const links = role === "admin" ? adminLinks : managerLinks;
@@ -85,7 +86,7 @@ export function Sidebar({ role, locale, onCloseMobile }: SidebarProps) {
       <div className="px-6 py-4">
         <div className="bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 flex items-center justify-center">
           <span className="text-[10px] uppercase font-bold tracking-wider text-amber-500 font-outfit">
-            {role === "admin" ? "Hệ thống Admin" : "Quản lý Chi nhánh"}
+            {role === "admin" ? t("common.adminSystem") : t("common.branchManagement")}
           </span>
         </div>
       </div>
@@ -126,14 +127,14 @@ export function Sidebar({ role, locale, onCloseMobile }: SidebarProps) {
           className="flex items-center space-x-2.5 px-3 py-2 rounded-lg text-[11px] font-bold text-amber-500 border border-amber-850 hover:bg-amber-800/10 transition-colors w-full"
         >
           <Smartphone className="h-3.5 w-3.5" />
-          <span>Vào màn hình POS</span>
+          <span>{t("common.goToPOS")}</span>
         </Link>
         <Link
           href={`/${locale}`}
           className="flex items-center space-x-2.5 px-3 py-2 rounded-lg text-[11px] font-bold text-zinc-400 hover:text-white hover:bg-zinc-900 transition-colors w-full"
         >
           <ChevronLeft className="h-3.5 w-3.5" />
-          <span>Quay lại Customer</span>
+          <span>{t("common.backToCustomer")}</span>
         </Link>
       </div>
     </aside>

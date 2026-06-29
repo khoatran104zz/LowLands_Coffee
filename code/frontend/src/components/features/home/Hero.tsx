@@ -1,13 +1,12 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+import { useTranslation } from "@/hooks/useTranslation";
 import { Link } from "@/i18n/navigation";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { Coffee, ArrowRight, ChevronDown } from "lucide-react";
 
 export function Hero() {
-  const t = useTranslations("home");
-  const tCommon = useTranslations("common");
+  const { t } = useTranslation();
   const { scrollY } = useScroll();
 
   // Parallax effects
@@ -17,7 +16,7 @@ export function Hero() {
   const opacityScroll = useTransform(scrollY, [0, 300], [1, 0]);
 
   // Title Stagger Animation Variants
-  const titleText = t("heroTitle");
+  const titleText = t("landing.hero.title");
   const titleWords = titleText.split(" ");
 
   const containerVariants = {
@@ -71,7 +70,7 @@ export function Hero() {
               className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/15 px-4 py-1.5 text-xs sm:text-sm font-semibold text-accent backdrop-blur-sm"
             >
               <Coffee className="h-4 w-4" />
-              <span>{tCommon("brandName")}</span>
+              <span>{t("common.brandName")}</span>
             </motion.div>
 
             {/* Staggered Title */}
@@ -102,7 +101,7 @@ export function Hero() {
               transition={{ duration: 0.6, delay: 0.45 }}
               className="text-base sm:text-lg text-primary-foreground/80 max-w-xl leading-relaxed font-medium"
             >
-              {t("heroSubtitle")}
+              {t("landing.hero.subtitle")}
             </motion.p>
 
             <motion.div 
@@ -119,7 +118,7 @@ export function Hero() {
                 >
                   {/* Ripple overlay effect */}
                   <span className="absolute inset-0 bg-white/20 rounded-full scale-0 group-hover:scale-100 transition-transform duration-500 origin-center pointer-events-none" />
-                  <span>{t("exploreMenu")}</span>
+                  <span>{t("landing.button.exploreMenu")}</span>
                   <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
                 </motion.div>
               </Link>
@@ -204,7 +203,7 @@ export function Hero() {
         style={{ opacity: opacityScroll }}
         className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 cursor-pointer pointer-events-none z-10"
       >
-        <span className="text-[10px] uppercase font-bold tracking-widest text-primary-foreground/50">Cuộn xuống</span>
+        <span className="text-[10px] uppercase font-bold tracking-widest text-primary-foreground/50">{t("common.scrollDown")}</span>
         <motion.div
           animate={{ y: [0, 8, 0] }}
           transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
