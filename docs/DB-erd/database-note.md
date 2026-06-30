@@ -55,8 +55,29 @@ Vi du:
 - PRODUCT_CREATE
 - PRODUCT_UPDATE
 - ORDER_VIEW
+- ORDER_CREATE
+- ORDER_UPDATE
+- ORDER_CANCEL
+- ORDER_COMPLETE
 - INVENTORY_UPDATE
 - REPORT_VIEW
+
+Order permission decision for the next Order coding sprint:
+
+- `ORDER_VIEW`
+- `ORDER_CREATE`
+- `ORDER_UPDATE`
+- `ORDER_CANCEL`
+- `ORDER_COMPLETE`
+
+Role scope:
+
+- ADMIN: full order permissions across all stores.
+- MANAGER: manage orders in assigned stores.
+- STAFF: create, update, complete, and cancel orders in assigned stores.
+- CUSTOMER: create and view own orders in a later customer-order sprint.
+
+`ORDER_COMPLETE` is separated from `ORDER_UPDATE` because completing an order deducts inventory stock. `ORDER_CANCEL` is separated from generic update because cancellation changes business state and may need separate audit/approval later.
 
 ### role_permissions
 
@@ -189,9 +210,50 @@ Trang thai hien co:
 PENDING
 CONFIRMED
 PREPARING
+READY
 COMPLETED
 CANCELLED
 ```
+
+Order status transition decision:
+
+```text
+PENDING -> CONFIRMED
+PENDING -> CANCELLED
+PENDING -> COMPLETED if POS fast-pay is approved
+
+CONFIRMED -> PREPARING
+CONFIRMED -> CANCELLED
+CONFIRMED -> COMPLETED if POS fast-pay is approved
+
+PREPARING -> READY
+PREPARING -> CANCELLED
+PREPARING -> COMPLETED if POS fast-pay is approved
+
+READY -> COMPLETED
+READY -> CANCELLED
+
+COMPLETED -> terminal
+CANCELLED -> terminal
+```
+
+Order type decision:
+
+```text
+DELIVERY
+PICKUP
+DINE_IN
+TAKEAWAY
+```
+
+Meaning:
+
+- `DELIVERY`: online customer order delivered to an address.
+- `PICKUP`: online customer order picked up at store.
+- `DINE_IN`: POS order served at table.
+- `TAKEAWAY`: POS order purchased at counter for takeaway.
+
+Current DB does not have `table_number`. V1 does not add a column in this documentation step. If needed, DINE_IN table number can be stored temporarily in `orders.note`; a dedicated `table_number` column is a future migration candidate.
 
 ### order_items
 
@@ -202,6 +264,15 @@ Chi tiet mon trong don hang. Bang nay luu snapshot `product_name`, `size`, `unit
 Chi tiet topping trong tung dong san pham cua don hang.
 
 Ghi chu Sprint 3: khong them moi bang Order. Viec tru ton kho khi Order Completed se duoc xu ly o Sprint sau.
+
+Order V1 pricing decision:
+
+- No promotion engine in V1.
+- `discount_amount = 0`.
+- `taxAmount = 0` if no DB column exists.
+- `serviceFee = 0` if no DB column exists.
+- `total_amount = subtotal`.
+- Do not add tax/service fee/cash columns until a coding migration is approved.
 
 ---
 
@@ -228,6 +299,16 @@ PAID
 FAILED
 REFUNDED
 ```
+
+Backend contract must use only uppercase payment enums above. Frontend mapping for later integration:
+
+- `cod` -> `CASH`
+- `bank_transfer` -> `BANKING`
+- `e_wallet` -> `MOMO` or `CARD` depending on the selected UI option
+
+Do not use `cod`, `bank_transfer`, or `e_wallet` in backend API/DB contract.
+
+Current DB does not have `cash_received` or `change_returned`. V1 does not persist cash received/change returned; frontend may calculate change for temporary display. Dedicated cash fields are a future migration candidate.
 
 Ghi chu Sprint 3: khong them moi bang Payment.
 

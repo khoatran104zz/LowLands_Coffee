@@ -126,8 +126,8 @@ Table orders {
   store_id bigint
   address_id bigint
   order_code varchar(50) [unique]
-  order_type varchar(20) // DELIVERY, PICKUP
-  status varchar(30) // PENDING, CONFIRMED, PREPARING, COMPLETED, CANCELLED
+  order_type varchar(20) // DELIVERY, PICKUP, DINE_IN, TAKEAWAY
+  status varchar(30) // PENDING, CONFIRMED, PREPARING, READY, COMPLETED, CANCELLED
   receiver_name varchar(100)
   receiver_phone varchar(20)
   delivery_address varchar(255)
