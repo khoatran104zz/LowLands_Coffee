@@ -18,6 +18,14 @@
     "slide2Desc": "Fragrant oolong, buttery lotus seeds",
     "slide2Price": "39,000đ"
   },
+  "menuShowcase": {
+    "coffeeDesc": "The perfect blend of premium Robusta & Arabica beans grown on fertile Vietnamese highlands, delivering a rich and delicate flavor.",
+    "teaDesc": "The natural, delicious taste of Vietnamese Tea with a modern twist at Lowlands Coffee will awaken your taste buds and bring refreshing joy.",
+    "freezeDesc": "Refreshing Vietnamese-style ice-blended beverages. Freeze is a cool icy blend prepared from pure local ingredients.",
+    "otherDesc": "Even more delicious when you pair your drink with our fresh pastries, handcrafted daily in the Lowlands kitchen.",
+    "exploreMore": "EXPLORE MORE",
+    "backToShowcase": "View featured categories"
+  },
   "button": {
     "exploreMenu": "Explore Menu",
     "orderNow": "Order Now",
