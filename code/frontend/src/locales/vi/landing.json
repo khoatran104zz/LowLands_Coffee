@@ -18,6 +18,14 @@
     "slide2Desc": "Trà ô long thơm nhẹ, hạt sen bùi béo",
     "slide2Price": "39.000đ"
   },
+  "menuShowcase": {
+    "coffeeDesc": "Sự kết hợp hoàn hảo giữa hạt Robusta & Arabica thượng hạng được trồng trên những vùng cao nguyên Việt Nam màu mỡ, mang hương vị đậm đà và tinh tế.",
+    "teaDesc": "Hương vị tự nhiên, thơm ngon của Trà Việt với phong cách hiện đại tại Lowlands Coffee sẽ giúp bạn gợi mở vị giác và tận hưởng cảm giác thanh mát.",
+    "freezeDesc": "Sảng khoái với thức uống đá xay phong cách Việt. Freeze là thức uống đá xay mát lạnh được pha chế từ những nguyên liệu thuần túy của Việt Nam.",
+    "otherDesc": "Sẽ càng ngon miệng hơn khi bạn kết hợp đồ uống với những chiếc bánh ngọt thơm ngon được làm thủ công hàng ngày ngay tại bếp bánh của Lowlands.",
+    "exploreMore": "KHÁM PHÁ THÊM",
+    "backToShowcase": "Xem danh mục nổi bật"
+  },
   "button": {
     "exploreMenu": "Khám phá thực đơn",
     "orderNow": "Đặt hàng ngay",
