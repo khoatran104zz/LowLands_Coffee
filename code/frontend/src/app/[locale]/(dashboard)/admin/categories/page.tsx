@@ -84,33 +84,42 @@ export default function AdminCategoriesPage() {
       cancelText: t("common.cancel")
     });
     if (isConfirmed) {
-      deleteCategory(category.id);
-      toast.success("Xóa danh mục thành công!");
+      try {
+        await deleteCategory(category.id);
+        toast.success("Xóa danh mục thành công!");
+      } catch {
+        toast.error("Không thể xóa danh mục qua Backend API.");
+      }
     }
   };
 
-  const handleSaveCategory = (e: React.FormEvent) => {
+  const handleSaveCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim()) {
       toast.error("Vui lòng điền tên danh mục!");
       return;
     }
 
-    if (editingCategory) {
-      updateCategory({
-        id: editingCategory.id,
-        name: formName.trim(),
-        description: formDesc.trim(),
-        status: formStatus
-      });
-      toast.success("Cập nhật danh mục thành công!");
-    } else {
-      addCategory({
-        name: formName.trim(),
-        description: formDesc.trim(),
-        status: formStatus
-      });
-      toast.success("Thêm danh mục mới thành công!");
+    try {
+      if (editingCategory) {
+        await updateCategory({
+          id: editingCategory.id,
+          name: formName.trim(),
+          description: formDesc.trim(),
+          status: formStatus
+        });
+        toast.success("Cập nhật danh mục thành công!");
+      } else {
+        await addCategory({
+          name: formName.trim(),
+          description: formDesc.trim(),
+          status: formStatus
+        });
+        toast.success("Thêm danh mục mới thành công!");
+      }
+    } catch {
+      toast.error("Không thể lưu danh mục qua Backend API.");
+      return;
     }
     setIsFormOpen(false);
   };
