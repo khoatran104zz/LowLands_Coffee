@@ -140,20 +140,24 @@ const getIngredientStatus = (qty: number, min: number): Ingredient["status"] => 
   return "in_stock";
 };
 
-const toProductRequest = (product: Omit<Product, "id"> | Product, includeToppings: boolean): ProductRequest => ({
-  categoryId: product.categoryId,
-  name: product.name,
-  description: product.description,
-  imageUrl: product.imageUrl,
-  status: product.status,
-  variants: product.variants?.map((variant) => ({
-    id: variant.id,
-    size: variant.size,
-    price: variant.price,
-    status: variant.status,
-  })) ?? [],
-  toppingIds: includeToppings ? product.toppings?.map((topping) => topping.id) : [],
-});
+const toProductRequest = (product: Omit<Product, "id"> | Product, includeToppings: boolean): ProductRequest => {
+  const isUpdate = "id" in product;
+
+  return {
+    categoryId: product.categoryId,
+    name: product.name,
+    description: product.description,
+    imageUrl: product.imageUrl,
+    status: product.status,
+    variants: product.variants?.map((variant) => ({
+      id: isUpdate ? variant.id : undefined,
+      size: variant.size,
+      price: variant.price,
+      status: variant.status,
+    })) ?? [],
+    toppingIds: includeToppings ? product.toppings?.map((topping) => topping.id) : [],
+  };
+};
 
 export const useDashboardStore = create<DashboardState>()(
   persist(

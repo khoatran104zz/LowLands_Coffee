@@ -181,17 +181,23 @@ export default function AdminProductsPage() {
       return;
     }
 
-    // Build variants
+    // Build variants. Preserve backend variant ids on update so recipes and DB constraints stay stable.
     const tempProductId = editingProduct?.id || Math.max(...products.map(p => p.id), 0) + 1;
+    const variantIdForForm = (size: ProductVariant["size"]) => {
+      if (!editingProduct) {
+        return tempProductId * 100 + (size === "S" ? 1 : size === "M" ? 2 : 3);
+      }
+      return editingProduct.variants?.find((variant) => variant.size === size)?.id;
+    };
     const variants: ProductVariant[] = [];
     if (priceS > 0) {
-      variants.push({ id: tempProductId * 100 + 1, productId: tempProductId, size: "S", price: priceS, status: "active" });
+      variants.push({ id: variantIdForForm("S") as number, productId: tempProductId, size: "S", price: priceS, status: "active" });
     }
     if (priceM > 0) {
-      variants.push({ id: tempProductId * 100 + 2, productId: tempProductId, size: "M", price: priceM, status: "active" });
+      variants.push({ id: variantIdForForm("M") as number, productId: tempProductId, size: "M", price: priceM, status: "active" });
     }
     if (priceL > 0) {
-      variants.push({ id: tempProductId * 100 + 3, productId: tempProductId, size: "L", price: priceL, status: "active" });
+      variants.push({ id: variantIdForForm("L") as number, productId: tempProductId, size: "L", price: priceL, status: "active" });
     }
 
     try {
