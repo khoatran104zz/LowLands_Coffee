@@ -1,7 +1,22 @@
 {
   "hero": {
     "title": "Lowlands Coffee",
-    "subtitle": "Original flavors from the lowlands - Connecting modern Vietnamese phin coffee culture."
+    "subtitle": "Original flavors from the lowlands - Connecting modern Vietnamese phin coffee culture.",
+    "tagline": "Authentic Phin Coffee",
+    "socialProofReviews": "10,000+ reviews",
+    "socialProofStores": "Over 50 stores nationwide",
+    "slide0Name": "Phin Sua Da",
+    "slide0Badge": "BEST SELLER",
+    "slide0Desc": "Rich traditional Vietnamese flavor",
+    "slide0Price": "29,000đ",
+    "slide1Name": "Bac Xiu Ice",
+    "slide1Badge": "TRADITIONAL",
+    "slide1Desc": "Sweet milk blended with phin coffee",
+    "slide1Price": "29,000đ",
+    "slide2Name": "Golden Lotus Tea",
+    "slide2Badge": "REFRESHING",
+    "slide2Desc": "Fragrant oolong, buttery lotus seeds",
+    "slide2Price": "39,000đ"
   },
   "button": {
     "exploreMenu": "Explore Menu",

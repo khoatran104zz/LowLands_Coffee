@@ -1,7 +1,22 @@
 {
   "hero": {
     "title": "Lowlands Coffee",
-    "subtitle": "Hương vị nguyên bản từ vùng cao nguyên thấp - Kết nối văn hóa cà phê phin Việt Nam hiện đại."
+    "subtitle": "Hương vị nguyên bản từ vùng cao nguyên thấp - Kết nối văn hóa cà phê phin Việt Nam hiện đại.",
+    "tagline": "Cà phê phin nguyên bản",
+    "socialProofReviews": "10.000+ đánh giá",
+    "socialProofStores": "Hơn 50 cửa hàng toàn quốc",
+    "slide0Name": "Phin Sữa Đá",
+    "slide0Badge": "BEST SELLER",
+    "slide0Desc": "Đậm đà hương vị truyền thống Việt",
+    "slide0Price": "29.000đ",
+    "slide1Name": "Bạc Xỉu Đá",
+    "slide1Badge": "TRUYỀN THỐNG",
+    "slide1Desc": "Vị sữa thơm béo hòa quyện cà phê phin",
+    "slide1Price": "29.000đ",
+    "slide2Name": "Trà Sen Vàng",
+    "slide2Badge": "THANH MÁT",
+    "slide2Desc": "Trà ô long thơm nhẹ, hạt sen bùi béo",
+    "slide2Price": "39.000đ"
   },
   "button": {
     "exploreMenu": "Khám phá thực đơn",

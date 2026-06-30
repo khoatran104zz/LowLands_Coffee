@@ -1,13 +1,47 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { Link } from "@/i18n/navigation";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
 import { Coffee, ArrowRight, ChevronDown } from "lucide-react";
+
+const SLIDES = [
+  {
+    image: "/images/hero-coffee.png",
+    nameKey: "landing.hero.slide0Name",
+    badgeKey: "landing.hero.slide0Badge",
+    descKey: "landing.hero.slide0Desc",
+    priceKey: "landing.hero.slide0Price",
+  },
+  {
+    image: "/images/hero-bac-xiu.png",
+    nameKey: "landing.hero.slide1Name",
+    badgeKey: "landing.hero.slide1Badge",
+    descKey: "landing.hero.slide1Desc",
+    priceKey: "landing.hero.slide1Price",
+  },
+  {
+    image: "/images/hero-tra-sen.png",
+    nameKey: "landing.hero.slide2Name",
+    badgeKey: "landing.hero.slide2Badge",
+    descKey: "landing.hero.slide2Desc",
+    priceKey: "landing.hero.slide2Price",
+  },
+];
 
 export function Hero() {
   const { t } = useTranslation();
   const { scrollY } = useScroll();
+  const [currentSlide, setCurrentSlide] = useState(0);
+
+  // Auto-play slider
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % SLIDES.length);
+    }, 5000);
+    return () => clearInterval(timer);
+  }, []);
 
   // Parallax effects
   const yBg = useTransform(scrollY, [0, 600], [0, 100]);
@@ -63,6 +97,7 @@ export function Hero() {
             style={{ y: yText }}
             className="lg:col-span-7 flex flex-col items-start gap-6 text-left"
           >
+            {/* Tagline Badge */}
             <motion.div 
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -70,65 +105,113 @@ export function Hero() {
               className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/15 px-4 py-1.5 text-xs sm:text-sm font-semibold text-accent backdrop-blur-sm"
             >
               <Coffee className="h-4 w-4" />
-              <span>{t("common.brandName")}</span>
+              <span>{t("landing.hero.tagline")}</span>
             </motion.div>
 
             {/* Staggered Title */}
-            <motion.h1 
-              variants={containerVariants}
-              initial="hidden"
-              animate="visible"
-              className="font-heading font-extrabold text-4xl sm:text-5xl lg:text-6xl tracking-tight leading-tight flex flex-wrap gap-x-3 gap-y-1"
-            >
-              {titleWords.map((word, wIdx) => (
-                <span key={wIdx} className="whitespace-nowrap inline-block">
-                  {word.split("").map((char, cIdx) => (
-                    <motion.span 
-                      key={cIdx} 
-                      variants={letterVariants} 
-                      className="inline-block origin-bottom"
+            <div className="flex flex-col gap-3 items-start w-full">
+              <motion.h1 
+                variants={containerVariants}
+                initial="hidden"
+                animate="visible"
+                className="font-heading font-extrabold text-4xl sm:text-5xl lg:text-6xl tracking-tight leading-tight flex flex-wrap gap-x-3 gap-y-1"
+              >
+                {titleWords.map((word, wIdx) => {
+                  const isCoffee = word.toLowerCase().includes("coffee");
+                  return (
+                    <span 
+                      key={wIdx} 
+                      className={`whitespace-nowrap inline-block ${isCoffee ? "text-accent" : "text-white"}`}
                     >
-                      {char}
-                    </motion.span>
-                  ))}
-                </span>
-              ))}
-            </motion.h1>
+                      {word.split("").map((char, cIdx) => (
+                        <motion.span 
+                          key={cIdx} 
+                          variants={letterVariants} 
+                          className="inline-block origin-bottom"
+                        >
+                          {char}
+                        </motion.span>
+                      ))}
+                    </span>
+                  );
+                })}
+              </motion.h1>
+              
+              {/* Gold Underline Accent */}
+              <motion.div 
+                initial={{ scaleX: 0 }}
+                animate={{ scaleX: 1 }}
+                transition={{ duration: 0.8, delay: 0.5 }}
+                className="h-[2px] w-24 bg-accent origin-left"
+              />
+            </div>
 
+            {/* Subtitle Description */}
             <motion.p 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.45 }}
-              className="text-base sm:text-lg text-primary-foreground/80 max-w-xl leading-relaxed font-medium"
+              className="text-base sm:text-lg text-primary-foreground/80 max-w-xl leading-relaxed font-medium w-full text-balance"
             >
               {t("landing.hero.subtitle")}
             </motion.p>
 
+            {/* Social Proof */}
+            <motion.div 
+              initial={{ opacity: 0, y: 15 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+              className="flex flex-wrap items-center gap-x-6 gap-y-2 text-xs sm:text-sm text-primary-foreground/75"
+            >
+              <div className="flex items-center gap-1.5">
+                <div className="flex text-[#FFC72C]">
+                  {[...Array(5)].map((_, i) => (
+                    <svg key={i} className="h-4.5 w-4.5 fill-current" viewBox="0 0 20 20">
+                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                    </svg>
+                  ))}
+                </div>
+                <span className="font-bold text-white">4.9/5</span>
+                <span className="text-primary-foreground/70 font-medium">({t("landing.hero.socialProofReviews")})</span>
+              </div>
+              <div className="hidden sm:block h-4 w-px bg-white/20" />
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+                <span className="font-semibold text-accent">{t("landing.hero.socialProofStores")}</span>
+              </div>
+            </motion.div>
+
+            {/* CTA Buttons */}
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
               className="flex flex-wrap gap-4 pt-2"
             >
+              {/* Primary: Order Now */}
               <Link href="/menu">
                 <motion.div
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: 1.03, y: -2 }}
                   whileTap={{ scale: 0.97 }}
-                  className="relative overflow-hidden group inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3.5 text-sm font-extrabold text-accent-foreground shadow-lg transition-all duration-300 cursor-pointer"
+                  className="relative overflow-hidden group inline-flex items-center gap-2.5 rounded-full bg-accent hover:bg-accent/90 px-8 py-3.5 text-sm font-extrabold text-[#2D1A19] shadow-lg hover:shadow-[0_8px_30px_rgba(197,168,128,0.4)] transition-all duration-300 cursor-pointer animate-none"
                 >
                   <span className="absolute inset-0 bg-white/20 rounded-full scale-0 group-hover:scale-100 transition-transform duration-500 origin-center pointer-events-none" />
-                  <span>{t("landing.button.exploreMenu")}</span>
-                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1 transition-transform" />
+                  <span>{t("landing.button.orderNow")}</span>
                 </motion.div>
               </Link>
 
+              {/* Secondary: Explore Menu */}
               <Link href="/menu">
                 <motion.div
-                  whileHover={{ scale: 1.05 }}
+                  whileHover={{ scale: 1.03, y: -2 }}
                   whileTap={{ scale: 0.97 }}
-                  className="inline-flex items-center gap-2 rounded-full border border-white/25 hover:bg-white/10 px-6 py-3.5 text-sm font-extrabold text-white transition-all duration-300 cursor-pointer"
+                  className="group inline-flex items-center gap-2 rounded-full border border-white/25 hover:border-white/50 bg-transparent px-8 py-3.5 text-sm font-extrabold text-white transition-all duration-300 cursor-pointer"
                 >
-                  <span>{t("landing.button.orderNow")}</span>
+                  <span>{t("landing.button.exploreMenu")}</span>
+                  <ArrowRight className="h-4 w-4 group-hover:translate-x-1.5 transition-transform duration-300" />
                 </motion.div>
               </Link>
             </motion.div>
@@ -149,43 +232,73 @@ export function Hero() {
               {/* Decorative gold background border rotated */}
               <div className="absolute inset-0 border border-accent/40 rounded-[36px] -rotate-3 scale-[1.02] pointer-events-none" />
               
-              <div className="w-full h-full rounded-[36px] overflow-hidden border-4 border-accent/80 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] bg-neutral-900">
-                <img 
-                  src="/images/hero-coffee.png" 
-                  alt="Lowlands Signature Phin Sua Da" 
-                  className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" 
-                />
+              {/* Main Product Image with Crossfade */}
+              <div className="w-full h-full rounded-[36px] overflow-hidden border-4 border-accent/80 shadow-[0_25px_50px_-12px_rgba(0,0,0,0.5)] bg-neutral-900 relative">
+                <AnimatePresence mode="wait">
+                  <motion.img 
+                    key={currentSlide}
+                    src={SLIDES[currentSlide].image}
+                    alt={t(SLIDES[currentSlide].nameKey)}
+                    initial={{ opacity: 0, scale: 1.05 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.5 }}
+                    className="absolute inset-0 w-full h-full object-cover" 
+                  />
+                </AnimatePresence>
               </div>
 
-              {/* Floating Badge 1: 100% Coffee */}
+              {/* Slider Dots */}
+              <div className="absolute -bottom-10 left-1/2 -translate-x-1/2 flex gap-2 z-20">
+                {SLIDES.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentSlide(idx)}
+                    className={`h-2.5 rounded-full transition-all duration-300 ${
+                      currentSlide === idx ? "w-6 bg-accent" : "w-2.5 bg-white/40 hover:bg-white/60"
+                    }`}
+                    aria-label={`Go to slide ${idx + 1}`}
+                  />
+                ))}
+              </div>
+
+              {/* Floating Badge 1: 100% Coffee (Glassmorphic) */}
               <motion.div
                 animate={{ y: [0, -6, 0] }}
                 transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute -top-4 -left-6 z-20 bg-[#2D1A19]/95 border border-accent/40 backdrop-blur-md px-3.5 py-2 rounded-2xl flex items-center gap-2 shadow-lg"
+                className="absolute -top-4 -left-6 z-20 bg-white/10 border border-white/20 backdrop-blur-md px-3.5 py-2 rounded-2xl flex items-center gap-2 shadow-lg"
               >
-                <div className="h-6 w-6 rounded-full bg-accent/25 flex items-center justify-center text-accent">
-                  <Coffee className="h-3 w-3" fill="currentColor" />
+                <div className="h-6 w-6 rounded-full bg-accent/30 flex items-center justify-center text-accent">
+                  <Coffee className="h-3.5 w-3.5" fill="currentColor" />
                 </div>
                 <div className="text-left">
-                  <p className="text-[9px] text-zinc-400 font-bold uppercase tracking-wider leading-none">Cà Phê Việt</p>
-                  <p className="text-[11px] text-white font-black leading-none mt-1">100% Mộc Mạc</p>
+                  <p className="text-[9px] text-white/80 font-bold uppercase tracking-wider leading-none">Cà Phê Việt</p>
+                  <p className="text-[11px] text-accent font-black leading-none mt-1">100% Mộc Mạc</p>
                 </div>
               </motion.div>
 
-              {/* Floating Badge 2: Product info */}
+              {/* Floating Card 2: Dynamic Product Info */}
               <motion.div
-                animate={{ y: [0, 6, 0] }}
-                transition={{ duration: 4.5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                className="absolute -bottom-4 -right-6 z-20 bg-white/95 text-neutral-800 p-3.5 rounded-2xl flex flex-col gap-1 shadow-2xl min-w-[170px] border border-border/40"
+                key={currentSlide}
+                initial={{ opacity: 0, y: 15 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.4 }}
+                className="absolute -bottom-4 -right-6 z-20 bg-[#F5EFE6]/95 text-[#2D1A19] p-3.5 rounded-2xl flex flex-col gap-1 shadow-2xl min-w-[180px] border border-accent/25 backdrop-blur-sm"
               >
                 <div className="flex justify-between items-center gap-3">
-                  <span className="text-xs font-black text-primary uppercase tracking-wider">Phin Sữa Đá</span>
-                  <span className="inline-flex items-center rounded-full bg-accent/20 px-2 py-0.5 text-[8px] font-black text-[#AA7C11] tracking-wide">BEST SELLER</span>
+                  <span className="text-xs font-black uppercase tracking-wider">{t(SLIDES[currentSlide].nameKey)}</span>
+                  <span className="inline-flex items-center rounded-full bg-accent/20 px-2 py-0.5 text-[8px] font-black text-[#AA7C11] tracking-wide">
+                    {t(SLIDES[currentSlide].badgeKey)}
+                  </span>
                 </div>
-                <p className="text-[9px] text-zinc-500 font-medium text-left leading-tight">Đậm đà hương vị truyền thống Việt</p>
-                <div className="flex justify-between items-center mt-1 border-t border-zinc-100 pt-1.5">
-                  <span className="text-[9px] text-zinc-400 font-bold">Giá chỉ từ</span>
-                  <span className="text-xs font-black text-[#C8510A] font-outfit">29.000đ</span>
+                <p className="text-[9px] text-stone-600 font-medium text-left leading-tight">
+                  {t(SLIDES[currentSlide].descKey)}
+                </p>
+                <div className="flex justify-between items-center mt-1 border-t border-stone-200 pt-1.5">
+                  <span className="text-[9px] text-stone-500 font-bold">Giá chỉ từ</span>
+                  <span className="text-xs font-black text-[#C8510A] font-outfit">
+                    {t(SLIDES[currentSlide].priceKey)}
+                  </span>
                 </div>
               </motion.div>
             </motion.div>
