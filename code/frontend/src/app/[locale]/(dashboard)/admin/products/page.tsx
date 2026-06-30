@@ -164,13 +164,17 @@ export default function AdminProductsPage() {
       cancelText: t("common.cancel")
     });
     if (isConfirmed) {
-      deleteProduct(product.id);
-      toast.success("Xóa sản phẩm thành công!");
+      try {
+        await deleteProduct(product.id);
+        toast.success("Xóa sản phẩm thành công!");
+      } catch {
+        toast.error("Không thể xóa sản phẩm qua Backend API.");
+      }
     }
   };
 
   // Submit product
-  const handleSaveProduct = (e: React.FormEvent) => {
+  const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim() || !formCategoryId) {
       toast.error("Vui lòng điền đầy đủ thông tin!");
@@ -190,32 +194,34 @@ export default function AdminProductsPage() {
       variants.push({ id: tempProductId * 100 + 3, productId: tempProductId, size: "L", price: priceL, status: "active" });
     }
 
-    if (editingProduct) {
-      updateProduct({
-        id: editingProduct.id,
-        categoryId: parseInt(formCategoryId),
-        name: formName.trim(),
-        description: formDesc.trim(),
-        imageUrl: formImageUrl.trim() || "https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&q=80&w=600",
-        status: formStatus,
-        variants,
-        toppings: editingProduct.toppings
-      });
-      toast.success("Cập nhật sản phẩm thành công!");
-    } else {
-      addProduct({
-        categoryId: parseInt(formCategoryId),
-        name: formName.trim(),
-        description: formDesc.trim(),
-        imageUrl: formImageUrl.trim() || "https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&q=80&w=600",
-        status: formStatus,
-        variants,
-        toppings: [
-          { id: 1, name: "Thạch Cà Phê", price: 6000, status: "active" },
-          { id: 2, name: "Trân Châu Trắng", price: 8000, status: "active" }
-        ]
-      });
-      toast.success("Thêm sản phẩm mới thành công!");
+    try {
+      if (editingProduct) {
+        await updateProduct({
+          id: editingProduct.id,
+          categoryId: parseInt(formCategoryId),
+          name: formName.trim(),
+          description: formDesc.trim(),
+          imageUrl: formImageUrl.trim() || "https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&q=80&w=600",
+          status: formStatus,
+          variants,
+          toppings: editingProduct.toppings
+        });
+        toast.success("Cập nhật sản phẩm thành công!");
+      } else {
+        await addProduct({
+          categoryId: parseInt(formCategoryId),
+          name: formName.trim(),
+          description: formDesc.trim(),
+          imageUrl: formImageUrl.trim() || "https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&q=80&w=600",
+          status: formStatus,
+          variants,
+          toppings: []
+        });
+        toast.success("Thêm sản phẩm mới thành công!");
+      }
+    } catch {
+      toast.error("Không thể lưu sản phẩm qua Backend API.");
+      return;
     }
     setIsFormOpen(false);
   };

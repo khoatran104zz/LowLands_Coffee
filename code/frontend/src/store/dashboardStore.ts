@@ -257,11 +257,12 @@ export const useDashboardStore = create<DashboardState>()(
       // Products CRUD
       addProduct: async (product) => {
         try {
-          const created = await createAdminProduct(toProductRequest(product, false));
+          const created = await createAdminProduct(toProductRequest(product, true));
           set((state) => ({ products: [...state.products, created], productCatalogError: null }));
         } catch (error) {
           console.error("Failed to create product", error);
           set({ productCatalogError: "Không thể tạo sản phẩm qua Backend API." });
+          throw error;
         }
       },
       updateProduct: async (updated) => {
@@ -274,6 +275,7 @@ export const useDashboardStore = create<DashboardState>()(
         } catch (error) {
           console.error("Failed to update product", error);
           set({ productCatalogError: "Không thể cập nhật sản phẩm qua Backend API." });
+          throw error;
         }
       },
       deleteProduct: async (id) => {
@@ -286,6 +288,7 @@ export const useDashboardStore = create<DashboardState>()(
         } catch (error) {
           console.error("Failed to delete product", error);
           set({ productCatalogError: "Không thể xóa sản phẩm qua Backend API." });
+          throw error;
         }
       },
 
@@ -297,6 +300,7 @@ export const useDashboardStore = create<DashboardState>()(
         } catch (error) {
           console.error("Failed to create category", error);
           set({ productCatalogError: "Không thể tạo danh mục qua Backend API." });
+          throw error;
         }
       },
       updateCategory: async (updated) => {
@@ -309,6 +313,7 @@ export const useDashboardStore = create<DashboardState>()(
         } catch (error) {
           console.error("Failed to update category", error);
           set({ productCatalogError: "Không thể cập nhật danh mục qua Backend API." });
+          throw error;
         }
       },
       deleteCategory: async (id) => {
@@ -321,6 +326,7 @@ export const useDashboardStore = create<DashboardState>()(
         } catch (error) {
           console.error("Failed to delete category", error);
           set({ productCatalogError: "Không thể xóa danh mục qua Backend API." });
+          throw error;
         }
       },
 

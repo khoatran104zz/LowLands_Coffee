@@ -18,7 +18,7 @@ public class ProductVariantCreateRequest {
     private String size;
 
     @NotNull
-    @DecimalMin(value = "0.00")
+    @DecimalMin(value = "0.01")
     private BigDecimal price;
 
     @Pattern(regexp = "active|inactive")

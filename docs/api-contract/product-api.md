@@ -40,7 +40,7 @@ Provides customer-facing menu/catalog APIs and admin product catalog management 
 |  | `status` | `active` or `inactive`, optional; defaults to `active` |
 | `CategoryUpdateRequest` | `name`, `status` | required; status `active` or `inactive` |
 | `ToppingCreateRequest` | `name` | required, max 100 |
-|  | `price` | required, decimal >= 0 |
+|  | `price` | required, decimal > 0 |
 |  | `status` | `active` or `inactive`, optional |
 | `ProductCreateRequest` | `categoryId` | required |
 |  | `name` | required, max 100 |
@@ -98,10 +98,14 @@ Example product create:
 - Category name is unique case-insensitively.
 - Topping name is unique case-insensitively.
 - Product category must exist.
+- Active product cannot be assigned to inactive category.
 - Product must contain at least one variant.
 - Variant size must be unique per product.
+- Product update preserves existing variant ids when request variants include `id`; omitted existing variants are set `inactive`.
 - Topping ids must all exist.
+- Active product cannot be assigned inactive toppings.
 - Delete operations are soft deletes by setting `status = inactive`.
+- Product names are not globally unique. Duplicate-name prevention, if needed later, should only be scoped within a category.
 
 ## 7. Permission Matrix
 

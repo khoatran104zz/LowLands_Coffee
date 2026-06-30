@@ -27,8 +27,11 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -109,12 +112,15 @@ public class ProductServiceImpl implements ProductService {
         validateCreateVariants(request.getVariants());
         CategoryEntity category = getCategory(request.getCategoryId());
         List<ToppingEntity> toppings = getToppings(request.getToppingIds());
+        String status = defaultStatus(request.getStatus());
+        validateCategoryCanBeUsed(status, category);
+        validateToppingsCanBeUsed(status, toppings);
         ProductEntity product = new ProductEntity();
         product.setCategory(category);
         product.setName(request.getName().trim());
         product.setDescription(clean(request.getDescription()));
         product.setImageUrl(clean(request.getImageUrl()));
-        product.setStatus(defaultStatus(request.getStatus()));
+        product.setStatus(status);
         request.getVariants().forEach(variant -> addVariant(product, variant));
         toppings.forEach(topping -> addTopping(product, topping));
         return productMapper.toResponse(productRepository.save(product));
@@ -126,18 +132,16 @@ public class ProductServiceImpl implements ProductService {
         ProductEntity product = getProduct(id);
         CategoryEntity category = getCategory(request.getCategoryId());
         List<ToppingEntity> toppings = getToppings(request.getToppingIds());
+        validateCategoryCanBeUsed(request.getStatus(), category);
+        validateToppingsCanBeUsed(request.getStatus(), toppings);
         product.setCategory(category);
         product.setName(request.getName().trim());
         product.setDescription(clean(request.getDescription()));
         product.setImageUrl(clean(request.getImageUrl()));
         product.setStatus(request.getStatus());
 
-        product.getVariants().clear();
-        product.getProductToppings().clear();
-        productRepository.flush();
-
-        request.getVariants().forEach(variant -> addVariant(product, variant));
-        toppings.forEach(topping -> addTopping(product, topping));
+        syncVariants(product, request.getVariants());
+        syncToppings(product, toppings);
         return productMapper.toResponse(productRepository.save(product));
     }
 
@@ -181,10 +185,55 @@ public class ProductServiceImpl implements ProductService {
 
     private void validateUpdateVariants(List<ProductVariantUpdateRequest> variants) {
         Set<String> sizes = new HashSet<>();
+        Set<Long> ids = new HashSet<>();
         for (ProductVariantUpdateRequest variant : variants) {
             if (!sizes.add(variant.getSize())) {
                 throw new BadRequestException("Variant size must be unique per product");
             }
+            if (variant.getId() != null && !ids.add(variant.getId())) {
+                throw new BadRequestException("Variant id must be unique per product");
+            }
+        }
+    }
+
+    private void syncVariants(ProductEntity product, List<ProductVariantUpdateRequest> requests) {
+        List<ProductVariantEntity> existingVariants = List.copyOf(product.getVariants());
+        Map<Long, ProductVariantEntity> variantsById = existingVariants.stream()
+                .collect(Collectors.toMap(ProductVariantEntity::getId, Function.identity()));
+        Set<Long> requestedIds = new HashSet<>();
+
+        for (ProductVariantUpdateRequest request : requests) {
+            Long variantId = request.getId();
+            ensureSizeCanBeUsed(product, variantId, request.getSize());
+
+            if (variantId == null) {
+                addVariant(product, request);
+                continue;
+            }
+
+            ProductVariantEntity variant = variantsById.get(variantId);
+            if (variant == null) {
+                throw new BadRequestException("Variant does not belong to product");
+            }
+            requestedIds.add(variantId);
+            variant.setSize(request.getSize());
+            variant.setPrice(request.getPrice());
+            variant.setStatus(request.getStatus());
+        }
+
+        existingVariants.forEach(variant -> {
+            if (!requestedIds.contains(variant.getId())) {
+                variant.setStatus(INACTIVE);
+            }
+        });
+    }
+
+    private void ensureSizeCanBeUsed(ProductEntity product, Long currentVariantId, String size) {
+        boolean sizeUsedByAnotherVariant = product.getVariants().stream()
+                .anyMatch(variant -> variant.getSize().equals(size)
+                        && (currentVariantId == null || !variant.getId().equals(currentVariantId)));
+        if (sizeUsedByAnotherVariant) {
+            throw new BadRequestException("Variant size already exists; update the existing variant id instead");
         }
     }
 
@@ -211,6 +260,39 @@ public class ProductServiceImpl implements ProductService {
         productTopping.setProduct(product);
         productTopping.setTopping(topping);
         product.getProductToppings().add(productTopping);
+    }
+
+    private void syncToppings(ProductEntity product, List<ToppingEntity> toppings) {
+        Set<Long> requestedToppingIds = toppings.stream()
+                .map(ToppingEntity::getId)
+                .collect(Collectors.toSet());
+        Set<Long> existingToppingIds = product.getProductToppings().stream()
+                .map(productTopping -> productTopping.getTopping().getId())
+                .collect(Collectors.toSet());
+
+        toppings.stream()
+                .filter(topping -> !existingToppingIds.contains(topping.getId()))
+                .forEach(topping -> addTopping(product, topping));
+
+        product.getProductToppings().removeIf(productTopping ->
+                !requestedToppingIds.contains(productTopping.getTopping().getId()));
+    }
+
+    private void validateCategoryCanBeUsed(String productStatus, CategoryEntity category) {
+        if (ACTIVE.equals(productStatus) && !ACTIVE.equals(category.getStatus())) {
+            throw new BadRequestException("Active product cannot be assigned to inactive category");
+        }
+    }
+
+    private void validateToppingsCanBeUsed(String productStatus, List<ToppingEntity> toppings) {
+        if (!ACTIVE.equals(productStatus)) {
+            return;
+        }
+        boolean hasInactiveTopping = toppings.stream()
+                .anyMatch(topping -> !ACTIVE.equals(topping.getStatus()));
+        if (hasInactiveTopping) {
+            throw new BadRequestException("Active product cannot be assigned inactive topping");
+        }
     }
 
     private boolean isPublicProduct(ProductEntity product) {
