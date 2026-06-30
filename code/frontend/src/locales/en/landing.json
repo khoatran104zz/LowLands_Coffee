@@ -24,7 +24,9 @@
     "freezeDesc": "Refreshing Vietnamese-style ice-blended beverages. Freeze is a cool icy blend prepared from pure local ingredients.",
     "otherDesc": "Even more delicious when you pair your drink with our fresh pastries, handcrafted daily in the Lowlands kitchen.",
     "exploreMore": "EXPLORE MORE",
-    "backToShowcase": "View featured categories"
+    "backToShowcase": "View featured categories",
+    "orderNowCaps": "ORDER NOW",
+    "viewDetails": "VIEW DETAILS"
   },
   "button": {
     "exploreMenu": "Explore Menu",

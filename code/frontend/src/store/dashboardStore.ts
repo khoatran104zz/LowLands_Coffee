@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { Store, Product, Category, Promotion } from "@/types";
+import { Store, Product, Category, Promotion, Topping } from "@/types";
 import { INITIAL_BRANCHES } from "@/mock/branches";
 import { INITIAL_EMPLOYEES, Employee } from "@/mock/employees";
 import { INITIAL_CUSTOMERS, CustomerExtended } from "@/mock/customers";
@@ -17,6 +17,10 @@ import {
   getProducts,
   updateAdminCategory,
   updateAdminProduct,
+  getAdminToppings,
+  createAdminTopping,
+  updateAdminTopping,
+  deleteAdminTopping,
 } from "@/services/product.service";
 import {
   getUsers,
@@ -40,6 +44,7 @@ export interface DashboardState {
   branches: Store[];
   products: Product[];
   categories: Category[];
+  toppings: Topping[];
   productCatalogError: string | null;
   employees: Employee[];
   customers: CustomerExtended[];
@@ -65,6 +70,11 @@ export interface DashboardState {
   addCategory: (category: Omit<Category, "id">) => Promise<void>;
   updateCategory: (category: Category) => Promise<void>;
   deleteCategory: (id: number) => Promise<void>;
+
+  // Toppings
+  addTopping: (topping: Omit<Topping, "id">) => Promise<void>;
+  updateTopping: (topping: Topping) => Promise<void>;
+  deleteTopping: (id: number) => Promise<void>;
   
   // Employees
   addEmployee: (employee: Omit<Employee, "id"> & { password?: string }) => Promise<void>;
@@ -165,6 +175,7 @@ export const useDashboardStore = create<DashboardState>()(
       branches: INITIAL_BRANCHES,
       products: [],
       categories: [],
+      toppings: [],
       productCatalogError: null,
       employees: INITIAL_EMPLOYEES,
       customers: INITIAL_CUSTOMERS,
@@ -179,15 +190,16 @@ export const useDashboardStore = create<DashboardState>()(
           }
         }
         try {
-          const [products, categories] = source === "admin"
-            ? await Promise.all([getAdminProducts(), getAdminCategories()])
-            : await Promise.all([getProducts(), getCategories()]);
-          set({ products, categories, productCatalogError: null });
+          const [products, categories, toppings] = source === "admin"
+            ? await Promise.all([getAdminProducts(), getAdminCategories(), getAdminToppings()])
+            : await Promise.all([getProducts(), getCategories(), getAdminToppings().catch(() => [] as Topping[])]);
+          set({ products, categories, toppings, productCatalogError: null });
         } catch (error) {
           console.error("Failed to hydrate product catalog", error);
           set({
             products: [],
             categories: [],
+            toppings: [],
             productCatalogError: "Không thể tải danh mục sản phẩm từ Backend API.",
           });
         }
@@ -330,6 +342,44 @@ export const useDashboardStore = create<DashboardState>()(
         } catch (error) {
           console.error("Failed to delete category", error);
           set({ productCatalogError: "Không thể xóa danh mục qua Backend API." });
+          throw error;
+        }
+      },
+
+      // Toppings CRUD
+      addTopping: async (topping) => {
+        try {
+          const created = await createAdminTopping(topping);
+          set((state) => ({ toppings: [...state.toppings, created], productCatalogError: null }));
+        } catch (error) {
+          console.error("Failed to create topping", error);
+          set({ productCatalogError: "Không thể tạo topping qua Backend API." });
+          throw error;
+        }
+      },
+      updateTopping: async (updated) => {
+        try {
+          const saved = await updateAdminTopping(updated.id, updated);
+          set((state) => ({
+            toppings: state.toppings.map((t) => (t.id === saved.id ? saved : t)),
+            productCatalogError: null,
+          }));
+        } catch (error) {
+          console.error("Failed to update topping", error);
+          set({ productCatalogError: "Không thể cập nhật topping qua Backend API." });
+          throw error;
+        }
+      },
+      deleteTopping: async (id) => {
+        try {
+          await deleteAdminTopping(id);
+          set((state) => ({
+            toppings: state.toppings.filter((t) => t.id !== id),
+            productCatalogError: null,
+          }));
+        } catch (error) {
+          console.error("Failed to delete topping", error);
+          set({ productCatalogError: "Không thể xóa topping qua Backend API." });
           throw error;
         }
       },

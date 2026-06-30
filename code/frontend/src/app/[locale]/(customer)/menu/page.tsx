@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useSearchParams } from "next/navigation";
 import { usePathname, useRouter } from "@/i18n/navigation";
@@ -148,66 +148,93 @@ function MenuPageInner() {
 
   const showList = !loading && error === null;
 
-  // Showcase Sections Configuration
+  // Showcase Sections Configuration with premium colors and radial flows
   const showcaseSections = [
     {
       title: "CÀ PHÊ",
       descKey: "landing.menuShowcase.coffeeDesc",
       image: "/images/menu-coffee.png",
-      bgClass: "bg-[#0E0E0E]",
-      textClass: "text-white",
-      btnClass: "border-white/30 text-white hover:bg-white hover:text-black hover:border-white",
+      bgClass: "bg-[#140F0B] bg-[radial-gradient(circle_at_70%_50%,rgba(197,168,128,0.06),transparent_60%)]",
+      textClass: "text-zinc-100",
+      btnClass: "border-accent/40 text-accent hover:bg-accent hover:text-[#140F0B] hover:border-accent hover:shadow-[0_0_15px_rgba(197,168,128,0.3)]",
       catName: "coffee",
       imgSide: "right" as const,
       zIndexClass: "z-[10]",
+      glowColor: "rgba(197,168,128,0.18)",
     },
     {
       title: "TRÀ",
       descKey: "landing.menuShowcase.teaDesc",
       image: "/images/menu-tea.png",
-      bgClass: "bg-[#A3C2B0]",
-      textClass: "text-[#2D1A19]",
-      btnClass: "border-[#2D1A19]/30 text-[#2D1A19] hover:bg-[#2D1A19] hover:text-[#A3C2B0] hover:border-[#2D1A19]",
+      bgClass: "bg-[#9FBCA8] bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.15),transparent_60%)]",
+      textClass: "text-[#251811]",
+      btnClass: "border-[#251811]/40 text-[#251811] hover:bg-[#251811] hover:text-[#9FBCA8] hover:border-[#251811] hover:shadow-[0_0_15px_rgba(37,24,17,0.15)]",
       catName: "tea",
       imgSide: "left" as const,
       zIndexClass: "z-[15]",
+      glowColor: "rgba(255,255,255,0.4)",
     },
     {
       title: "FREEZE",
       descKey: "landing.menuShowcase.freezeDesc",
       image: "/images/menu-freeze.png",
-      bgClass: "bg-[#C6DFE2]",
-      textClass: "text-[#2D1A19]",
-      btnClass: "border-[#2D1A19]/30 text-[#2D1A19] hover:bg-[#2D1A19] hover:text-[#C6DFE2] hover:border-[#2D1A19]",
+      bgClass: "bg-[#B5D6DA] bg-[radial-gradient(circle_at_70%_50%,rgba(255,255,255,0.15),transparent_60%)]",
+      textClass: "text-[#251811]",
+      btnClass: "border-[#251811]/40 text-[#251811] hover:bg-[#251811] hover:text-[#B5D6DA] hover:border-[#251811] hover:shadow-[0_0_15px_rgba(37,24,17,0.15)]",
       catName: "freeze",
       imgSide: "right" as const,
       zIndexClass: "z-[20]",
+      glowColor: "rgba(255,255,255,0.4)",
     },
     {
       title: "KHÁC",
       descKey: "landing.menuShowcase.otherDesc",
       image: "/images/menu-other-cake.png",
-      bgClass: "bg-[#EFE7D3]",
-      textClass: "text-[#2D1A19]",
-      btnClass: "border-[#2D1A19]/30 text-[#2D1A19] hover:bg-[#2D1A19] hover:text-[#EFE7D3] hover:border-[#2D1A19]",
+      bgClass: "bg-[#EBE1CD] bg-[radial-gradient(circle_at_30%_50%,rgba(197,168,128,0.12),transparent_60%)]",
+      textClass: "text-[#251811]",
+      btnClass: "border-[#251811]/40 text-[#251811] hover:bg-[#251811] hover:text-[#EBE1CD] hover:border-[#251811] hover:shadow-[0_0_15px_rgba(37,24,17,0.15)]",
       catName: "other",
       imgSide: "left" as const,
       zIndexClass: "z-[25]",
+      glowColor: "rgba(197,168,128,0.22)",
     },
   ];
 
+  // Grid cascade animation variants
+  const gridContainerVariants = {
+    hidden: { opacity: 0 },
+    show: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.04,
+      },
+    },
+  };
+
+  const cardItemVariants = {
+    hidden: { opacity: 0, y: 15 },
+    show: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: 0.5,
+        ease: [0.16, 1, 0.3, 1] as const,
+      }
+    },
+  };
+
   return (
     <div className="bg-background min-h-screen overflow-visible">
-      {/* SHOWCASE MODE (Highlands style featured slides) */}
+      {/* SHOWCASE MODE (Highlands style featured categories overview) */}
       {isShowcaseMode && (
         <div className="flex flex-col overflow-visible select-none">
           {/* Top Intro Section */}
-          <div className="py-12 bg-background border-b border-border/40 text-center relative z-30">
+          <div className="py-14 bg-background border-b border-border/40 text-center relative z-30">
             <div className="container mx-auto px-4 max-w-5xl">
               <motion.h1 
-                initial={{ opacity: 0, y: -20 }}
+                initial={{ opacity: 0, y: -15 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
+                transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] as const }}
                 className="font-heading font-extrabold text-3xl sm:text-4xl lg:text-5xl text-primary tracking-tight"
               >
                 {t("product.menu.title")}
@@ -215,14 +242,14 @@ function MenuPageInner() {
               <motion.div 
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: 1 }}
-                transition={{ duration: 0.6, delay: 0.2 }}
+                transition={{ duration: 0.7, delay: 0.15, ease: "easeOut" }}
                 className="w-16 h-1 bg-accent rounded-full mx-auto mt-4" 
               />
               <motion.p
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ duration: 0.5, delay: 0.3 }}
-                className="mt-4 text-sm sm:text-base text-muted-foreground max-w-xl mx-auto"
+                transition={{ duration: 0.6, delay: 0.25 }}
+                className="mt-4 text-sm sm:text-base text-muted-foreground max-w-xl mx-auto leading-relaxed font-medium text-balance"
               >
                 Khám phá thế giới hương vị của Lowlands với những dòng sản phẩm đặc trưng, trọn vẹn và đậm nét văn hóa Việt.
               </motion.p>
@@ -230,12 +257,12 @@ function MenuPageInner() {
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: 0.4 }}
+                transition={{ duration: 0.6, delay: 0.35 }}
                 className="mt-6 flex justify-center gap-4"
               >
                 <Button 
                   onClick={viewAllDetailed} 
-                  className="rounded-full bg-accent text-accent-foreground font-extrabold hover:bg-accent/90 shadow-md text-xs px-6 py-2"
+                  className="rounded-full bg-accent text-accent-foreground font-extrabold hover:bg-accent/90 hover:shadow-[0_8px_25px_rgba(197,168,128,0.4)] shadow-md text-xs px-7 py-2.5 transition-all duration-300"
                 >
                   Xem thực đơn đầy đủ
                   <ArrowRight className="ml-1.5 h-3.5 w-3.5" />
@@ -244,74 +271,34 @@ function MenuPageInner() {
             </div>
           </div>
 
-          {/* Featured Sections list with overlapping visual elements */}
+          {/* Featured Sections list with clean photo cards */}
           <div className="flex flex-col overflow-visible">
             {showcaseSections.map((section, idx) => {
               const catId = getCategoryIdByName(section.catName);
               
               return (
-                <section
+                <ShowcaseSection
                   key={idx}
-                  className={`relative overflow-visible py-20 md:py-28 ${section.bgClass} ${section.zIndexClass}`}
-                >
-                  <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative overflow-visible">
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-8 items-center min-h-[280px] md:min-h-[360px]">
-                      
-                      {/* Text Box */}
-                      <motion.div
-                        initial={{ opacity: 0, x: section.imgSide === "right" ? -40 : 40 }}
-                        whileInView={{ opacity: 1, x: 0 }}
-                        viewport={{ once: true, margin: "-100px" }}
-                        transition={{ duration: 0.6 }}
-                        className={`md:col-span-6 flex flex-col items-start gap-4 z-30 ${
-                          section.imgSide === "left" ? "md:col-start-7" : ""
-                        }`}
-                      >
-                        <span className="text-[10px] sm:text-xs font-black tracking-widest text-accent uppercase">DÒNG SẢN PHẨM</span>
-                        <h2 className={`font-heading font-black text-4xl sm:text-5xl tracking-tight leading-none ${section.textClass}`}>
-                          {section.title}
-                        </h2>
-                        <div className="w-10 h-0.5 bg-accent" />
-                        <p className={`text-sm sm:text-base leading-relaxed font-medium text-balance ${
-                          section.bgClass === "bg-[#0E0E0E]" ? "text-zinc-300" : "text-[#2D1A19]/90"
-                        }`}>
-                          {t(section.descKey)}
-                        </p>
-                        
-                        <Button
-                          variant="outline"
-                          onClick={() => handleCategorySelect(catId)}
-                          className={`rounded-full px-6 py-2.5 text-xs font-black tracking-wider bg-transparent border ${section.btnClass} transition-all duration-300 mt-2`}
-                        >
-                          {t("landing.menuShowcase.exploreMore")}
-                        </Button>
-                      </motion.div>
-
-                      {/* Overlapping Glass Image */}
-                      <div className={`absolute top-1/2 -translate-y-1/2 w-full md:w-1/2 h-[420px] md:h-[520px] z-20 pointer-events-none flex justify-center items-center ${
-                        section.imgSide === "right" ? "right-0 md:right-[5%]" : "left-0 md:left-[5%]"
-                      }`}>
-                        <motion.img
-                          initial={{ opacity: 0, scale: 0.9, y: 30 }}
-                          whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                          viewport={{ once: true, margin: "-100px" }}
-                          transition={{ type: "spring", damping: 20, stiffness: 60 }}
-                          src={section.image}
-                          alt={section.title}
-                          className="w-[260px] sm:w-[320px] md:w-[380px] lg:w-[420px] h-[340px] sm:h-[400px] md:h-[460px] lg:h-[500px] object-contain hover:scale-105 transition-transform duration-500 pointer-events-none drop-shadow-[0_25px_35px_rgba(0,0,0,0.4)]"
-                        />
-                      </div>
-
-                    </div>
-                  </div>
-                </section>
+                  title={section.title}
+                  desc={t(section.descKey)}
+                  image={section.image}
+                  bgClass={section.bgClass}
+                  textClass={section.textClass}
+                  btnClass={section.btnClass}
+                  catId={catId}
+                  imgSide={section.imgSide}
+                  zIndexClass={section.zIndexClass}
+                  glowColor={section.glowColor}
+                  onExplore={handleCategorySelect}
+                  exploreText={t("landing.menuShowcase.exploreMore")}
+                />
               );
             })}
           </div>
         </div>
       )}
 
-      {/* DETAILED LIST MODE (Traditional product grid with filters) */}
+      {/* DETAILED LIST MODE (Traditional product card grid) */}
       {!isShowcaseMode && (
         <div className="py-12 bg-background min-h-screen relative z-10">
           <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -322,7 +309,7 @@ function MenuPageInner() {
                 <Button
                   variant="ghost"
                   onClick={clearAllFilters}
-                  className="pl-0 text-xs font-bold text-accent hover:text-accent/80 hover:bg-transparent -ml-2"
+                  className="pl-0 text-xs font-bold text-accent hover:text-accent/80 hover:bg-transparent -ml-2 transition-colors"
                 >
                   <ArrowLeft className="mr-1 h-3.5 w-3.5" />
                   {t("landing.menuShowcase.backToShowcase")}
@@ -412,17 +399,125 @@ function MenuPageInner() {
               </div>
             )}
 
-            {/* Product Card Grid */}
+            {/* Product Card Grid with Stagger Cascade */}
             {showList && filteredProducts.length > 0 && (
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+              <motion.div 
+                variants={gridContainerVariants}
+                initial="hidden"
+                animate="show"
+                className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+              >
                 {filteredProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                  <motion.div key={product.id} variants={cardItemVariants}>
+                    <ProductCard product={product} />
+                  </motion.div>
                 ))}
-              </div>
+              </motion.div>
             )}
           </div>
         </div>
       )}
     </div>
+  );
+}
+
+// Sub-component for individual showcase categories with clean photo card layout
+interface ShowcaseSectionProps {
+  title: string;
+  desc: string;
+  image: string;
+  bgClass: string;
+  textClass: string;
+  btnClass: string;
+  catId: number | null;
+  imgSide: "left" | "right";
+  zIndexClass: string;
+  glowColor: string;
+  onExplore: (catId: number | null) => void;
+  exploreText: string;
+}
+
+function ShowcaseSection({
+  title,
+  desc,
+  image,
+  bgClass,
+  textClass,
+  btnClass,
+  catId,
+  imgSide,
+  zIndexClass,
+  glowColor,
+  onExplore,
+  exploreText,
+}: ShowcaseSectionProps) {
+  return (
+    <section
+      className={`relative overflow-hidden py-20 md:py-28 ${bgClass} ${zIndexClass} transition-colors duration-500`}
+    >
+      {/* Background glow halo centered behind where the image will hover */}
+      <div 
+        style={{ backgroundColor: glowColor }}
+        className={`absolute top-1/2 -translate-y-1/2 w-72 h-72 md:w-96 md:h-96 rounded-full blur-[110px] pointer-events-none opacity-40 z-10 ${
+          imgSide === "right" ? "right-12 md:right-[15%]" : "left-12 md:left-[15%]"
+        }`} 
+      />
+
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-20">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
+          
+          {/* Image Column (Written first so it sits on top on mobile stack) */}
+          <div className={`md:col-span-6 flex justify-center items-center ${
+            imgSide === "left" ? "md:order-1" : "md:order-2"
+          }`}>
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 30 }}
+              whileInView={{ opacity: 1, scale: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px" }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] as const }}
+              className="w-full max-w-[400px] aspect-square rounded-[32px] overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.22)] border border-white/10 bg-black/5"
+            >
+              <motion.img
+                src={image}
+                alt={title}
+                className="w-full h-full object-cover transition-transform duration-500 hover:scale-105 cursor-pointer"
+                onClick={() => onExplore(catId)}
+              />
+            </motion.div>
+          </div>
+
+          {/* Text Column */}
+          <motion.div
+            initial={{ opacity: 0, y: 25 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-100px" }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] as const, delay: 0.1 }}
+            className={`md:col-span-6 flex flex-col items-start gap-4 ${
+              imgSide === "left" ? "md:order-2" : "md:order-1"
+            }`}
+          >
+            <span className="text-[10px] sm:text-xs font-black tracking-widest text-accent uppercase">DÒNG SẢN PHẨM</span>
+            <h2 className={`font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tight leading-none uppercase ${textClass}`}>
+              {title}
+            </h2>
+            <div className="w-10 h-0.5 bg-accent" />
+            <p className={`text-sm sm:text-base leading-relaxed font-medium text-balance ${
+              bgClass.includes("#14") ? "text-zinc-300" : "text-[#251811]/90"
+            }`}>
+              {desc}
+            </p>
+            
+            <Button
+              variant="outline"
+              onClick={() => onExplore(catId)}
+              className={`rounded-full px-7 py-3 text-xs font-black tracking-wider bg-transparent border ${btnClass} transition-all duration-300 mt-2 cursor-pointer`}
+            >
+              {exploreText}
+            </Button>
+          </motion.div>
+
+        </div>
+      </div>
+    </section>
   );
 }
