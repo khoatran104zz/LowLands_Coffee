@@ -8,6 +8,17 @@
   "revenueBranchChart": "Doanh thu theo chi nhánh",
   "bestSellersChart": "Sản phẩm bán chạy nhất",
   "customerGrowthChart": "Tăng trưởng khách hàng",
+  "branchesPage": {
+    "title": "Chi nhánh",
+    "subtitle": "Quản lý danh sách chi nhánh hoạt động trong chuỗi Lowlands Coffee.",
+    "searchPlaceholder": "Tìm tên hoặc địa chỉ chi nhánh...",
+    "statusFilter": "Trạng thái",
+    "colId": "ID",
+    "colName": "Tên chi nhánh",
+    "colAddress": "Địa chỉ",
+    "colPhone": "Điện thoại",
+    "colStatus": "Trạng thái"
+  },
   "createBranch": "Tạo chi nhánh mới",
   "editBranch": "Cập nhật chi nhánh",
   "deleteBranchConfirm": "Bạn có chắc chắn muốn xóa chi nhánh này? Thao tác này không thể hoàn tác.",
