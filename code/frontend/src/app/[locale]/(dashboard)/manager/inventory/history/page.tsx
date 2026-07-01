@@ -10,8 +10,13 @@ import { Filter } from "@/components/admin/Filter";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { useTranslation } from "@/hooks/useTranslation";
 
+import { useParams } from "next/navigation";
+
 export default function ManagerInventoryHistoryPage() {
   const { t } = useTranslation();
+  const params = useParams();
+  const locale = (params?.locale as string) || "vi";
+
   const [movements, setMovements] = useState<StockMovement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
@@ -56,28 +61,28 @@ export default function ManagerInventoryHistoryPage() {
 
   const columns: Column<StockMovement>[] = [
     { key: "id", header: "ID" },
-    { key: "ingredientCode", header: "Mã NL" },
-    { key: "ingredientName", header: "Tên nguyên liệu", render: (item) => item.ingredientName || `ID: ${item.ingredientId}` },
+    { key: "ingredientCode", header: t("manager.inventory.history.colIngCode") || "Mã NL" },
+    { key: "ingredientName", header: t("manager.inventory.history.colIngName") || "Tên nguyên liệu", render: (item) => item.ingredientName || `ID: ${item.ingredientId}` },
     {
       key: "movementType",
-      header: "Phân loại giao dịch",
+      header: t("manager.inventory.history.colType") || "Phân loại giao dịch",
       render: (item) => {
         const type = item.movementType?.toLowerCase();
         let badgeStatus = "active";
-        let label = "Nhập kho";
+        let label = t("manager.inventory.history.typeImport") || "Nhập kho";
         if (type === "export" || type === "deduct") {
           badgeStatus = "inactive";
-          label = "Xuất kho / Bán hàng";
+          label = t("manager.inventory.history.typeExport") || "Xuất kho / Bán hàng";
         } else if (type === "adjustment" || type === "adjust") {
           badgeStatus = "warning";
-          label = "Cân bằng kho";
+          label = t("manager.inventory.history.typeAdjust") || "Cân bằng kho";
         }
         return <StatusBadge status={badgeStatus} customLabel={label} />;
       }
     },
     {
       key: "quantity",
-      header: "Lượng thay đổi",
+      header: t("manager.inventory.history.colQtyChange") || "Lượng thay đổi",
       render: (item) => {
         const qty = item.quantity;
         const isDeduct = item.movementType?.toLowerCase() === "export" || item.movementType?.toLowerCase() === "deduct";
@@ -88,16 +93,16 @@ export default function ManagerInventoryHistoryPage() {
     },
     {
       key: "referenceType",
-      header: "Nguồn tham chiếu",
-      render: (item) => item.referenceType ? `${item.referenceType} (ID: ${item.referenceId})` : "Nhập thủ công"
+      header: t("manager.inventory.history.colRefSource") || "Nguồn tham chiếu",
+      render: (item) => item.referenceType ? `${item.referenceType} (ID: ${item.referenceId})` : (t("manager.inventory.history.refManual") || "Nhập thủ công")
     },
-    { key: "createdByName", header: "Người thực hiện" },
+    { key: "createdByName", header: t("manager.inventory.history.colCreator") || "Người thực hiện" },
     {
       key: "createdAt",
-      header: "Thời gian",
-      render: (item) => item.createdAt ? new Date(item.createdAt).toLocaleString("vi-VN") : "N/A"
+      header: t("manager.inventory.history.colTime") || "Thời gian",
+      render: (item) => item.createdAt ? new Date(item.createdAt).toLocaleString(locale === "vi" ? "vi-VN" : "en-US") : "N/A"
     },
-    { key: "note", header: "Lý do / Ghi chú" }
+    { key: "note", header: t("manager.inventory.history.colNote") || "Lý do / Ghi chú" }
   ];
 
   return (
@@ -106,10 +111,10 @@ export default function ManagerInventoryHistoryPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-left select-none">
         <div>
           <h1 className="text-xl font-extrabold text-amber-900 font-outfit uppercase tracking-wide">
-            Lịch sử Biến động Kho - {branchName}
+            {t("manager.inventory.history.title")} - {branchName}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold mt-1">
-            Nhật ký chi tiết tất cả các giao dịch nhập kho, xuất kho bán hàng, và phiếu điều chỉnh tồn kho.
+            {t("manager.inventory.history.subtitle")}
           </p>
         </div>
       </div>
@@ -119,25 +124,25 @@ export default function ManagerInventoryHistoryPage() {
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Tìm theo tên nguyên liệu, ghi chú, người lập..."
+          placeholder={t("manager.inventory.history.searchPlaceholder") || "Tìm theo tên nguyên liệu, ghi chú, người lập..."}
         />
         <Filter
-          label="Phân loại giao dịch"
+          label={t("manager.inventory.history.filterLabel") || "Phân loại giao dịch"}
           value={typeFilter}
           onChange={setTypeFilter}
           options={[
-            { value: "import", label: "Nhập kho (Goods Receipt)" },
-            { value: "export", label: "Xuất kho (Sales)" },
-            { value: "adjustment", label: "Điều chỉnh kho" }
+            { value: "import", label: t("manager.inventory.history.filterImport") || "Nhập kho (Goods Receipt)" },
+            { value: "export", label: t("manager.inventory.history.filterExport") || "Xuất kho (Sales)" },
+            { value: "adjustment", label: t("manager.inventory.history.filterAdjust") || "Điều chỉnh kho" }
           ]}
-          placeholder="Tất cả biến động"
+          placeholder={t("manager.inventory.history.filterAll") || "Tất cả biến động"}
         />
       </div>
 
       {/* Data Table */}
       {isLoading ? (
         <div className="text-center py-20 text-xs text-muted-foreground font-semibold">
-          Đang tải dữ liệu lịch sử kho từ máy chủ...
+          {t("manager.inventory.history.loadingHistory") || "Đang tải dữ liệu lịch sử kho từ máy chủ..."}
         </div>
       ) : (
         <DataTable

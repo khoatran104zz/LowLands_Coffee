@@ -14,8 +14,7 @@ import {
   FileDown,
   History,
   Clock,
-  Coins,
-  Smartphone
+  Coins
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -124,7 +123,7 @@ export function Sidebar({ locale, isCollapsed, onToggleCollapse, onCloseMobile }
       {/* Rùa Store Name info header */}
       {!isCollapsed && (
         <div className="px-5 py-3 border-b border-[#3d2e27]/50 bg-[#1f1612]/35 flex flex-col text-left shrink-0">
-          <span className="text-[10px] uppercase font-bold text-[#948175]">{t("common.branchManagement")}</span>
+          <span className="text-[10px] uppercase font-bold text-[#948175]">{t("manager.sidebar.branchManagement")}</span>
           <span className="text-xs font-bold text-[#c8510a] truncate mt-0.5" title={branchName}>
             {branchName}
           </span>
@@ -178,19 +177,6 @@ export function Sidebar({ locale, isCollapsed, onToggleCollapse, onCloseMobile }
           </div>
         ))}
       </div>
-
-      {/* Quick shortcuts to POS */}
-      {!isCollapsed && (
-        <div className="p-4 border-t border-[#3d2e27] bg-[#1f1612] space-y-2 shrink-0">
-          <Link
-            href={`/${locale}/staff/pos`}
-            className="flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-[10px] font-bold text-white bg-[#c8510a] hover:bg-[#b04507] transition-all w-full shadow-sm hover:scale-[1.02]"
-          >
-            <Smartphone className="h-3.5 w-3.5" />
-            <span className="uppercase tracking-wider">{t("common.goToPOS")}</span>
-          </Link>
-        </div>
-      )}
 
       {/* Floating Toggle Button on Right Border (Desktop only) */}
       <button

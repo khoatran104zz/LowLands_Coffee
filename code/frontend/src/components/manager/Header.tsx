@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { Menu, Bell, User as UserIcon, LogOut, Key, Sparkles, ChevronDown } from "lucide-react";
+import { Menu, Bell, User as UserIcon, LogOut, Key, ChevronDown } from "lucide-react";
 import { useAuthStore } from "@/store/auth.store";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useConfirm } from "@/hooks/useConfirm";
@@ -48,8 +48,8 @@ export function Header({ locale, onOpenMobileSidebar }: HeaderProps) {
 
   // Mock manager operational notifications for this branch
   const notifications = [
-    { id: 1, title: "Tồn kho sắp hết", desc: "Hạt cà phê Robusta Hồ Con Rùa sắp hết hạn mức an toàn", type: "alert", time: "10 phút trước" },
-    { id: 2, title: "Đơn hàng mới", desc: "Đơn hàng quầy POS-1 vừa hoàn tất thanh toán thành công", type: "order", time: "15 phút trước" }
+    { id: 1, title: t("manager.header.notifLowStock"), desc: t("manager.header.notifLowStockDesc"), type: "alert", time: "10m" },
+    { id: 2, title: t("manager.header.notifNewOrder"), desc: t("manager.header.notifNewOrderDesc"), type: "order", time: "15m" }
   ];
 
   const getHeaderTitle = () => {
@@ -68,13 +68,13 @@ export function Header({ locale, onOpenMobileSidebar }: HeaderProps) {
   const getRoleLabel = (roleName: string) => {
     switch (roleName?.toUpperCase()) {
       case "ADMIN":
-        return "Admin Hệ Thống";
+        return t("manager.header.roleAdmin");
       case "MANAGER":
-        return "Cửa hàng trưởng";
+        return t("manager.header.roleManager");
       case "STAFF":
-        return "Nhân viên quầy";
+        return t("manager.header.roleStaff");
       default:
-        return "Cửa hàng trưởng";
+        return t("manager.header.roleManager");
     }
   };
 
@@ -96,17 +96,6 @@ export function Header({ locale, onOpenMobileSidebar }: HeaderProps) {
     setIsAccountOpen(true);
   };
 
-  const handleRoleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedRole = e.target.value;
-    if (selectedRole === "admin" && user.roleName?.toLowerCase() === "admin") {
-      router.push(`/${locale}/admin/dashboard`);
-    } else if (selectedRole === "manager") {
-      router.push(`/${locale}/manager/dashboard`);
-    } else if (selectedRole === "pos") {
-      router.push(`/${locale}/staff/pos`);
-    }
-  };
-
   return (
     <>
       <header className="h-16 border-b border-zinc-200 bg-white dark:bg-zinc-900 px-6 flex items-center justify-between shadow-2xs shrink-0 select-none">
@@ -125,25 +114,6 @@ export function Header({ locale, onOpenMobileSidebar }: HeaderProps) {
 
         {/* Right side controls */}
         <div className="flex items-center space-x-4">
-          {/* Quick Role Switcher */}
-          <div className="flex items-center space-x-2 bg-[#FAF7F2] border border-amber-850/20 rounded-lg px-2.5 py-1.5 transition-colors">
-            <Sparkles className="h-3.5 w-3.5 text-amber-850 animate-pulse" />
-            <span className="text-[9px] font-bold text-amber-900/60 uppercase whitespace-nowrap">
-              {t("common.testMode")}
-            </span>
-            <select
-              value={pathname.includes("/admin") ? "admin" : pathname.includes("/staff") ? "pos" : "manager"}
-              onChange={handleRoleChange}
-              className="bg-transparent text-[11px] font-extrabold text-amber-850 focus:outline-none cursor-pointer pr-1"
-            >
-              {user.roleName?.toLowerCase() === "admin" && (
-                <option value="admin">{t("common.adminSystem")}</option>
-              )}
-              <option value="manager">{t("common.branchManagement")}</option>
-              <option value="pos">{t("common.pos")}</option>
-            </select>
-          </div>
-
           {/* Language Switcher */}
           <LanguageSwitcher />
 
@@ -160,8 +130,8 @@ export function Header({ locale, onOpenMobileSidebar }: HeaderProps) {
             {isNotifOpen && (
               <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 rounded-xl shadow-lg py-2 z-50 animate-slide-in-down">
                 <div className="px-4 py-1.5 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
-                  <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200">Thông báo vận hành</span>
-                  <span className="text-[10px] text-amber-850 font-bold cursor-pointer hover:underline">Mới nhất</span>
+                  <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200">{t("manager.header.opNotification")}</span>
+                  <span className="text-[10px] text-amber-850 font-bold cursor-pointer hover:underline">{t("manager.header.latest")}</span>
                 </div>
                 <div className="divide-y divide-zinc-100 dark:divide-zinc-850 max-h-60 overflow-y-auto">
                   {notifications.map((n) => (
@@ -202,14 +172,14 @@ export function Header({ locale, onOpenMobileSidebar }: HeaderProps) {
                     className="w-full flex items-center px-4 py-2 text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-150/40 dark:hover:bg-zinc-850 transition-colors"
                   >
                     <UserIcon className="mr-2 h-3.5 w-3.5 text-zinc-400" />
-                    Hồ sơ cá nhân
+                    {t("manager.header.profile")}
                   </button>
                   <button
                     onClick={() => handleOpenAccountSettings("password")}
                     className="w-full flex items-center px-4 py-2 text-xs text-zinc-700 dark:text-zinc-300 hover:bg-zinc-150/40 dark:hover:bg-zinc-850 transition-colors"
                   >
                     <Key className="mr-2 h-3.5 w-3.5 text-zinc-400" />
-                    Đổi mật khẩu
+                    {t("manager.header.changePassword")}
                   </button>
                 </div>
                 <div className="border-t border-zinc-100 dark:border-zinc-800 pt-1 mt-1">
@@ -218,7 +188,7 @@ export function Header({ locale, onOpenMobileSidebar }: HeaderProps) {
                     className="w-full flex items-center px-4 py-2 text-xs text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-colors"
                   >
                     <LogOut className="mr-2 h-3.5 w-3.5 text-rose-500" />
-                    Đăng xuất
+                    {t("manager.header.logout")}
                   </button>
                 </div>
               </div>

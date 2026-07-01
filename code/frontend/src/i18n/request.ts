@@ -5,7 +5,7 @@ export default getRequestConfig(async ({requestLocale}) => {
   const locale = await requestLocale;
   const baseLocale = locales.includes(locale as Locale) ? (locale as Locale) : 'vi';
 
-  const files = ['common', 'header', 'footer', 'landing', 'product', 'auth', 'admin', 'staff'];
+  const files = ['common', 'header', 'footer', 'landing', 'product', 'auth', 'admin', 'staff', 'manager'];
   const messages: Record<string, unknown> = {};
 
   for (const file of files) {

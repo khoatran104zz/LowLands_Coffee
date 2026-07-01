@@ -15,6 +15,7 @@ export default function ManagerStaffPage() {
   const [searchQuery, setSearchQuery] = useState("");
 
   const employees = useDashboardStore((state) => state.employees);
+  const hydrateUsers = useDashboardStore((state) => state.hydrateUsers);
   const currentUser = useAuthStore((state) => state.user);
   
   // StoreId = 2 Hồ Con Rùa branch employees ONLY (or from auth user)
@@ -23,7 +24,8 @@ export default function ManagerStaffPage() {
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    void hydrateUsers();
+  }, [hydrateUsers]);
 
   if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
 
@@ -32,32 +34,32 @@ export default function ManagerStaffPage() {
   const columns: Column<Employee>[] = [
     {
       key: "employeeCode",
-      header: t("admin.employeesPage.colCode") || "Mã NV",
-      render: (item) => item.employeeCode || "Chưa có mã"
+      header: t("manager.staff.colCode"),
+      render: (item) => item.employeeCode || t("manager.staff.noCode")
     },
-    { key: "fullName", header: t("admin.employeesPage.colName") || "Họ và tên" },
-    { key: "workingShift", header: "Ca trực đăng ký", render: (item) => item.workingShift || "Chưa xếp ca" },
-    { key: "phone", header: t("admin.employeesPage.colPhone") || "Điện thoại" },
-    { key: "email", header: "Email nội bộ" },
+    { key: "fullName", header: t("manager.staff.colName") },
+    { key: "workingShift", header: t("manager.staff.colShift"), render: (item) => item.workingShift || t("manager.staff.waitingBE") },
+    { key: "phone", header: t("manager.staff.colPhone") },
+    { key: "email", header: t("manager.staff.colEmail") },
     {
       key: "performance",
-      header: "Hiệu suất",
+      header: t("manager.staff.colPerformance"),
       render: (item) => (
         <span className="inline-flex items-center space-x-1 font-bold text-amber-900 bg-amber-800/10 border border-amber-800/10 px-2.5 py-0.5 rounded-lg text-xs select-none">
           <Sparkles className="h-3 w-3 text-amber-800" />
-          <span>{item.performance || "Khá"}</span>
+          <span>{item.performance || t("manager.staff.waitingBE")}</span>
         </span>
       )
     },
     {
       key: "status",
-      header: t("admin.employeesPage.colStatus") || "Trạng thái",
+      header: t("manager.staff.colStatus"),
       render: (item) => {
         const isActive = item.status === "active";
         return (
           <StatusBadge
             status={isActive ? "active" : "inactive"}
-            customLabel={isActive ? "Đang làm việc" : "Nghỉ việc / Tạm ngưng"}
+            customLabel={isActive ? t("manager.staff.statusActive") : t("manager.staff.statusInactive")}
           />
         );
       }
@@ -69,10 +71,10 @@ export default function ManagerStaffPage() {
       {/* Title */}
       <div>
         <h1 className="text-xl font-bold text-amber-900 font-outfit uppercase tracking-wide">
-          Nhân sự chi nhánh - {branchName}
+          {t("manager.staff.title")} - {branchName}
         </h1>
         <p className="text-xs text-muted-foreground font-semibold mt-1">
-          Danh sách nhân viên, Barista, và thu ngân được phân nhiệm vụ vận hành trực tiếp tại chi nhánh.
+          {t("manager.staff.subtitle")}
         </p>
       </div>
 
@@ -81,7 +83,7 @@ export default function ManagerStaffPage() {
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Tìm tên nhân viên..."
+          placeholder={t("manager.staff.searchPlaceholder")}
         />
       </div>
 
