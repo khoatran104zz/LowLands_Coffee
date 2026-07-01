@@ -2,17 +2,22 @@
 
 import React, { useState, useEffect } from "react";
 import { DollarSign, ShoppingBag, Users, AlertTriangle } from "lucide-react";
-import { StatsCard } from "@/components/dashboard/StatsCard";
+import { StatsCard } from "@/components/admin/StatsCard";
+import { ChartCard } from "@/components/admin/ChartCard";
 import { BarChart, PieChart, ChartDataItem } from "@/components/charts/Chart";
 import { useDashboardStore } from "@/store/dashboardStore";
 import { getManagerDashboardSummary, ManagerDashboardSummary } from "@/services/dashboard.service";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useAuthStore } from "@/store/auth.store";
 
 export default function ManagerDashboardPage() {
   const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
   const [summary, setSummary] = useState<ManagerDashboardSummary | null>(null);
   const [summaryError, setSummaryError] = useState<string | null>(null);
+
+  const currentUser = useAuthStore((state) => state.user);
+  const branchName = currentUser?.branchName || "Hồ Con Rùa";
 
   useEffect(() => {
     setIsMounted(true);
@@ -23,7 +28,7 @@ export default function ManagerDashboardPage() {
       })
       .catch((error) => {
         console.error("Failed to load manager dashboard summary", error);
-        setSummaryError("Khong the tai dashboard summary tu Backend API.");
+        setSummaryError("Không thể tải báo cáo từ Backend API.");
       });
   }, []);
 
@@ -51,6 +56,7 @@ export default function ManagerDashboardPage() {
   const inventoryWarningsCount = ingredients.filter(
     (i) => i.status === "low_stock" || i.status === "out_of_stock"
   ).length;
+  
   const displayRevenue = Number(summary?.totalRevenue ?? todayRevenue);
   const displayOrders = summary?.totalOrders ?? todayOrdersCount;
   const displayInventoryWarnings = summary?.lowStockItems ?? inventoryWarningsCount;
@@ -65,7 +71,6 @@ export default function ManagerDashboardPage() {
 
   myCompletedOrders.forEach((o) => {
     o.items.forEach((item) => {
-      // Map category ID to text name
       if (item.productName.includes("Phin") || item.productName.includes("Bạc Xỉu")) {
         categorySales["Cà Phê"] += item.totalPrice;
       } else if (item.productName.includes("Trà")) {
@@ -96,11 +101,11 @@ export default function ManagerDashboardPage() {
     <div className="space-y-6">
       {/* Title */}
       <div className="text-left select-none">
-        <h1 className="text-xl font-bold text-amber-900 font-outfit uppercase tracking-wide">
-          {t("staff.manager.dashboardTitle")}
+        <h1 className="text-xl font-extrabold text-amber-900 font-outfit uppercase tracking-wide">
+          Báo cáo Vận hành Chi nhánh - {branchName}
         </h1>
         <p className="text-xs text-muted-foreground font-semibold mt-1">
-          Báo cáo thống kê trực quan chi nhánh Hồ Con Rùa (Quận 3, TP. Hồ Chí Minh).
+          Tổng quan số liệu doanh số thực tế, lượng đơn POS và tình trạng kho vật liệu của cửa hàng hôm nay.
         </p>
       </div>
 
@@ -111,47 +116,46 @@ export default function ManagerDashboardPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
+<<<<<<< HEAD
           title={t("staff.manager.todayRevenue")}
           value={`${displayRevenue.toLocaleString("vi-VN")}đ`}
+=======
+          title={t("staff.manager.todayRevenue") || "Doanh thu hôm nay"}
+          value={`${displayRevenue.toLocaleString()}đ`}
+>>>>>>> ad73e0ec1bba26164b072ee16b065260d83343ed
           icon={DollarSign}
-          description="Doanh số thực tế hôm nay"
+          description="Doanh số thực tế của chi nhánh"
         />
         <StatsCard
-          title={t("staff.manager.todayOrders")}
+          title={t("staff.manager.todayOrders") || "Đơn hàng hôm nay"}
           value={displayOrders}
           icon={ShoppingBag}
           description="Tổng hóa đơn lập ca"
         />
         <StatsCard
-          title={t("staff.manager.activeStaff")}
-          value={`${activeEmployeesCount} nhân sự`}
+          title={t("staff.manager.activeStaff") || "Nhân viên đang trực"}
+          value={`${activeEmployeesCount} Barista`}
           icon={Users}
-          description="Đang chấm công đi làm"
+          description="Nhân sự chấm công tại quầy"
         />
         <StatsCard
-          title={t("staff.manager.inventoryWarning")}
+          title={t("staff.manager.inventoryWarning") || "Nguyên liệu sắp hết"}
           value={`${displayInventoryWarnings} mặt hàng`}
           icon={AlertTriangle}
-          description="Cần nhập hàng ngay"
-          trend={displayInventoryWarnings > 0 ? { type: "down", value: "Cảnh báo" } : undefined}
+          description="Hạn mức tồn kho dưới mức an toàn"
+          trend={displayInventoryWarnings > 0 ? { type: "down", value: "Cần nhập" } : undefined}
         />
       </div>
 
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-2">
-          <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-left pl-1">
-            Cơ cấu doanh thu theo nhóm hàng
-          </h4>
+        <ChartCard title="Cơ cấu doanh thu theo nhóm hàng">
           <PieChart data={categoryRevenueData} />
-        </div>
+        </ChartCard>
 
-        <div className="space-y-2">
-          <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-left pl-1">
-            Số lượng hóa đơn theo khung giờ
-          </h4>
+        <ChartCard title="Số lượng hóa đơn theo khung giờ">
           <BarChart data={hourlyOrdersData} />
-        </div>
+        </ChartCard>
       </div>
     </div>
   );

@@ -24,15 +24,26 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Response Interceptor: Handle common error cases (e.g. 401 Unauthorized, 403 Forbidden)
+// Response Interceptor: Handle common error cases
 axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response && (error.response.status === 401 || error.response.status === 403)) {
+    // Only force-logout on 401 (session expired/invalid token)
+    // Do NOT redirect on 403 (permission denied) — let the page handle it gracefully
+    if (error.response && error.response.status === 401) {
       if (typeof window !== "undefined") {
         useAuthStore.getState().logout();
         const currentLocale = window.location.pathname.split("/")[1] || "vi";
-        window.location.href = `/${currentLocale}/login`;
+        // If we are in a portal/admin/manager/staff route → portal login
+        // Otherwise → customer login
+        const isPortalRoute = window.location.pathname.includes("/admin") ||
+          window.location.pathname.includes("/manager") ||
+          window.location.pathname.includes("/staff") ||
+          window.location.pathname.includes("/portal");
+        const loginPath = isPortalRoute
+          ? `/${currentLocale}/portal/login`
+          : `/${currentLocale}/login`;
+        window.location.href = loginPath;
       }
     }
     return Promise.reject(error);

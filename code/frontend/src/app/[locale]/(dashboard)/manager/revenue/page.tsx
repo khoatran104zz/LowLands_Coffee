@@ -3,14 +3,21 @@
 import React, { useState, useEffect } from "react";
 import { Coins, TrendingUp, Calendar, ArrowRight } from "lucide-react";
 import { useDashboardStore } from "@/store/dashboardStore";
-import { DataTable, Column } from "@/components/tables/DataTable";
+import { DataTable, Column } from "@/components/admin/DataTable";
+import { ChartCard } from "@/components/admin/ChartCard";
 import { BarChart, LineChart, ChartDataItem } from "@/components/charts/Chart";
 import { useTranslation } from "@/hooks/useTranslation";
 import { OrderExtended } from "@/mock/orders";
+import { useAuthStore } from "@/store/auth.store";
+import { StatsCard } from "@/components/admin/StatsCard";
 
 export default function ManagerRevenuePage() {
   const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
+
+  const currentUser = useAuthStore((state) => state.user);
+  const myBranchId = currentUser?.branchId || 2;
+  const branchName = currentUser?.branchName || "Hồ Con Rùa";
 
   useEffect(() => {
     setIsMounted(true);
@@ -20,9 +27,7 @@ export default function ManagerRevenuePage() {
 
   if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
 
-  // StoreId = 2: Hồ Con Rùa orders
-  const MY_BRANCH_ID = 2;
-  const myBranchOrders = orders.filter((o) => o.storeId === MY_BRANCH_ID);
+  const myBranchOrders = orders.filter((o) => o.storeId === myBranchId);
   const myCompletedOrders = myBranchOrders.filter((o) => o.status === "completed");
 
   // Sums
@@ -33,32 +38,37 @@ export default function ManagerRevenuePage() {
   const monthlyRevenue = todayRevenue + 45900000;
 
   const columns: Column<OrderExtended>[] = [
-    { key: "orderCode", header: "Mã hóa đơn" },
+    { key: "orderCode", header: t("admin.ordersPage.colCode") || "Mã hóa đơn" },
     {
       key: "createdAt",
-      header: "Thời gian",
+      header: "Thời gian lập hóa đơn",
       render: (item) => <span>{new Date(item.createdAt).toLocaleTimeString("vi-VN")}</span>
     },
-    { key: "receiverName", header: "Khách hàng" },
+    { key: "receiverName", header: t("admin.ordersPage.colCustomer") || "Khách hàng" },
     {
       key: "totalAmount",
+<<<<<<< HEAD
       header: "Thanh toán",
       render: (item) => <span className="font-bold text-amber-900">{item.totalAmount.toLocaleString("vi-VN")}đ</span>
+=======
+      header: t("admin.ordersPage.colTotal") || "Thanh toán",
+      render: (item) => <span className="font-extrabold text-[#c8510a]">{item.totalAmount.toLocaleString()}đ</span>
+>>>>>>> ad73e0ec1bba26164b072ee16b065260d83343ed
     },
     {
       key: "paymentMethod",
-      header: "Hình thức",
-      render: (item) => <span className="uppercase text-xs font-semibold">{item.paymentMethod}</span>
+      header: t("admin.ordersPage.colPayment") || "Thanh toán",
+      render: (item) => <span className="uppercase text-xs font-semibold text-zinc-500">{item.paymentMethod}</span>
     }
   ];
 
   // Daily revenue trend (last 5 days)
   const dailyTrendData: ChartDataItem[] = [
-    { label: "21/06", value: 2400000 },
-    { label: "22/06", value: 3100000 },
-    { label: "23/06", value: 1800000 },
-    { label: "24/06", value: 4200000 },
-    { label: "25/06", value: Math.max(3000000, todayRevenue) }
+    { label: "27/06", value: 2400000 },
+    { label: "28/06", value: 3100000 },
+    { label: "29/06", value: 1800000 },
+    { label: "30/06", value: 4200000 },
+    { label: "01/07", value: Math.max(3000000, todayRevenue) }
   ];
 
   return (
@@ -66,15 +76,16 @@ export default function ManagerRevenuePage() {
       {/* Title */}
       <div className="text-left select-none">
         <h1 className="text-xl font-bold text-amber-900 font-outfit uppercase tracking-wide">
-          {t("common.revenue")} - Hồ Con Rùa
+          Doanh thu chi nhánh - {branchName}
         </h1>
         <p className="text-xs text-muted-foreground font-semibold mt-1">
-          Kế toán doanh thu thực tế, lịch sử lập hóa đơn bán lẻ tại cửa hàng Hồ Con Rùa.
+          Báo cáo thống kê tổng doanh thu bán lẻ qua quầy POS của chi nhánh Hồ Con Rùa.
         </p>
       </div>
 
       {/* Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+<<<<<<< HEAD
         <div className="bg-card border border-border/80 rounded-xl p-5 shadow-xs flex items-center space-x-4 text-left">
           <div className="p-3 bg-amber-800/10 rounded-lg text-amber-900">
             <Coins className="h-6 w-6" />
@@ -108,27 +119,71 @@ export default function ManagerRevenuePage() {
             <span className="text-lg font-bold text-foreground font-outfit mt-0.5 block">
               {monthlyRevenue.toLocaleString("vi-VN")}đ
             </span>
+=======
+        <StatsCard
+          title={t("staff.manager.todayRevenue") || "Doanh thu hôm nay"}
+          value={`${todayRevenue.toLocaleString()}đ`}
+          icon={Coins}
+          description="Doanh số thực tế hôm nay"
+        />
+        <StatsCard
+          title={t("staff.manager.weeklyRevenue") || "Doanh thu tuần này"}
+          value={`${weeklyRevenue.toLocaleString()}đ`}
+          icon={TrendingUp}
+          description="Tổng doanh số tuần này"
+        />
+        <StatsCard
+          title={t("staff.manager.monthlyRevenue") || "Doanh thu tháng này"}
+          value={`${monthlyRevenue.toLocaleString()}đ`}
+          icon={Calendar}
+          description="Tổng doanh số tháng này"
+        />
+      </div>
+
+      {/* Charts & Details Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <ChartCard title="Xu hướng doanh thu 5 ngày qua">
+            <LineChart data={dailyTrendData} />
+          </ChartCard>
+        </div>
+
+        <div className="bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-xl p-5 shadow-2xs text-left select-none">
+          <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-outfit">Hiệu suất chỉ tiêu</h4>
+          <div className="mt-4 space-y-4">
+            <div>
+              <div className="flex justify-between text-xs font-bold mb-1">
+                <span>Chỉ tiêu doanh thu tuần</span>
+                <span className="text-[#c8510a]">85%</span>
+              </div>
+              <div className="w-full bg-zinc-100 rounded-full h-2 overflow-hidden border border-zinc-200/20">
+                <div className="bg-[#c8510a] h-2 rounded-full" style={{ width: "85%" }}></div>
+              </div>
+            </div>
+            <div>
+              <div className="flex justify-between text-xs font-bold mb-1">
+                <span>Chỉ tiêu đơn hàng/ngày</span>
+                <span className="text-[#c8510a]">92%</span>
+              </div>
+              <div className="w-full bg-zinc-100 rounded-full h-2 overflow-hidden border border-zinc-200/20">
+                <div className="bg-[#c8510a] h-2 rounded-full" style={{ width: "92%" }}></div>
+              </div>
+            </div>
+>>>>>>> ad73e0ec1bba26164b072ee16b065260d83343ed
           </div>
         </div>
       </div>
 
-      {/* Revenue chart */}
-      <div className="space-y-2">
-        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-left pl-1">
-          Biểu đồ tăng trưởng doanh số 5 ngày qua
-        </h4>
-        <LineChart data={dailyTrendData} />
-      </div>
-
-      {/* Daily transaction list */}
-      <div className="space-y-2 text-left">
-        <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider pl-1">
-          Danh sách hóa đơn hoàn tất hôm nay ({myCompletedOrders.length})
+      {/* Transactions List */}
+      <div className="space-y-3">
+        <h4 className="text-left text-xs font-bold text-zinc-400 uppercase tracking-wider pl-1">
+          Hóa đơn hoàn tất gần đây
         </h4>
         <DataTable
           data={myCompletedOrders}
           columns={columns}
-          pageSize={5}
+          searchKey="orderCode"
+          searchQuery=""
         />
       </div>
     </div>

@@ -5,15 +5,16 @@ import { AlertCircle, AlertTriangle, CheckCircle2, XCircle } from "lucide-react"
 import { Ingredient } from "@/store/dashboardStore";
 import { useAuthStore } from "@/store/auth.store";
 import { createStockAdjustment, getStockBalances, StockBalance } from "@/services/inventory.service";
-import { DataTable, Column } from "@/components/tables/DataTable";
-import { SearchBar } from "@/components/tables/SearchBar";
-import { Modal } from "@/components/ui/Modal";
+import { DataTable, Column } from "@/components/admin/DataTable";
+import { SearchBar } from "@/components/admin/SearchBar";
+import { FormModal } from "@/components/admin/FormModal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useTranslation";
+import { StatusBadge } from "@/components/admin/StatusBadge";
 
-const LOW_STOCK_THRESHOLD = 500;
+const LOW_STOCK_THRESHOLD = 5;
 
 const toInventoryRow = (balance: StockBalance): Ingredient => {
   const quantity = Number(balance.currentStock);
@@ -35,79 +36,53 @@ export default function ManagerInventoryPage() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [inventoryError, setInventoryError] = useState<string | null>(null);
   const user = useAuthStore((state) => state.user);
+  const branchName = user?.branchName || "Hồ Con Rùa";
 
   const [isRestockOpen, setIsRestockOpen] = useState(false);
   const [selectedIngId, setSelectedIngId] = useState<number | null>(null);
-  const [restockQty, setRestockQty] = useState<number>(5);
+  const [restockQty, setRestockQty] = useState<number>(10);
 
   const loadInventory = async () => {
     try {
       const balances = await getStockBalances();
-      setIngredients(balances.map(toInventoryRow));
+      const myBranchId = user?.branchId || 2;
+      const myBalances = balances.filter((b) => b.storeId === myBranchId);
+      setIngredients(myBalances.map(toInventoryRow));
       setInventoryError(null);
     } catch (error) {
       console.error("Failed to load stock balances from backend", error);
       setIngredients([]);
-      setInventoryError("Khong the tai ton kho tu Backend API.");
+      setInventoryError(t("admin.stockPage.loadingError") || "Không thể tải tồn kho từ Backend API.");
     }
   };
 
   useEffect(() => {
     setIsMounted(true);
     void loadInventory();
-  }, []);
+  }, [user]);
 
   if (!isMounted) {
     return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
   }
 
   const columns: Column<Ingredient>[] = [
-    { key: "id", header: "ID" },
-    { key: "name", header: "Ten nguyen lieu" },
+    { key: "id", header: t("admin.stockPage.colId") || "ID" },
+    { key: "name", header: t("admin.stockPage.colName") || "Tên nguyên liệu" },
     {
       key: "quantity",
-      header: "So luong ton",
+      header: t("admin.stockPage.colStock") || "Tồn kho thực tế",
       render: (item) => (
-        <span className="font-bold">
+        <span className="font-extrabold text-sm text-zinc-800">
           {item.quantity} {item.unit}
         </span>
       ),
     },
     {
-      key: "minAlertLevel",
-      header: "Han muc toi thieu",
-      render: (item) => (
-        <span className="text-muted-foreground text-xs font-semibold">
-          {item.minAlertLevel} {item.unit}
-        </span>
-      ),
-    },
-    {
       key: "status",
-      header: "Tinh trang kho",
+      header: t("admin.stockPage.colAlert") || "Cảnh báo tồn",
       render: (item) => {
-        const styles = {
-          in_stock: "bg-emerald-500/10 text-emerald-700",
-          low_stock: "bg-amber-500/10 text-amber-700 animate-pulse",
-          out_of_stock: "bg-rose-500/10 text-rose-700 animate-bounce",
-        };
-        const labels = {
-          in_stock: "Con hang",
-          low_stock: "Sap het hang",
-          out_of_stock: "Het hang",
-        };
-        const icons = {
-          in_stock: CheckCircle2,
-          low_stock: AlertTriangle,
-          out_of_stock: XCircle,
-        };
-        const Icon = icons[item.status];
-        return (
-          <span className={`inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-xs font-semibold select-none ${styles[item.status]}`}>
-            <Icon className="h-3 w-3 shrink-0" />
-            <span>{labels[item.status]}</span>
-          </span>
-        );
+        const status = item.quantity <= 0 ? "out_of_stock" : item.quantity <= LOW_STOCK_THRESHOLD ? "low_stock" : "in_stock";
+        return <StatusBadge status={status} />;
       },
     },
   ];
@@ -121,17 +96,17 @@ export default function ManagerInventoryPage() {
   const handleSaveRestock = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!selectedIngId || restockQty <= 0) {
-      toast.error("Vui long dien so luong nhap hop le.");
+      toast.error("Vui lòng điền số lượng nhập hợp lệ.");
       return;
     }
     if (!user?.id) {
-      toast.error("Khong tim thay thong tin nguoi dung dang nhap.");
+      toast.error("Không tìm thấy thông tin đăng nhập.");
       return;
     }
 
     const selectedIngredient = ingredients.find((ingredient) => ingredient.id === selectedIngId);
     if (!selectedIngredient?.storeId) {
-      toast.error("Khong tim thay cua hang cua nguyen lieu.");
+      toast.error("Không tìm thấy cửa hàng.");
       return;
     }
 
@@ -141,15 +116,15 @@ export default function ManagerInventoryPage() {
         ingredientId: selectedIngredient.id,
         quantity: restockQty,
         unit: selectedIngredient.unit,
-        note: "Manager inventory restock",
+        note: "Manager inventory restock adjustment",
         createdById: user.id,
       });
       await loadInventory();
-      toast.success(`Da bo sung thanh cong +${restockQty} vao ${selectedIngredient.name}.`);
+      toast.success(`Đã bổ sung thành công +${restockQty} vào ${selectedIngredient.name}.`);
       setIsRestockOpen(false);
     } catch (error) {
       console.error("Failed to create stock adjustment", error);
-      toast.error("Khong the nhap kho qua Backend API.");
+      toast.error("Không thể nhập kho qua Backend API.");
     }
   };
 
@@ -157,22 +132,24 @@ export default function ManagerInventoryPage() {
 
   return (
     <div className="space-y-6">
+      {/* Page Title */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-left select-none">
         <div>
           <h1 className="text-xl font-bold text-amber-900 font-outfit uppercase tracking-wide">
-            {t("staff.manager.ingredientList")}
+            {t("sidebar.stockBalance")} - {branchName}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold mt-1">
-            Theo doi kiem kho, dinh muc nguyen vat lieu pha che va tao phieu nhap kho bo sung.
+            {t("admin.stockPage.subtitle")}
           </p>
         </div>
       </div>
 
+      {/* Toolbar */}
       <div className="flex flex-col md:flex-row md:items-center gap-4 bg-card border border-border/80 rounded-xl p-4 shadow-2xs">
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Tim ten nguyen lieu..."
+          placeholder={t("admin.stockPage.searchPlaceholder") || "Tìm tên nguyên liệu..."}
         />
       </div>
 
@@ -183,6 +160,7 @@ export default function ManagerInventoryPage() {
         </div>
       )}
 
+      {/* DataTable */}
       <DataTable
         data={ingredients}
         columns={columns}
@@ -191,25 +169,26 @@ export default function ManagerInventoryPage() {
         onEdit={handleOpenRestock}
       />
 
-      <Modal
+      {/* Adjustment Form Modal */}
+      <FormModal
         isOpen={isRestockOpen}
         onClose={() => setIsRestockOpen(false)}
-        title={t("staff.manager.importStockTitle")}
-        size="sm"
+        title={t("admin.stockPage.adjustBtn") || "Điều chỉnh kho"}
+        size="md"
       >
         {selectedIngredient && (
           <form onSubmit={handleSaveRestock} className="space-y-4 text-left">
-            <div className="bg-muted/30 p-3 rounded-lg border border-border/40 text-xs text-foreground/80 space-y-1">
+            <div className="bg-muted/40 p-4 rounded-xl border border-border/50 text-xs text-foreground/80 space-y-1.5">
               <div>
-                Nguyen lieu: <span className="font-bold text-foreground">{selectedIngredient.name}</span>
+                Nguyên liệu: <span className="font-extrabold text-amber-900">{selectedIngredient.name}</span>
               </div>
               <div>
-                Ton hien tai: <span className="font-bold text-foreground">{selectedIngredient.quantity} {selectedIngredient.unit}</span>
+                Tồn hiện tại: <span className="font-extrabold text-zinc-900">{selectedIngredient.quantity} {selectedIngredient.unit}</span>
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-muted-foreground uppercase">So luong nhap them *</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase">Số lượng nhập thêm/đối soát *</label>
               <div className="flex items-center space-x-2">
                 <Input
                   required
@@ -238,12 +217,12 @@ export default function ManagerInventoryPage() {
                 type="submit"
                 className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg h-10 text-xs font-semibold px-4"
               >
-                Nhap kho bo sung
+                Lưu điều chỉnh
               </Button>
             </div>
           </form>
         )}
-      </Modal>
+      </FormModal>
     </div>
   );
 }
