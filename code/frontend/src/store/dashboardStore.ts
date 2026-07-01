@@ -74,6 +74,7 @@ export interface DashboardState {
   ingredients: Ingredient[];
 
   hydrateProductCatalog: (source?: "admin" | "public") => Promise<void>;
+  hydrateToppings: () => Promise<void>;
   hydrateUsers: () => Promise<void>;
 
   addBranch: (branch: Omit<Store, "id">) => void;
@@ -195,6 +196,23 @@ export const useDashboardStore = create<DashboardState>()(
             categories: [],
             toppings: [],
             productCatalogError: "Khong the tai danh muc san pham tu Backend API.",
+          });
+        }
+      },
+
+      hydrateToppings: async () => {
+        if (typeof window === "undefined" || !localStorage.getItem("lowlands_token")) {
+          return;
+        }
+
+        try {
+          const toppings = await getAdminToppings();
+          set({ toppings, productCatalogError: null });
+        } catch (error) {
+          console.error("Failed to hydrate toppings", error);
+          set({
+            toppings: [],
+            productCatalogError: "Khong the tai danh sach topping tu Backend API.",
           });
         }
       },
