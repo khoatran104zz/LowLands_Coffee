@@ -5,13 +5,14 @@ import { useTranslation } from "@/hooks/useTranslation";
 interface StatusBadgeProps {
   status: string;
   className?: string;
+  customLabel?: string;
 }
 
-export function StatusBadge({ status, className }: StatusBadgeProps) {
+export function StatusBadge({ status, className, customLabel }: StatusBadgeProps) {
   const { t } = useTranslation();
   const norm = status?.toLowerCase() || "";
   
-  let label = status;
+  let label = customLabel || status;
   let theme = "bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300";
 
   if (norm === "active" || norm === "in_stock" || norm === "completed" || norm === "đang trực" || norm === "working") {

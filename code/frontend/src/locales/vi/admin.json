@@ -232,8 +232,14 @@
       "kho": "Kho hàng",
       "recipe": "Công thức",
       "business": "Kinh doanh",
-      "reports": "Báo cáo"
+      "reports": "Báo cáo",
+      "overview": "Tổng quan",
+      "inventory": "Kho hàng chi nhánh",
+      "staff": "Nhân sự"
     },
+    "stockBalance": "Tồn kho thực tế",
+    "stockHistory": "Lịch sử kho",
+    "shifts": "Ca làm việc",
     "dashboard": "Bảng điều khiển",
     "branches": "Quản lý chi nhánh",
     "products": "Quản lý sản phẩm",
