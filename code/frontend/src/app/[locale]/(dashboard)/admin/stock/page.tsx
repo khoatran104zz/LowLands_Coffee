@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/auth.store";
-import { useDashboardStore } from "@/store/dashboardStore";
+import { Store } from "@/types";
+import { getStores } from "@/services/store.service";
 import { getIngredients, Ingredient } from "@/services/ingredient.service";
 import {
   getStockBalances,
@@ -27,12 +28,12 @@ interface StockBalanceWithId extends StockBalance {
 export default function AdminStockPage() {
   const [stockBalances, setStockBalances] = useState<StockBalanceWithId[]>([]);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+  const [branches, setBranches] = useState<Store[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
 
-  // States from Auth and Dashboard stores
+  // States from Auth store
   const currentUser = useAuthStore((state) => state.user);
-  const branches = useDashboardStore((state) => state.branches);
 
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -52,9 +53,10 @@ export default function AdminStockPage() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [balances, ingList] = await Promise.all([
+      const [balances, ingList, storeList] = await Promise.all([
         getStockBalances(),
-        getIngredients()
+        getIngredients(),
+        getStores()
       ]);
       const mapped = balances.map((b) => ({
         ...b,
@@ -62,6 +64,7 @@ export default function AdminStockPage() {
       }));
       setStockBalances(mapped);
       setIngredients(ingList);
+      setBranches(storeList);
     } catch (error) {
       console.error("Failed to load inventory stock balances", error);
       toast.error("Không thể tải thông tin tồn kho từ máy chủ.");
@@ -126,7 +129,15 @@ export default function AdminStockPage() {
       toast.error("Vui lòng thêm nguyên liệu trước!");
       return;
     }
-    setFormStoreId(branches[0]?.id ? String(branches[0].id) : "1");
+    if (branches.length === 0) {
+      toast.error("Khong the dieu chinh kho vi chua tai duoc chi nhanh tu Backend API.");
+      return;
+    }
+    if (!currentUser?.id) {
+      toast.error("Khong xac dinh duoc nguoi tao dieu chinh. Vui long dang nhap lai.");
+      return;
+    }
+    setFormStoreId(String(branches[0].id));
     setFormIngredientId(String(ingredients[0].id));
     setFormQuantity("");
     setFormNote("");
@@ -146,6 +157,11 @@ export default function AdminStockPage() {
       return;
     }
 
+    if (!currentUser?.id) {
+      toast.error("Khong xac dinh duoc nguoi tao dieu chinh. Vui long dang nhap lai.");
+      return;
+    }
+
     setIsSaving(true);
     try {
       const selectedIng = ingredients.find(i => i.id === parseInt(formIngredientId));
@@ -155,7 +171,7 @@ export default function AdminStockPage() {
         quantity: qtyVal,
         unit: selectedIng ? selectedIng.unit : "kg",
         note: formNote.trim(),
-        createdById: currentUser?.id || 1
+        createdById: currentUser.id
       };
 
       await createStockAdjustment(payload);

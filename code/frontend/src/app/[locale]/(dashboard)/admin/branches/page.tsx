@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { Plus } from "lucide-react";
 import { Store } from "@/types";
-import { useDashboardStore } from "@/store/dashboardStore";
+import { createStore, deleteStore, getStores, updateStore } from "@/services/store.service";
 import { DataTable, Column } from "@/components/admin/DataTable";
 import { SearchBar } from "@/components/admin/SearchBar";
 import { Filter } from "@/components/admin/Filter";
@@ -19,53 +19,57 @@ export default function AdminBranchesPage() {
   const { t } = useTranslation();
   const confirm = useConfirm();
   const [isMounted, setIsMounted] = useState(false);
-  
-  // Table filters & searches
+  const [isLoading, setIsLoading] = useState(true);
+  const [branches, setBranches] = useState<Store[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-
-  // Store data & actions
-  const branches = useDashboardStore((state) => state.branches);
-  const addBranch = useDashboardStore((state) => state.addBranch);
-  const updateBranch = useDashboardStore((state) => state.updateBranch);
-  const deleteBranch = useDashboardStore((state) => state.deleteBranch);
-
-  // Modal control states
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingBranch, setEditingBranch] = useState<Store | null>(null);
-
-  // Form input states
   const [formName, setFormName] = useState("");
   const [formAddress, setFormAddress] = useState("");
   const [formPhone, setFormPhone] = useState("");
   const [formStatus, setFormStatus] = useState("active");
 
+  const loadBranches = async () => {
+    setIsLoading(true);
+    try {
+      const data = await getStores();
+      setBranches(data);
+    } catch (error) {
+      console.error("Failed to load stores", error);
+      toast.error("Khong the tai danh sach chi nhanh tu Backend API.");
+      setBranches([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     setIsMounted(true);
+    void loadBranches();
   }, []);
 
-  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
+  if (!isMounted) {
+    return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
+  }
 
-  // Filter logic
-  const filteredBranches = branches.filter((b) => {
+  const filteredBranches = branches.filter((branch) => {
     if (!statusFilter) return true;
-    return b.status === statusFilter;
+    return branch.status === statusFilter;
   });
 
-  // Table columns definition
   const columns: Column<Store>[] = [
     { key: "id", header: "ID" },
-    { key: "name", header: "Tên chi nhánh" },
-    { key: "address", header: "Địa chỉ" },
-    { key: "phone", header: "Điện thoại" },
+    { key: "name", header: "Ten chi nhanh" },
+    { key: "address", header: "Dia chi" },
+    { key: "phone", header: "Dien thoai" },
     {
       key: "status",
-      header: "Trạng thái",
+      header: "Trang thai",
       render: (item) => <StatusBadge status={item.status} />
     }
   ];
 
-  // Form open handlers
   const handleOpenCreate = () => {
     setEditingBranch(null);
     setFormName("");
@@ -79,7 +83,7 @@ export default function AdminBranchesPage() {
     setEditingBranch(branch);
     setFormName(branch.name);
     setFormAddress(branch.address);
-    setFormPhone(branch.phone);
+    setFormPhone(branch.phone || "");
     setFormStatus(branch.status);
     setIsFormOpen(true);
   };
@@ -91,53 +95,59 @@ export default function AdminBranchesPage() {
       confirmText: t("common.delete"),
       cancelText: t("common.cancel")
     });
-    if (isConfirmed) {
-      deleteBranch(branch.id);
-      toast.success("Xóa chi nhánh thành công!");
+
+    if (!isConfirmed) return;
+
+    try {
+      await deleteStore(branch.id);
+      toast.success("Xoa chi nhanh thanh cong!");
+      await loadBranches();
+    } catch (error) {
+      console.error("Failed to delete store", error);
+      toast.error("Khong the xoa chi nhanh qua Backend API.");
     }
   };
 
-  // Form submit handlers
-  const handleSaveBranch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formName.trim() || !formAddress.trim() || !formPhone.trim()) {
-      toast.error("Vui lòng điền đầy đủ thông tin!");
+  const handleSaveBranch = async (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!formName.trim() || !formAddress.trim()) {
+      toast.error("Vui long nhap ten va dia chi chi nhanh.");
       return;
     }
 
-    if (editingBranch) {
-      updateBranch({
-        id: editingBranch.id,
+    try {
+      const payload = {
         name: formName.trim(),
         address: formAddress.trim(),
         phone: formPhone.trim(),
         status: formStatus
-      });
-      toast.success("Cập nhật chi nhánh thành công!");
-    } else {
-      addBranch({
-        name: formName.trim(),
-        address: formAddress.trim(),
-        phone: formPhone.trim(),
-        status: formStatus
-      });
-      toast.success("Thêm chi nhánh mới thành công!");
+      };
+
+      if (editingBranch) {
+        await updateStore(editingBranch.id, payload);
+        toast.success("Cap nhat chi nhanh thanh cong!");
+      } else {
+        await createStore(payload);
+        toast.success("Them chi nhanh moi thanh cong!");
+      }
+
+      setIsFormOpen(false);
+      await loadBranches();
+    } catch (error) {
+      console.error("Failed to save store", error);
+      toast.error("Khong the luu chi nhanh qua Backend API.");
     }
-    setIsFormOpen(false);
   };
-
-
 
   return (
     <div className="space-y-6">
-      {/* Page Title & Button */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-left">
         <div>
           <h1 className="text-xl font-bold text-amber-900 font-outfit uppercase tracking-wide">
             {t("common.branches")}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold mt-1">
-            Quản lý danh sách chi nhánh hoạt động trong chuỗi Lowlands Coffee.
+            Quan ly danh sach chi nhanh hoat dong trong chuoi Lowlands Coffee.
           </p>
         </div>
         <Button
@@ -145,19 +155,18 @@ export default function AdminBranchesPage() {
           className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg px-4 h-10 text-xs font-semibold flex items-center space-x-2 shrink-0 self-start sm:self-auto"
         >
           <Plus className="h-4 w-4" />
-          <span>{t("common.add")} chi nhánh</span>
+          <span>{t("common.add")} chi nhanh</span>
         </Button>
       </div>
 
-      {/* Filters & Search Row */}
       <div className="flex flex-col md:flex-row md:items-center gap-4 bg-card border border-border/80 rounded-xl p-4 shadow-2xs">
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Tìm tên, địa chỉ chi nhánh..."
+          placeholder="Tim ten hoac dia chi chi nhanh..."
         />
         <Filter
-          label="Trạng thái"
+          label="Trang thai"
           value={statusFilter}
           onChange={setStatusFilter}
           options={[
@@ -167,17 +176,21 @@ export default function AdminBranchesPage() {
         />
       </div>
 
-      {/* Data Table */}
-      <DataTable
-        data={filteredBranches}
-        columns={columns}
-        searchKey="name"
-        searchQuery={searchQuery}
-        onEdit={handleOpenEdit}
-        onDelete={handleOpenDelete}
-      />
+      {isLoading ? (
+        <div className="text-center py-20 text-muted-foreground text-xs font-semibold">
+          Dang tai danh sach chi nhanh tu Backend API...
+        </div>
+      ) : (
+        <DataTable
+          data={filteredBranches}
+          columns={columns}
+          searchKey="name"
+          searchQuery={searchQuery}
+          onEdit={handleOpenEdit}
+          onDelete={handleOpenDelete}
+        />
+      )}
 
-      {/* Create/Edit Modal */}
       <FormModal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
@@ -186,43 +199,42 @@ export default function AdminBranchesPage() {
       >
         <form onSubmit={handleSaveBranch} className="space-y-4 text-left">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-muted-foreground uppercase">Tên chi nhánh *</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase">Ten chi nhanh *</label>
             <Input
               required
               value={formName}
-              onChange={(e) => setFormName(e.target.value)}
-              placeholder="Ví dụ: Lowlands Coffee - Hồ Con Rùa"
+              onChange={(event) => setFormName(event.target.value)}
+              placeholder="Vi du: Lowlands Coffee - Ho Con Rua"
               className="h-10 text-xs border-border bg-background"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-muted-foreground uppercase">Địa chỉ *</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase">Dia chi *</label>
             <Input
               required
               value={formAddress}
-              onChange={(e) => setFormAddress(e.target.value)}
-              placeholder="Ví dụ: 42 Phạm Ngọc Thạch, Quận 3, TP. HCM"
+              onChange={(event) => setFormAddress(event.target.value)}
+              placeholder="Vi du: 42 Pham Ngoc Thach, Quan 3, TP. HCM"
               className="h-10 text-xs border-border bg-background"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-muted-foreground uppercase">Điện thoại *</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase">Dien thoai</label>
               <Input
-                required
                 value={formPhone}
-                onChange={(e) => setFormPhone(e.target.value)}
-                placeholder="Ví dụ: 028.3822.4466"
+                onChange={(event) => setFormPhone(event.target.value)}
+                placeholder="Vi du: 028.3822.4466"
                 className="h-10 text-xs border-border bg-background"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-muted-foreground uppercase">Trạng thái *</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase">Trang thai *</label>
               <select
                 value={formStatus}
-                onChange={(e) => setFormStatus(e.target.value)}
+                onChange={(event) => setFormStatus(event.target.value)}
                 className="w-full h-10 px-3 py-1 bg-background border border-border text-foreground hover:bg-muted/10 rounded-lg text-xs font-medium focus:outline-none focus:ring-1 focus:ring-amber-800"
               >
                 <option value="active">{t("common.active")}</option>
@@ -249,8 +261,6 @@ export default function AdminBranchesPage() {
           </div>
         </form>
       </FormModal>
-
-      
     </div>
   );
 }

@@ -6,7 +6,6 @@ import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useDashboardStore } from "@/store/dashboardStore";
 
 interface POSCartProps {
   items: CartItem[];
@@ -25,7 +24,7 @@ export function POSCart({
 }: POSCartProps) {
   const { t } = useTranslation();
   const [promoCode, setPromoCode] = useState("");
-  const [appliedPromo, setAppliedPromo] = useState<Promotion | null>(null);
+  const [, setAppliedPromo] = useState<Promotion | null>(null);
   
   // Service configuration
   const [serviceType, setServiceType] = useState<"dine_in" | "takeaway">("takeaway");
@@ -40,8 +39,7 @@ export function POSCart({
   const [cashReceived, setCashReceived] = useState<number>(0);
   const [customerName, setCustomerName] = useState("Khách lẻ");
   const [customerPhone, setCustomerPhone] = useState("");
-
-  const promotions = useDashboardStore((state) => state.promotions);
+  const promotions: Promotion[] = [];
 
   // Totals calculations
   const subtotal = items.reduce((sum, item) => {
@@ -49,17 +47,7 @@ export function POSCart({
     return sum + (item.variant.price + toppingsTotal) * item.quantity;
   }, 0);
 
-  // Calculate discount
-  let discount = 0;
-  if (appliedPromo) {
-    if (subtotal >= appliedPromo.minOrderAmount) {
-      if (appliedPromo.discountType === "percentage") {
-        discount = Math.round((subtotal * appliedPromo.discountValue) / 100);
-      } else {
-        discount = appliedPromo.discountValue;
-      }
-    }
-  }
+  const discount = 0;
 
   // VAT: 10% on discounted amount
   const vat = Math.round((subtotal - discount) * 0.1);

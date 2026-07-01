@@ -1,27 +1,49 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useCartStore } from "@/store/cart.store";
-import { INITIAL_PRODUCTS, INITIAL_CATEGORIES } from "@/mock/products";
-import { Product } from "@/types";
+import { getCategories, getProducts } from "@/services/product.service";
+import { Category, Product } from "@/types";
 import { Plus, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
 
 export function FeaturedProducts() {
   const { t } = useTranslation();
-  const [activeTab, setActiveTab] = useState<number | null>(null); // null means All
+  const [activeTab, setActiveTab] = useState<number | null>(null);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const addItem = useCartStore((state) => state.addItem);
 
-  // Filter categories to show only Cà Phê, Trà, Freeze
-  const filterCategories = INITIAL_CATEGORIES.filter((c) => [1, 2, 3].includes(c.id));
+  useEffect(() => {
+    const loadFeaturedCatalog = async () => {
+      try {
+        const [productList, categoryList] = await Promise.all([
+          getProducts(),
+          getCategories()
+        ]);
+        setProducts(productList);
+        setCategories(categoryList);
+      } catch (error) {
+        console.error("Failed to load featured catalog from Backend API", error);
+        setProducts([]);
+        setCategories([]);
+      }
+    };
 
-  // Get active products
-  const filteredProducts = INITIAL_PRODUCTS.filter((p) => {
-    if (activeTab === null) return [1, 2, 3].includes(p.categoryId);
-    return p.categoryId === activeTab;
-  }).slice(0, 8); // Show max 8 featured items
+    void loadFeaturedCatalog();
+  }, []);
+
+  const filterCategories = categories.slice(0, 3);
+  const filteredProducts = products
+    .filter((product) => {
+      if (activeTab === null) {
+        return filterCategories.some((category) => category.id === product.categoryId);
+      }
+      return product.categoryId === activeTab;
+    })
+    .slice(0, 8);
 
   const handleAddToCart = (product: Product) => {
     if (product.variants && product.variants.length > 0) {
@@ -33,7 +55,6 @@ export function FeaturedProducts() {
     }
   };
 
-  // Animation variants
   const gridVariants = {
     hidden: { opacity: 0 },
     show: {
@@ -46,8 +67,8 @@ export function FeaturedProducts() {
 
   const cardVariants = {
     hidden: { opacity: 0, y: 30 },
-    show: { 
-      opacity: 1, 
+    show: {
+      opacity: 1,
       y: 0,
       transition: { type: "spring" as const, stiffness: 100, damping: 15 }
     },
@@ -56,10 +77,8 @@ export function FeaturedProducts() {
   return (
     <section className="py-16 bg-[#FAF8F5] dark:bg-[#120A09]">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        
-        {/* Section Title */}
         <div className="text-center max-w-2xl mx-auto mb-10">
-          <motion.h2 
+          <motion.h2
             initial={{ opacity: 0, y: 15 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
@@ -68,12 +87,12 @@ export function FeaturedProducts() {
           >
             {t("landing.featured.title")}
           </motion.h2>
-          <motion.div 
+          <motion.div
             initial={{ width: 0 }}
             whileInView={{ width: 64 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: 0.2 }}
-            className="h-1 bg-accent rounded-full mx-auto mt-3" 
+            className="h-1 bg-accent rounded-full mx-auto mt-3"
           />
           <motion.p
             initial={{ opacity: 0 }}
@@ -86,7 +105,6 @@ export function FeaturedProducts() {
           </motion.p>
         </div>
 
-        {/* Tab Filters */}
         <div className="flex justify-center space-x-1.5 sm:space-x-2 border-b border-border/40 pb-4 mb-10 overflow-x-auto scrollbar-none">
           <button
             onClick={() => setActiveTab(null)}
@@ -96,25 +114,25 @@ export function FeaturedProducts() {
           >
             <span>{t("common.all")}</span>
             {activeTab === null && (
-              <motion.div 
+              <motion.div
                 layoutId="activeTabUnderline"
                 className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#C8510A]"
                 transition={{ type: "spring", stiffness: 380, damping: 30 }}
               />
             )}
           </button>
-          
-          {filterCategories.map((cat) => (
+
+          {filterCategories.map((category) => (
             <button
-              key={cat.id}
-              onClick={() => setActiveTab(cat.id)}
+              key={category.id}
+              onClick={() => setActiveTab(category.id)}
               className={`relative px-4 py-2 text-xs sm:text-sm font-bold uppercase tracking-wider transition-all duration-300 cursor-pointer ${
-                activeTab === cat.id ? "text-[#C8510A] font-black" : "text-muted-foreground hover:text-primary"
+                activeTab === category.id ? "text-[#C8510A] font-black" : "text-muted-foreground hover:text-primary"
               }`}
             >
-              <span>{cat.name}</span>
-              {activeTab === cat.id && (
-                <motion.div 
+              <span>{category.name}</span>
+              {activeTab === category.id && (
+                <motion.div
                   layoutId="activeTabUnderline"
                   className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#C8510A]"
                   transition={{ type: "spring", stiffness: 380, damping: 30 }}
@@ -124,7 +142,6 @@ export function FeaturedProducts() {
           ))}
         </div>
 
-        {/* Products Cards Layout (Mobile: scroll horizontal, Desktop: grid 4 columns) */}
         <AnimatePresence mode="wait">
           <motion.div
             key={activeTab ?? "all"}
@@ -143,12 +160,11 @@ export function FeaturedProducts() {
                   whileHover={{ y: -6, scale: 1.025 }}
                   className="group min-w-[260px] sm:min-w-[280px] md:min-w-0 snap-start bg-card border border-border/80 rounded-2xl p-3 shadow-xs hover:shadow-lg transition-all duration-300 flex flex-col relative overflow-hidden"
                 >
-                  {/* Image container */}
                   <div className="w-full aspect-[4/3] rounded-xl overflow-hidden bg-muted/40 relative shrink-0">
                     {product.imageUrl ? (
-                      <img 
-                        src={product.imageUrl} 
-                        alt={product.name} 
+                      <img
+                        src={product.imageUrl}
+                        alt={product.name}
                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                       />
                     ) : (
@@ -156,8 +172,7 @@ export function FeaturedProducts() {
                         {product.name.slice(0, 2)}
                       </div>
                     )}
-                    
-                    {/* Hover Slide-up Button Overlay */}
+
                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none md:pointer-events-auto">
                       <motion.button
                         onClick={() => handleAddToCart(product)}
@@ -170,7 +185,6 @@ export function FeaturedProducts() {
                     </div>
                   </div>
 
-                  {/* Product Info */}
                   <div className="mt-3 flex flex-col justify-between flex-grow text-left">
                     <div>
                       <h3 className="font-heading font-bold text-sm text-foreground line-clamp-1 group-hover:text-[#C8510A] transition-colors leading-tight">
@@ -183,10 +197,9 @@ export function FeaturedProducts() {
 
                     <div className="mt-4 flex items-center justify-between">
                       <span className="text-sm font-black text-[#C8510A] leading-none">
-                        {displayPrice.toLocaleString()}đ
+                        {displayPrice.toLocaleString()}d
                       </span>
-                      
-                      {/* Mobile add to cart shortcut button */}
+
                       <button
                         onClick={() => handleAddToCart(product)}
                         className="md:hidden p-2 rounded-full bg-[#C8510A] text-white hover:bg-[#B04308] transition-colors shadow-sm"

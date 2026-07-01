@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { CustomerExtended } from "@/mock/customers";
-import { useDashboardStore } from "@/store/dashboardStore";
+import React, { useEffect, useState } from "react";
+import { CustomerExtended, useDashboardStore } from "@/store/dashboardStore";
 import { DataTable, Column } from "@/components/admin/DataTable";
 import { SearchBar } from "@/components/admin/SearchBar";
 import { Filter } from "@/components/admin/Filter";
@@ -14,40 +13,41 @@ export default function AdminCustomersPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
-
   const customers = useDashboardStore((state) => state.customers);
   const hydrateUsers = useDashboardStore((state) => state.hydrateUsers);
 
   useEffect(() => {
     setIsMounted(true);
-    hydrateUsers();
+    void hydrateUsers();
   }, [hydrateUsers]);
 
-  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
+  if (!isMounted) {
+    return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
+  }
 
-  const filteredCustomers = customers.filter((c) => {
+  const filteredCustomers = customers.filter((customer) => {
     if (!statusFilter) return true;
-    return c.status === statusFilter;
+    return customer.status === statusFilter;
   });
 
   const columns: Column<CustomerExtended>[] = [
-    { key: "id", header: "Mã KH" },
-    { key: "fullName", header: "Tên khách hàng" },
-    { key: "phone", header: "Số điện thoại" },
-    { key: "email", header: "Địa chỉ Email" },
+    { key: "id", header: "Ma KH" },
+    { key: "fullName", header: "Ten khach hang" },
+    { key: "phone", header: "So dien thoai" },
+    { key: "email", header: "Email" },
     {
       key: "orderCount",
-      header: "Số lượng đơn mua",
-      render: (item) => <span className="font-bold text-center block w-full">{item.orderCount} đơn</span>
+      header: "So don mua",
+      render: () => <span className="text-muted-foreground">Chua co du lieu</span>
     },
     {
       key: "totalSpent",
-      header: "Tổng tích lũy chi tiêu",
-      render: (item) => <span className="font-bold text-amber-900">{item.totalSpent.toLocaleString()}đ</span>
+      header: "Tong chi tieu",
+      render: () => <span className="text-muted-foreground">Chua co du lieu</span>
     },
     {
       key: "status",
-      header: "Thành viên",
+      header: "Tai khoan",
       render: (item) => <StatusBadge status={item.status} />
     }
   ];
@@ -59,7 +59,7 @@ export default function AdminCustomersPage() {
           {t("common.customers")}
         </h1>
         <p className="text-xs text-muted-foreground font-semibold mt-1">
-          Xem thông tin khách hàng, số lượng đơn đặt hàng trực tuyến và tổng chi tiêu tích lũy.
+          Danh sach khach hang lay tu User API. Lich su don hang va tong chi tieu se co khi Order backend duoc trien khai.
         </p>
       </div>
 
@@ -67,15 +67,15 @@ export default function AdminCustomersPage() {
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Tìm tên khách hàng, SĐT, Email..."
+          placeholder="Tim ten khach hang, so dien thoai, email..."
         />
         <Filter
-          label="Tài khoản"
+          label="Tai khoan"
           value={statusFilter}
           onChange={setStatusFilter}
           options={[
-            { value: "active", label: "Hoạt động" },
-            { value: "inactive", label: "Tạm khóa" }
+            { value: "active", label: "Hoat dong" },
+            { value: "inactive", label: "Tam khoa" }
           ]}
         />
       </div>

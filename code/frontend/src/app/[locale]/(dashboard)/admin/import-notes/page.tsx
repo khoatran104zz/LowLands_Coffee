@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/auth.store";
-import { useDashboardStore } from "@/store/dashboardStore";
+import { Store } from "@/types";
+import { getStores } from "@/services/store.service";
 import { getSuppliers, Supplier } from "@/services/supplier.service";
 import { getIngredients, Ingredient } from "@/services/ingredient.service";
 import {
@@ -36,12 +37,12 @@ export default function AdminImportNotesPage() {
   const [receipts, setReceipts] = useState<GoodsReceipt[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
+  const [branches, setBranches] = useState<Store[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
 
-  // States from Auth and Dashboard stores
+  // States from Auth store
   const currentUser = useAuthStore((state) => state.user);
-  const branches = useDashboardStore((state) => state.branches);
 
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -68,14 +69,16 @@ export default function AdminImportNotesPage() {
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [recList, supList, ingList] = await Promise.all([
+      const [recList, supList, ingList, storeList] = await Promise.all([
         getGoodsReceipts(),
         getSuppliers(),
-        getIngredients()
+        getIngredients(),
+        getStores()
       ]);
       setReceipts(recList);
       setSuppliers(supList);
       setIngredients(ingList);
+      setBranches(storeList);
     } catch (error) {
       console.error("Failed to load import notes data", error);
       toast.error("Không thể tải danh sách phiếu nhập kho từ máy chủ.");
@@ -133,14 +136,22 @@ export default function AdminImportNotesPage() {
       toast.error("Vui lòng thêm Nguyên liệu trước khi lập phiếu nhập!");
       return;
     }
-    
+    if (branches.length === 0) {
+      toast.error("Khong the lap phieu nhap vi chua tai duoc chi nhanh tu Backend API.");
+      return;
+    }
+    if (!currentUser?.id) {
+      toast.error("Khong xac dinh duoc nguoi tao phieu. Vui long dang nhap lai.");
+      return;
+    }
+
     // Auto generate receipt code
     const dateStr = new Date().toISOString().slice(2, 10).replace(/-/g, "");
     const randomNum = Math.floor(100 + Math.random() * 900);
     const code = `GR-${dateStr}-${randomNum}`;
 
     setFormSupplierId(String(suppliers[0].id));
-    setFormStoreId(branches[0]?.id ? String(branches[0].id) : "1");
+    setFormStoreId(String(branches[0].id));
     setFormReceiptCode(code);
     setFormNote("");
     setFormItems([{ ingredientId: ingredients[0].id, quantity: 1, unit: ingredients[0].unit, unitPrice: 10000 }]);
@@ -184,12 +195,17 @@ export default function AdminImportNotesPage() {
       return;
     }
 
+    if (!currentUser?.id) {
+      toast.error("Khong xac dinh duoc nguoi tao phieu. Vui long dang nhap lai.");
+      return;
+    }
+
     setIsSaving(true);
     try {
       const payload = {
         supplierId: parseInt(formSupplierId),
         storeId: parseInt(formStoreId),
-        createdById: currentUser?.id || 1,
+        createdById: currentUser.id,
         receiptCode: formReceiptCode.trim(),
         note: formNote.trim(),
         items: formItems

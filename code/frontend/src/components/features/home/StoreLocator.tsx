@@ -1,43 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
-import { getStores } from "@/services/auth.service";
+import { getStores } from "@/services/store.service";
 import { Store } from "@/types";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { MapPin, Phone, Search, AlertCircle } from "lucide-react";
-
-const MOCK_STORES: Store[] = [
-  {
-    id: 1,
-    name: "Lowlands Coffee - Nhà Thờ Lớn",
-    address: "2 Nhà Thờ, Hàng Trống, Hoàn Kiếm, Hà Nội",
-    phone: "024 3938 2112",
-    status: "active",
-  },
-  {
-    id: 2,
-    name: "Lowlands Coffee - Hàm Cá Mập",
-    address: "1-3-5 Đinh Tiên Hoàng, Hàng Bạc, Hoàn Kiếm, Hà Nội",
-    phone: "024 3926 2728",
-    status: "active",
-  },
-  {
-    id: 3,
-    name: "Lowlands Coffee - Lê Lợi",
-    address: "65 Lê Lợi, Bến Nghé, Quận 1, TP. Hồ Chí Minh",
-    phone: "028 3821 6789",
-    status: "active",
-  },
-  {
-    id: 4,
-    name: "Lowlands Coffee - Bạch Đằng",
-    address: "180 Bạch Đằng, Hải Châu 1, Hải Châu, Đà Nẵng",
-    phone: "0236 3849 777",
-    status: "active",
-  }
-];
 
 export function StoreLocator() {
   const { t } = useTranslation();
@@ -47,24 +16,22 @@ export function StoreLocator() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Attempt to load stores from API
     const loadStores = async () => {
       setLoading(true);
       setError(null);
       try {
         const data = await getStores();
         setStores(data || []);
-      } catch {
-        // Quiet warn to keep Next.js dev server terminal clean and satisfy eslint rules
-        console.warn("Backend API offline. Loading fallback mock stores.");
-        setStores(MOCK_STORES);
-        setError("offline_fallback");
+      } catch (loadError) {
+        console.error("Failed to load stores from Backend API", loadError);
+        setStores([]);
+        setError("api_not_connected");
       } finally {
         setLoading(false);
       }
     };
 
-    loadStores();
+    void loadStores();
   }, []);
 
   const filteredStores = stores.filter((store) =>
@@ -72,7 +39,7 @@ export function StoreLocator() {
     store.address.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const showList = !loading && (error === null || error === "offline_fallback");
+  const showList = !loading && error === null;
 
   return (
     <section id="store-locator" className="py-20 bg-background scroll-mt-20">
@@ -87,8 +54,6 @@ export function StoreLocator() {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          {/* Search bar & list */}
           <div className="lg:col-span-5 flex flex-col gap-4">
             <div className="flex gap-2">
               <div className="relative flex-grow">
@@ -96,7 +61,7 @@ export function StoreLocator() {
                 <Input
                   placeholder={t("landing.locator.placeholder")}
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(event) => setSearchQuery(event.target.value)}
                   className="pl-9"
                   disabled={loading || error === "api_not_connected"}
                 />
@@ -106,7 +71,6 @@ export function StoreLocator() {
               </Button>
             </div>
 
-            {/* Store Listing area */}
             <div className="max-h-[400px] overflow-y-auto border border-border rounded-xl p-4 flex flex-col gap-4 bg-card shadow-sm">
               {loading && (
                 <div className="flex flex-col gap-3 py-6 justify-center items-center">
@@ -115,18 +79,9 @@ export function StoreLocator() {
                 </div>
               )}
 
-              {error === "offline_fallback" && (
-                <div className="flex items-start gap-2 bg-accent/10 border border-accent/20 px-3 py-2.5 rounded-lg mb-1">
-                  <AlertCircle className="h-4.5 w-4.5 text-accent shrink-0 mt-0.5" />
-                  <span className="text-xs leading-normal text-foreground/80">
-                    {t("landing.locator.fallbackWarning")}
-                  </span>
-                </div>
-              )}
-
               {error === "api_not_connected" && (
                 <div className="flex flex-col items-center justify-center text-center p-6 gap-3">
-                  <AlertCircle className="h-8 w-8 text-accent animate-bounce" />
+                  <AlertCircle className="h-8 w-8 text-accent" />
                   <h4 className="text-sm font-bold text-foreground">{t("landing.locator.pendingTitle")}</h4>
                   <p className="text-xs text-muted-foreground leading-relaxed">
                     {t("landing.locator.pendingDesc")}
@@ -159,7 +114,6 @@ export function StoreLocator() {
             </div>
           </div>
 
-          {/* Interactive Placeholder Map (Visual Excellence) */}
           <div className="lg:col-span-7 h-[458px] border border-border rounded-xl overflow-hidden relative shadow-sm">
             <div className="absolute inset-0 bg-secondary/15 flex flex-col items-center justify-center p-8 text-center bg-[radial-gradient(#C5A880_1px,transparent_1px)] [background-size:16px_16px]">
               <div className="rounded-full bg-primary/10 p-4 mb-4">
@@ -174,7 +128,6 @@ export function StoreLocator() {
               </div>
             </div>
           </div>
-
         </div>
       </div>
     </section>
