@@ -47,13 +47,8 @@ export default function ManagerRevenuePage() {
     { key: "receiverName", header: t("admin.ordersPage.colCustomer") || "Khách hàng" },
     {
       key: "totalAmount",
-<<<<<<< HEAD
-      header: "Thanh toán",
-      render: (item) => <span className="font-bold text-amber-900">{item.totalAmount.toLocaleString("vi-VN")}đ</span>
-=======
       header: t("admin.ordersPage.colTotal") || "Thanh toán",
-      render: (item) => <span className="font-extrabold text-[#c8510a]">{item.totalAmount.toLocaleString()}đ</span>
->>>>>>> ad73e0ec1bba26164b072ee16b065260d83343ed
+      render: (item) => <span className="font-bold text-amber-900">{item.totalAmount.toLocaleString("vi-VN")}đ</span>
     },
     {
       key: "paymentMethod",
@@ -85,56 +80,21 @@ export default function ManagerRevenuePage() {
 
       {/* Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-<<<<<<< HEAD
-        <div className="bg-card border border-border/80 rounded-xl p-5 shadow-xs flex items-center space-x-4 text-left">
-          <div className="p-3 bg-amber-800/10 rounded-lg text-amber-900">
-            <Coins className="h-6 w-6" />
-          </div>
-          <div>
-            <span className="text-[10px] text-muted-foreground font-bold uppercase block tracking-wider">{t("staff.manager.todayRevenue")}</span>
-            <span className="text-lg font-bold text-foreground font-outfit mt-0.5 block">
-              {todayRevenue.toLocaleString("vi-VN")}đ
-            </span>
-          </div>
-        </div>
-
-        <div className="bg-card border border-border/80 rounded-xl p-5 shadow-xs flex items-center space-x-4 text-left">
-          <div className="p-3 bg-amber-800/10 rounded-lg text-amber-900">
-            <TrendingUp className="h-6 w-6" />
-          </div>
-          <div>
-            <span className="text-[10px] text-muted-foreground font-bold uppercase block tracking-wider">{t("staff.manager.weeklyRevenue")}</span>
-            <span className="text-lg font-bold text-foreground font-outfit mt-0.5 block">
-              {weeklyRevenue.toLocaleString("vi-VN")}đ
-            </span>
-          </div>
-        </div>
-
-        <div className="bg-card border border-border/80 rounded-xl p-5 shadow-xs flex items-center space-x-4 text-left">
-          <div className="p-3 bg-amber-800/10 rounded-lg text-amber-900">
-            <Calendar className="h-6 w-6" />
-          </div>
-          <div>
-            <span className="text-[10px] text-muted-foreground font-bold uppercase block tracking-wider">{t("staff.manager.monthlyRevenue")}</span>
-            <span className="text-lg font-bold text-foreground font-outfit mt-0.5 block">
-              {monthlyRevenue.toLocaleString("vi-VN")}đ
-            </span>
-=======
         <StatsCard
           title={t("staff.manager.todayRevenue") || "Doanh thu hôm nay"}
-          value={`${todayRevenue.toLocaleString()}đ`}
+          value={`${todayRevenue.toLocaleString("vi-VN")}đ`}
           icon={Coins}
           description="Doanh số thực tế hôm nay"
         />
         <StatsCard
           title={t("staff.manager.weeklyRevenue") || "Doanh thu tuần này"}
-          value={`${weeklyRevenue.toLocaleString()}đ`}
+          value={`${weeklyRevenue.toLocaleString("vi-VN")}đ`}
           icon={TrendingUp}
           description="Tổng doanh số tuần này"
         />
         <StatsCard
           title={t("staff.manager.monthlyRevenue") || "Doanh thu tháng này"}
-          value={`${monthlyRevenue.toLocaleString()}đ`}
+          value={`${monthlyRevenue.toLocaleString("vi-VN")}đ`}
           icon={Calendar}
           description="Tổng doanh số tháng này"
         />
@@ -169,7 +129,6 @@ export default function ManagerRevenuePage() {
                 <div className="bg-[#c8510a] h-2 rounded-full" style={{ width: "92%" }}></div>
               </div>
             </div>
->>>>>>> ad73e0ec1bba26164b072ee16b065260d83343ed
           </div>
         </div>
       </div>
