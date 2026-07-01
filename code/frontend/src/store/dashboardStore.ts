@@ -252,12 +252,8 @@ export const useDashboardStore = create<DashboardState>()(
                 employeeCode: user.employeeCode,
                 fullName: user.fullName,
                 role: role === "MANAGER" ? "manager" : "staff",
-<<<<<<< HEAD
-                branchName: "Chua gan",
-=======
                 branchId: user.branchId || 0,
                 branchName: user.branchName || "Chua gan",
->>>>>>> ed4c16367ec5d7cae41957f30cbed29a33c97019
                 email: user.email,
                 phone: user.phone || "",
                 status: user.status?.toUpperCase() === "ACTIVE" ? "active" : "inactive",
