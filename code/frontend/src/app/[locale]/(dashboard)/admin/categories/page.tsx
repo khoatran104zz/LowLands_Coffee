@@ -41,12 +41,12 @@ export default function AdminCategoriesPage() {
   if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
 
   const columns: Column<Category>[] = [
-    { key: "id", header: "ID" },
-    { key: "name", header: "Tên danh mục" },
-    { key: "description", header: "Mô tả chi tiết" },
+    { key: "id", header: t("admin.categoriesPage.colId") },
+    { key: "name", header: t("admin.categoriesPage.colName") },
+    { key: "description", header: t("admin.categoriesPage.colDescription") },
     {
       key: "status",
-      header: "Trạng thái",
+      header: t("admin.categoriesPage.colStatus"),
       render: (item) => <StatusBadge status={item.status} />
     }
   ];
@@ -126,7 +126,7 @@ export default function AdminCategoriesPage() {
             {t("common.categories")}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold mt-1">
-            Thiết lập danh sách phân nhóm sản phẩm (Cà phê, Trà, Bánh ngọt, v.v.).
+            {t("admin.categoriesPage.subtitle")}
           </p>
         </div>
         <Button
@@ -134,7 +134,7 @@ export default function AdminCategoriesPage() {
           className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg px-4 h-10 text-xs font-semibold flex items-center space-x-2 shrink-0 self-start sm:self-auto"
         >
           <Plus className="h-4 w-4" />
-          <span>{t("common.add")} danh mục</span>
+          <span>{t("admin.createCategory")}</span>
         </Button>
       </div>
 
@@ -143,7 +143,7 @@ export default function AdminCategoriesPage() {
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Tìm tên danh mục..."
+          placeholder={t("admin.categoriesPage.searchPlaceholder")}
         />
       </div>
 
@@ -166,28 +166,28 @@ export default function AdminCategoriesPage() {
       >
         <form onSubmit={handleSaveCategory} className="space-y-4 text-left">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-muted-foreground uppercase">Tên danh mục *</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.categoriesPage.labelName")}</label>
             <Input
               required
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
-              placeholder="Ví dụ: Phindi & Cream"
+              placeholder={t("admin.categoriesPage.placeholderName")}
               className="h-10 text-xs border-border bg-background"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-muted-foreground uppercase">Mô tả phân loại</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.categoriesPage.labelDesc")}</label>
             <textarea
               value={formDesc}
               onChange={(e) => setFormDesc(e.target.value)}
-              placeholder="Các món nước kết hợp thạch đá xay và kem béo..."
+              placeholder={t("admin.categoriesPage.placeholderDesc")}
               className="w-full p-3 border border-border bg-background text-foreground text-xs font-medium rounded-lg h-16 focus:outline-none focus:ring-1 focus:ring-amber-800 resize-none transition-colors"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-muted-foreground uppercase">Trạng thái</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.categoriesPage.labelStatus")}</label>
             <select
               value={formStatus}
               onChange={(e) => setFormStatus(e.target.value)}

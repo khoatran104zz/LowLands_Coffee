@@ -65,7 +65,7 @@ export function DataTable<T extends { id?: number | string }>({
 
   return (
     <div className="flex flex-col w-full bg-white dark:bg-zinc-900 rounded-xl border border-zinc-200/80 dark:border-zinc-800 shadow-xs overflow-hidden">
-      <div className="flex-grow overflow-x-auto min-h-[300px]">
+      <div className="flex-grow overflow-x-auto">
         <Table>
           <TableHeader className="bg-amber-50/50 dark:bg-amber-950/10">
             <TableRow className="border-b border-zinc-200/85 dark:border-zinc-800">
@@ -76,7 +76,7 @@ export function DataTable<T extends { id?: number | string }>({
               ))}
               {(onEdit || onDelete || onView) && (
                 <TableHead className="text-[10px] font-bold text-zinc-400 dark:text-zinc-550 uppercase tracking-wider text-right py-3.5 px-6 select-none font-outfit">
-                  Hành động
+                  {t("common.actions")}
                 </TableHead>
               )}
             </TableRow>
@@ -88,7 +88,7 @@ export function DataTable<T extends { id?: number | string }>({
                   colSpan={columns.length + ((onEdit || onDelete || onView) ? 1 : 0)}
                   className="h-48 text-center text-muted-foreground font-medium text-xs"
                 >
-                  Không có dữ liệu hiển thị.
+                  {t("common.emptyTable")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -111,7 +111,7 @@ export function DataTable<T extends { id?: number | string }>({
                             size="icon"
                             type="button"
                             onClick={() => onView(item)}
-                            title="Chi tiết"
+                            title={t("common.details")}
                             className="text-zinc-400 hover:text-amber-800 hover:bg-amber-50/50 dark:hover:bg-amber-950/20 transition-all h-7 w-7 rounded-md cursor-pointer"
                           >
                             <Eye className="h-3.5 w-3.5" />
@@ -123,7 +123,7 @@ export function DataTable<T extends { id?: number | string }>({
                             size="icon"
                             type="button"
                             onClick={() => onEdit(item)}
-                            title="Sửa"
+                            title={t("common.edit")}
                             className="text-zinc-400 hover:text-amber-850 hover:bg-amber-50/50 dark:hover:bg-amber-950/20 transition-all h-7 w-7 rounded-md cursor-pointer"
                           >
                             <Edit className="h-3.5 w-3.5" />
@@ -135,7 +135,7 @@ export function DataTable<T extends { id?: number | string }>({
                             size="icon"
                             type="button"
                             onClick={() => onDelete(item)}
-                            title="Xóa"
+                            title={t("common.delete")}
                             className="text-zinc-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/20 transition-all h-7 w-7 rounded-md cursor-pointer"
                           >
                             <Trash2 className="h-3.5 w-3.5" />
@@ -155,7 +155,13 @@ export function DataTable<T extends { id?: number | string }>({
       {totalPages > 1 && (
         <div className="flex items-center justify-between border-t border-zinc-200/85 dark:border-zinc-800 bg-zinc-50/30 dark:bg-zinc-900/30 px-6 py-3 shrink-0">
           <div className="text-[11px] text-zinc-400 dark:text-zinc-500 font-bold">
-            Hiển thị <span className="text-zinc-700 dark:text-zinc-300 font-extrabold">{startIndex + 1}</span> - <span className="text-zinc-700 dark:text-zinc-300 font-extrabold">{Math.min(startIndex + pageSize, totalItems)}</span> trên <span className="text-zinc-700 dark:text-zinc-300 font-extrabold">{totalItems}</span> bản ghi
+            {t("common.paginationShowing")}{" "}
+            <span className="text-zinc-700 dark:text-zinc-300 font-extrabold">{startIndex + 1}</span>{" "}
+            {t("common.paginationTo")}{" "}
+            <span className="text-zinc-700 dark:text-zinc-300 font-extrabold">{Math.min(startIndex + pageSize, totalItems)}</span>{" "}
+            {t("common.paginationOf")}{" "}
+            <span className="text-zinc-700 dark:text-zinc-300 font-extrabold">{totalItems}</span>{" "}
+            {t("common.paginationEntries")}
           </div>
           <div className="flex items-center space-x-1.5">
             <Button

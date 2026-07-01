@@ -20,12 +20,14 @@ import { Filter } from "@/components/admin/Filter";
 import { FormModal } from "@/components/admin/FormModal";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { StatsCard } from "@/components/admin/StatsCard";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface StockBalanceWithId extends StockBalance {
   id: string;
 }
 
 export default function AdminStockPage() {
+  const { t } = useTranslation();
   const [stockBalances, setStockBalances] = useState<StockBalanceWithId[]>([]);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [branches, setBranches] = useState<Store[]>([]);
@@ -106,31 +108,31 @@ export default function AdminStockPage() {
   const inStockCount = stockBalances.filter(b => b.currentStock > 5).length;
 
   const columns: Column<StockBalanceWithId>[] = [
-    { key: "storeName", header: "Cửa hàng / Chi nhánh" },
-    { key: "ingredientCode", header: "Mã nguyên liệu" },
-    { key: "ingredientName", header: "Tên nguyên liệu" },
+    { key: "storeName", header: t("admin.stockPage.colBranchName") },
+    { key: "ingredientCode", header: t("admin.stockPage.colCode") },
+    { key: "ingredientName", header: t("admin.stockPage.colName") },
     {
       key: "currentStock",
-      header: "Tồn kho thực tế",
+      header: t("admin.stockPage.colStock"),
       render: (item) => (
         <span className="font-extrabold text-sm">{item.currentStock}</span>
       )
     },
-    { key: "unit", header: "Đơn vị" },
+    { key: "unit", header: t("admin.stockPage.colUnit") },
     {
       key: "status",
-      header: "Cảnh báo tồn",
+      header: t("admin.stockPage.colAlert"),
       render: (item) => <StatusBadge status={getStockStatus(item)} />
     }
   ];
 
   const handleOpenAdjust = () => {
     if (ingredients.length === 0) {
-      toast.error("Vui lòng thêm nguyên liệu trước!");
+      toast.error(t("admin.stockPage.toastNoIngredients"));
       return;
     }
     if (branches.length === 0) {
-      toast.error("Khong the dieu chinh kho vi chua tai duoc chi nhanh tu Backend API.");
+      toast.error(t("admin.stockPage.toastNoBranches"));
       return;
     }
     if (!currentUser?.id) {
@@ -192,10 +194,10 @@ export default function AdminStockPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-left select-none">
         <div>
           <h1 className="text-xl font-extrabold text-amber-900 font-outfit uppercase tracking-wide">
-            Kiểm kê & Điều chỉnh Tồn kho
+            {t("admin.stockPage.title")}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold mt-1">
-            Theo dõi số lượng tồn thực tế của nguyên liệu tại các chi nhánh cửa hàng. Tạo phiếu điều chỉnh sai lệch kho.
+            {t("admin.stockPage.subtitle")}
           </p>
         </div>
         <Button
@@ -203,39 +205,39 @@ export default function AdminStockPage() {
           className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg px-4 h-10 text-xs font-semibold flex items-center space-x-2 shrink-0 self-start sm:self-auto cursor-pointer"
         >
           <ArrowLeftRight className="h-4 w-4" />
-          <span>Điều chỉnh kho</span>
+          <span>{t("admin.stockPage.adjustBtn")}</span>
         </Button>
       </div>
 
       {/* KPI Cards Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
-          title="Tổng mặt hàng tồn"
+          title={t("admin.stockPage.totalItems")}
           value={totalItemsCount}
           icon={Warehouse}
-          description="Sản phẩm nguyên vật liệu"
+          description={t("admin.stockPage.totalItemsDesc")}
         />
         <StatsCard
-          title="Tồn kho an toàn"
+          title={t("admin.stockPage.safeStock")}
           value={inStockCount}
           icon={Warehouse}
-          description="Số lượng ổn định"
+          description={t("admin.stockPage.safeStockDesc")}
           className="hover:border-emerald-500/30"
         />
         <StatsCard
-          title="Mức cảnh báo thấp"
+          title={t("admin.stockPage.lowStock")}
           value={lowStockCount}
           icon={AlertTriangle}
-          description="Cần chuẩn bị nhập hàng"
-          trend={lowStockCount > 0 ? { type: "up", value: "Cần chú ý" } : undefined}
+          description={t("admin.stockPage.lowStockDesc")}
+          trend={lowStockCount > 0 ? { type: "up", value: t("admin.stockPage.lowStockTrend") } : undefined}
           className="hover:border-amber-500/30"
         />
         <StatsCard
-          title="Hết hàng hoàn toàn"
+          title={t("admin.stockPage.outOfStock")}
           value={outOfStockCount}
           icon={ShieldAlert}
-          description="Cần đặt hàng khẩn cấp"
-          trend={outOfStockCount > 0 ? { type: "down", value: "Nghiêm trọng" } : undefined}
+          description={t("admin.stockPage.outOfStockDesc")}
+          trend={outOfStockCount > 0 ? { type: "down", value: t("admin.stockPage.outOfStockTrend") } : undefined}
           className="hover:border-rose-500/30"
         />
       </div>
@@ -245,26 +247,26 @@ export default function AdminStockPage() {
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Tìm theo tên nguyên liệu, mã hoặc chi nhánh..."
+          placeholder={t("admin.stockPage.searchPlaceholder")}
         />
         <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
           <Filter
-            label="Chi nhánh"
+            label={t("admin.stockPage.branchFilter")}
             value={branchFilter}
             onChange={setBranchFilter}
             options={branches.map((b) => ({ value: String(b.id), label: b.name }))}
-            placeholder="Tất cả chi nhánh"
+            placeholder={t("admin.stockPage.allBranches")}
           />
           <Filter
-            label="Cảnh báo tồn"
+            label={t("admin.stockPage.alertFilter")}
             value={alertFilter}
             onChange={setAlertFilter}
             options={[
-              { value: "in_stock", label: "Tồn kho an toàn" },
-              { value: "low_stock", label: "Sắp hết hàng" },
-              { value: "out_of_stock", label: "Hết hàng hoàn toàn" }
+              { value: "in_stock", label: t("admin.stockPage.alertInStock") },
+              { value: "low_stock", label: t("admin.stockPage.alertLowStock") },
+              { value: "out_of_stock", label: t("admin.stockPage.alertOutOfStock") }
             ]}
-            placeholder="Mọi trạng thái"
+            placeholder={t("admin.stockPage.anyAlert")}
           />
         </div>
       </div>
@@ -272,7 +274,7 @@ export default function AdminStockPage() {
       {/* Data Table */}
       {isLoading ? (
         <div className="text-center py-20 text-xs text-muted-foreground font-semibold">
-          Đang tải dữ liệu số dư tồn kho từ máy chủ...
+          {t("admin.stockPage.loading")}
         </div>
       ) : (
         <DataTable

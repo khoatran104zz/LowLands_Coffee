@@ -20,8 +20,10 @@ import { Filter } from "@/components/admin/Filter";
 import { FormModal } from "@/components/admin/FormModal";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function AdminIngredientsPage() {
+  const { t } = useTranslation();
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [categories, setCategories] = useState<IngredientCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -79,14 +81,14 @@ export default function AdminIngredientsPage() {
   });
 
   const columns: Column<Ingredient>[] = [
-    { key: "id", header: "ID" },
-    { key: "code", header: "Mã NL" },
-    { key: "name", header: "Tên nguyên liệu" },
-    { key: "categoryName", header: "Danh mục", render: (item) => item.categoryName || `Mã DM: ${item.categoryId}` },
-    { key: "unit", header: "Đơn vị tính" },
+    { key: "id", header: t("admin.ingredientsPage.colId") },
+    { key: "code", header: t("admin.ingredientsPage.colCode") },
+    { key: "name", header: t("admin.ingredientsPage.colName") },
+    { key: "categoryName", header: t("admin.ingredientsPage.colCategory"), render: (item) => item.categoryName || `Mã DM: ${item.categoryId}` },
+    { key: "unit", header: t("admin.ingredientsPage.colUnit") },
     {
       key: "status",
-      header: "Trạng thái",
+      header: t("admin.ingredientsPage.colStatus"),
       render: (item) => <StatusBadge status={item.status} />
     }
   ];
@@ -172,10 +174,10 @@ export default function AdminIngredientsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-left select-none">
         <div>
           <h1 className="text-xl font-extrabold text-amber-900 font-outfit uppercase tracking-wide">
-            Quản lý Nguyên liệu
+            {t("admin.ingredientsPage.title")}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold mt-1">
-            Thiết lập danh mục các loại nguyên liệu pha chế, định lượng và đơn vị sử dụng trong hệ thống.
+            {t("admin.ingredientsPage.subtitle")}
           </p>
         </div>
         <Button
@@ -183,7 +185,7 @@ export default function AdminIngredientsPage() {
           className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg px-4 h-10 text-xs font-semibold flex items-center space-x-2 shrink-0 self-start sm:self-auto cursor-pointer"
         >
           <Plus className="h-4 w-4" />
-          <span>Thêm nguyên liệu</span>
+          <span>{t("admin.createIngredient")}</span>
         </Button>
       </div>
 
@@ -192,21 +194,21 @@ export default function AdminIngredientsPage() {
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Tìm theo tên hoặc mã nguyên liệu..."
+          placeholder={t("admin.ingredientsPage.searchPlaceholder")}
         />
         <Filter
-          label="Danh mục"
+          label={t("admin.ingredientsPage.categoryFilter")}
           value={categoryFilter}
           onChange={setCategoryFilter}
           options={categories.map((c) => ({ value: String(c.id), label: c.name }))}
-          placeholder="Tất cả danh mục"
+          placeholder={t("admin.ingredientsPage.allCategories")}
         />
       </div>
 
       {/* Data Table */}
       {isLoading ? (
         <div className="text-center py-20 text-xs text-muted-foreground font-semibold">
-          Đang tải dữ liệu nguyên liệu từ máy chủ...
+          {t("admin.ingredientsPage.loading")}
         </div>
       ) : (
         <DataTable
@@ -223,7 +225,7 @@ export default function AdminIngredientsPage() {
       <FormModal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        title={editingItem ? "Cập nhật nguyên liệu" : "Thêm nguyên liệu mới"}
+        title={editingItem ? t("admin.editIngredient") : t("admin.createIngredient")}
         onSubmit={handleSave}
       >
         <div className="grid grid-cols-2 gap-4">

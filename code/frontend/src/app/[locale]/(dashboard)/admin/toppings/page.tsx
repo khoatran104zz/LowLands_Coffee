@@ -38,11 +38,11 @@ export default function AdminToppingsPage() {
   }, [hydrateToppings]);
 
   const columns: Column<Topping>[] = [
-    { key: "id", header: "ID" },
-    { key: "name", header: "Tên Topping" },
+    { key: "id", header: t("admin.toppingsPage.colId") },
+    { key: "name", header: t("admin.toppingsPage.colName") },
     {
       key: "price",
-      header: "Đơn giá",
+      header: t("admin.toppingsPage.colPrice"),
       render: (item) => (
         <span className="font-semibold text-zinc-800">
           {new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(item.price)}
@@ -51,7 +51,7 @@ export default function AdminToppingsPage() {
     },
     {
       key: "status",
-      header: "Trạng thái",
+      header: t("admin.toppingsPage.colStatus"),
       render: (item) => <StatusBadge status={item.status} />
     },
   ];
@@ -134,7 +134,7 @@ export default function AdminToppingsPage() {
             {t("common.toppings")}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold mt-1">
-            Thiết lập danh mục các loại thạch, trân châu, kem béo đi kèm cho thức uống.
+            {t("admin.toppingsPage.subtitle")}
           </p>
         </div>
         <Button
@@ -142,7 +142,7 @@ export default function AdminToppingsPage() {
           className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg px-4 h-10 text-xs font-semibold flex items-center space-x-2 shrink-0 self-start sm:self-auto"
         >
           <Plus className="h-4 w-4" />
-          <span>Thêm topping</span>
+          <span>{t("admin.createTopping")}</span>
         </Button>
       </div>
 
@@ -158,7 +158,7 @@ export default function AdminToppingsPage() {
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Tìm tên topping..."
+          placeholder={t("admin.toppingsPage.searchPlaceholder")}
         />
       </div>
 
@@ -176,23 +176,23 @@ export default function AdminToppingsPage() {
       <FormModal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        title={editingTopping ? "Chỉnh sửa Topping" : "Thêm Topping Mới"}
+        title={editingTopping ? t("admin.editTopping") : t("admin.createTopping")}
         size="md"
       >
         <form onSubmit={handleSaveTopping} className="space-y-4 text-left">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-muted-foreground uppercase">Tên Topping *</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.toppingsPage.labelName")}</label>
             <Input
               required
               value={formName}
               onChange={(e) => setFormName(e.target.value)}
-              placeholder="Ví dụ: Thạch Cà Phê"
+              placeholder={t("admin.toppingsPage.placeholderName")}
               className="h-10 text-xs border-border bg-background"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-muted-foreground uppercase">Đơn giá (VND) *</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.toppingsPage.labelPrice")}</label>
             <Input
               required
               type="number"
@@ -200,13 +200,13 @@ export default function AdminToppingsPage() {
               step="1000"
               value={formPrice}
               onChange={(e) => setFormPrice(e.target.value)}
-              placeholder="Ví dụ: 10000"
+              placeholder={t("admin.toppingsPage.placeholderPrice")}
               className="h-10 text-xs border-border bg-background"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-muted-foreground uppercase">Trạng thái</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.toppingsPage.labelStatus")}</label>
             <select
               value={formStatus}
               onChange={(e) => setFormStatus(e.target.value)}
@@ -224,13 +224,13 @@ export default function AdminToppingsPage() {
               onClick={() => setIsFormOpen(false)}
               className="h-10 text-xs font-bold px-4 border-border rounded-lg"
             >
-              Hủy
+              {t("common.cancel")}
             </Button>
             <Button
               type="submit"
               className="h-10 text-xs font-bold px-5 bg-amber-850 hover:bg-amber-800 text-white rounded-lg"
             >
-              Lưu lại
+              {t("common.save")}
             </Button>
           </div>
         </form>

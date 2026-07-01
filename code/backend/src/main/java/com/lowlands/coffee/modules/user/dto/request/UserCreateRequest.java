@@ -33,4 +33,7 @@ public class UserCreateRequest {
     @NotBlank
     @Size(max = 20)
     private String status;
+
+    private Long branchId;
 }
+
