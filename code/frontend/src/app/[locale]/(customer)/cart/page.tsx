@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useConfirm } from "@/hooks/useConfirm";
 import { useCartStore } from "@/store/cart.store";
-import { getPromotions } from "@/services/auth.service";
+import { getPromotions } from "@/services/promotion.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useRouter } from "@/i18n/navigation";

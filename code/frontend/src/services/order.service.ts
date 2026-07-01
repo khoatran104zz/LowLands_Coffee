@@ -1,16 +1,12 @@
-import { INITIAL_ORDERS } from "@/mock/orders";
 import { Order } from "@/types";
 
+const ORDER_BACKEND_NOT_IMPLEMENTED = "Order backend chua trien khai.";
+
 export const createOrder = async (orderData: Order): Promise<Order> => {
-  return {
-    ...orderData,
-    id: Date.now(),
-    orderCode: `LL-${Date.now()}`,
-    status: "pending",
-    createdAt: new Date().toISOString(),
-  };
+  void orderData;
+  throw new Error(ORDER_BACKEND_NOT_IMPLEMENTED);
 };
 
 export const getOrderHistory = async (): Promise<Order[]> => {
-  return INITIAL_ORDERS;
+  throw new Error(ORDER_BACKEND_NOT_IMPLEMENTED);
 };

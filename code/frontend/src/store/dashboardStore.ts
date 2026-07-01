@@ -1,10 +1,6 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
-import { Store, Product, Category, Promotion, Topping } from "@/types";
-import { INITIAL_BRANCHES } from "@/mock/branches";
-import { INITIAL_EMPLOYEES, Employee } from "@/mock/employees";
-import { INITIAL_CUSTOMERS, CustomerExtended } from "@/mock/customers";
-import { INITIAL_ORDERS, OrderExtended } from "@/mock/orders";
+import type { Store, Product, Category, Promotion, Topping, Order, User } from "@/types";
 import {
   ProductRequest,
   createAdminCategory,
@@ -29,6 +25,31 @@ import {
   deleteUser,
 } from "@/services/user.service";
 
+export interface Employee {
+  id: number;
+  fullName: string;
+  role: "manager" | "staff";
+  branchId: number;
+  branchName: string;
+  email: string;
+  phone: string;
+  status: "active" | "inactive";
+  workingShift?: string;
+  performance?: string;
+}
+
+export interface CustomerExtended extends User {
+  orderCount: number;
+  totalSpent: number;
+}
+
+export interface OrderExtended extends Order {
+  id: number;
+  orderCode: string;
+  storeName: string;
+  status: "pending" | "preparing" | "completed" | "cancelled";
+  createdAt: string;
+}
 
 export interface Ingredient {
   id: number;
@@ -51,104 +72,40 @@ export interface DashboardState {
   orders: OrderExtended[];
   promotions: Promotion[];
   ingredients: Ingredient[];
-  
-  // Actions
+
   hydrateProductCatalog: (source?: "admin" | "public") => Promise<void>;
   hydrateUsers: () => Promise<void>;
 
-  // Branches
   addBranch: (branch: Omit<Store, "id">) => void;
   updateBranch: (branch: Store) => void;
   deleteBranch: (id: number) => void;
-  
-  // Products
+
   addProduct: (product: Omit<Product, "id">) => Promise<void>;
   updateProduct: (product: Product) => Promise<void>;
   deleteProduct: (id: number) => Promise<void>;
-  
-  // Categories
+
   addCategory: (category: Omit<Category, "id">) => Promise<void>;
   updateCategory: (category: Category) => Promise<void>;
   deleteCategory: (id: number) => Promise<void>;
 
-  // Toppings
   addTopping: (topping: Omit<Topping, "id">) => Promise<void>;
   updateTopping: (topping: Topping) => Promise<void>;
   deleteTopping: (id: number) => Promise<void>;
-  
-  // Employees
+
   addEmployee: (employee: Omit<Employee, "id"> & { password?: string }) => Promise<void>;
   updateEmployee: (employee: Employee) => Promise<void>;
   deleteEmployee: (id: number) => Promise<void>;
-  
-  // Orders
+
   addOrder: (order: Omit<OrderExtended, "id" | "orderCode" | "createdAt">) => OrderExtended;
   updateOrderStatus: (id: number, status: OrderExtended["status"]) => void;
-  
-  // Promotions
+
   addPromotion: (promo: Omit<Promotion, "id">) => void;
   updatePromotion: (promo: Promotion) => void;
   deletePromotion: (id: number) => void;
-  
-  // Inventory
+
   updateIngredientQty: (id: number, amount: number) => void;
   importStock: (id: number, quantityToAdd: number) => void;
 }
-
-const INITIAL_INGREDIENTS: Ingredient[] = [
-  { id: 1, name: "Hạt cà phê Robusta", quantity: 4.5, unit: "kg", minAlertLevel: 5.0, status: "low_stock" },
-  { id: 2, name: "Hạt cà phê Arabica", quantity: 12.0, unit: "kg", minAlertLevel: 4.0, status: "in_stock" },
-  { id: 3, name: "Sữa đặc Vinamilk Ngôi Sao Phương Nam", quantity: 3, unit: "lon", minAlertLevel: 10, status: "low_stock" },
-  { id: 4, name: "Sữa tươi Đà Lạt Milk 950ml", quantity: 15, unit: "hộp", minAlertLevel: 5, status: "in_stock" },
-  { id: 5, name: "Trà Ô Long Cao Nguyên", quantity: 8.5, unit: "kg", minAlertLevel: 3.0, status: "in_stock" },
-  { id: 6, name: "Hạt sen ngâm syrup", quantity: 0, unit: "lon", minAlertLevel: 4, status: "out_of_stock" },
-  { id: 7, name: "Đào miếng ngâm xốt", quantity: 18, unit: "lon", minAlertLevel: 6, status: "in_stock" },
-  { id: 8, name: "Bột Trà Xanh Uji Matcha", quantity: 0.8, unit: "kg", minAlertLevel: 1.0, status: "low_stock" },
-  { id: 9, name: "Kem béo thực vật Rich's lùn", quantity: 7, unit: "hộp", minAlertLevel: 4, status: "in_stock" },
-  { id: 10, name: "Bánh mì que đông lạnh", quantity: 45, unit: "cái", minAlertLevel: 20, status: "in_stock" }
-];
-
-const INITIAL_PROMOTIONS: Promotion[] = [
-  {
-    id: 1,
-    code: "LOWLANDS50",
-    name: "Giảm 50% cho đơn hàng đầu tiên",
-    discountType: "percentage",
-    discountValue: 50,
-    minOrderAmount: 0,
-    status: "active",
-    startDate: "2026-06-01",
-    endDate: "2026-12-31"
-  },
-  {
-    id: 2,
-    code: "COFFEELOVER",
-    name: "Giảm 20.000đ cho đơn hàng từ 100.000đ",
-    discountType: "fixed_amount",
-    discountValue: 20000,
-    minOrderAmount: 100000,
-    status: "active",
-    startDate: "2026-06-01",
-    endDate: "2026-08-30"
-  },
-  {
-    id: 3,
-    code: "FREETOPPING",
-    name: "Tặng topping miễn phí",
-    discountType: "fixed_amount",
-    discountValue: 8000,
-    minOrderAmount: 50000,
-    status: "inactive",
-    startDate: "2026-01-01",
-    endDate: "2026-05-01"
-  }
-];
-
-const getIngredientStatus = (qty: number, min: number): Ingredient["status"] => {
-  if (qty <= 0) return "out_of_stock";
-  if (qty <= min) return "low_stock";
-  return "in_stock";
-};
 
 const toProductRequest = (product: Omit<Product, "id"> | Product, includeToppings: boolean): ProductRequest => {
   const isUpdate = "id" in product;
@@ -169,19 +126,23 @@ const toProductRequest = (product: Omit<Product, "id"> | Product, includeTopping
   };
 };
 
+const unsupported = (message: string): never => {
+  throw new Error(message);
+};
+
 export const useDashboardStore = create<DashboardState>()(
   persist(
     (set, get) => ({
-      branches: INITIAL_BRANCHES,
+      branches: [],
       products: [],
       categories: [],
       toppings: [],
       productCatalogError: null,
-      employees: INITIAL_EMPLOYEES,
-      customers: INITIAL_CUSTOMERS,
-      orders: INITIAL_ORDERS,
-      promotions: INITIAL_PROMOTIONS,
-      ingredients: INITIAL_INGREDIENTS,
+      employees: [],
+      customers: [],
+      orders: [],
+      promotions: [],
+      ingredients: [],
 
       hydrateProductCatalog: async (source = "public") => {
         if (source === "admin") {
@@ -189,7 +150,6 @@ export const useDashboardStore = create<DashboardState>()(
             return;
           }
 
-          // Prevent non-admin roles from fetching admin product catalog (prevents 403 Forbidden logs)
           const userStr = localStorage.getItem("lowlands_user");
           if (userStr) {
             try {
@@ -199,8 +159,8 @@ export const useDashboardStore = create<DashboardState>()(
               if (!allowedRoles.includes(userRole)) {
                 return;
               }
-            } catch (e) {
-              console.error("Failed to parse user details for catalog validation", e);
+            } catch (error) {
+              console.error("Failed to parse user details for catalog validation", error);
             }
           }
         }
@@ -216,14 +176,14 @@ export const useDashboardStore = create<DashboardState>()(
             }
           })() : "";
 
-          const isAdminOrStaff = ["ADMIN", "MANAGER", "STAFF"].includes(userRole);
+          const canReadAdminToppings = ["ADMIN", "MANAGER", "STAFF"].includes(userRole);
 
           const [products, categories, toppings] = source === "admin"
             ? await Promise.all([getAdminProducts(), getAdminCategories(), getAdminToppings()])
             : await Promise.all([
                 getProducts(),
                 getCategories(),
-                isAdminOrStaff
+                canReadAdminToppings
                   ? getAdminToppings().catch(() => [] as Topping[])
                   : Promise.resolve([] as Topping[])
               ]);
@@ -234,7 +194,7 @@ export const useDashboardStore = create<DashboardState>()(
             products: [],
             categories: [],
             toppings: [],
-            productCatalogError: "Không thể tải danh mục sản phẩm từ Backend API.",
+            productCatalogError: "Khong the tai danh muc san pham tu Backend API.",
           });
         }
       },
@@ -244,7 +204,6 @@ export const useDashboardStore = create<DashboardState>()(
           return;
         }
 
-        // Prevent non-admin/manager/staff users (like CUSTOMER) from calling getUsers endpoint, preventing 403 Forbidden responses
         const userStr = localStorage.getItem("lowlands_user");
         if (userStr) {
           try {
@@ -254,80 +213,61 @@ export const useDashboardStore = create<DashboardState>()(
             if (!allowedRoles.includes(userRole)) {
               return;
             }
-          } catch (e) {
-            console.error("Failed to parse user details for role validation", e);
+          } catch (error) {
+            console.error("Failed to parse user details for role validation", error);
           }
         }
 
         try {
           const users = await getUsers();
-          const roleMap: Record<string, "admin" | "manager" | "staff"> = {
-            ADMIN: "admin",
-            MANAGER: "manager",
-            STAFF: "staff"
-          };
-          
-          const employees = users
-            .filter((u) => u.roleName !== "CUSTOMER")
-            .map((u) => {
-              const roleKey = u.roleName?.toUpperCase() || "";
-              const mappedRole = roleMap[roleKey] || "staff";
-              const branchId = 1; // assign mock branch ID 1
-              const state = get();
-              const branchName = state.branches.find(b => b.id === branchId)?.name || "Chi nhánh khác";
+
+          const employees: Employee[] = users
+            .filter((user) => {
+              const role = (user.roleName || user.role || "").toUpperCase();
+              return role === "STAFF" || role === "MANAGER";
+            })
+            .map((user) => {
+              const role = (user.roleName || user.role || "").toUpperCase();
               return {
-                id: u.id,
-                fullName: u.fullName,
-                role: mappedRole,
-                branchId,
-                branchName,
-                email: u.email,
-                phone: u.phone || "",
-                status: (u.status?.toUpperCase() === "ACTIVE" ? "active" : "inactive") as "active" | "inactive",
-                workingShift: u.roleName?.toUpperCase() === "ADMIN" ? "Fulltime - Hành chính" : "Ca Sáng (06:00 - 14:00)",
-                performance: "Khá"
+                id: user.id,
+                fullName: user.fullName,
+                role: role === "MANAGER" ? "manager" : "staff",
+                branchId: 0,
+                branchName: "Chua gan",
+                email: user.email,
+                phone: user.phone || "",
+                status: user.status?.toUpperCase() === "ACTIVE" ? "active" : "inactive",
               };
             });
 
-          const customers = users
-            .filter((u) => u.roleName === "CUSTOMER")
-            .map((u) => {
-              return {
-                id: u.id,
-                fullName: u.fullName,
-                email: u.email,
-                phone: u.phone || "",
-                status: (u.status?.toUpperCase() === "ACTIVE" ? "active" : "inactive") as "active" | "inactive",
-                orderCount: 0,
-                totalSpent: 0
-              };
-            });
+          const customers: CustomerExtended[] = users
+            .filter((user) => (user.roleName || user.role || "").toUpperCase() === "CUSTOMER")
+            .map((user) => ({
+              ...user,
+              phone: user.phone || "",
+              status: user.status?.toUpperCase() === "ACTIVE" ? "active" : "inactive",
+              orderCount: 0,
+              totalSpent: 0,
+            }));
 
           set({ employees, customers });
         } catch (error) {
           console.error("Failed to hydrate users", error);
+          set({ employees: [], customers: [] });
         }
       },
 
-      // Branches CRUD
-      addBranch: (branch) => set((state) => ({
-        branches: [...state.branches, { ...branch, id: Math.max(...state.branches.map(b => b.id), 0) + 1 }]
-      })),
-      updateBranch: (updated) => set((state) => ({
-        branches: state.branches.map((b) => (b.id === updated.id ? updated : b))
-      })),
-      deleteBranch: (id) => set((state) => ({
-        branches: state.branches.filter((b) => b.id !== id)
-      })),
+      addBranch: () => unsupported("Store API phai duoc goi qua store.service.ts."),
+      updateBranch: () => unsupported("Store API phai duoc goi qua store.service.ts."),
+      deleteBranch: () => unsupported("Store API phai duoc goi qua store.service.ts."),
 
-      // Products CRUD
       addProduct: async (product) => {
         try {
           const created = await createAdminProduct(toProductRequest(product, true));
           set((state) => ({ products: [...state.products, created], productCatalogError: null }));
         } catch (error) {
           console.error("Failed to create product", error);
-          set({ productCatalogError: "Không thể tạo sản phẩm qua Backend API." });
+          set({ productCatalogError: "Khong the tao san pham qua Backend API." });
           throw error;
         }
       },
@@ -335,12 +275,12 @@ export const useDashboardStore = create<DashboardState>()(
         try {
           const saved = await updateAdminProduct(updated.id, toProductRequest(updated, true));
           set((state) => ({
-            products: state.products.map((p) => (p.id === saved.id ? saved : p)),
+            products: state.products.map((product) => (product.id === saved.id ? saved : product)),
             productCatalogError: null,
           }));
         } catch (error) {
           console.error("Failed to update product", error);
-          set({ productCatalogError: "Không thể cập nhật sản phẩm qua Backend API." });
+          set({ productCatalogError: "Khong the cap nhat san pham qua Backend API." });
           throw error;
         }
       },
@@ -348,24 +288,23 @@ export const useDashboardStore = create<DashboardState>()(
         try {
           await deleteAdminProduct(id);
           set((state) => ({
-            products: state.products.filter((p) => p.id !== id),
+            products: state.products.filter((product) => product.id !== id),
             productCatalogError: null,
           }));
         } catch (error) {
           console.error("Failed to delete product", error);
-          set({ productCatalogError: "Không thể xóa sản phẩm qua Backend API." });
+          set({ productCatalogError: "Khong the xoa san pham qua Backend API." });
           throw error;
         }
       },
 
-      // Categories CRUD
       addCategory: async (category) => {
         try {
           const created = await createAdminCategory(category);
           set((state) => ({ categories: [...state.categories, created], productCatalogError: null }));
         } catch (error) {
           console.error("Failed to create category", error);
-          set({ productCatalogError: "Không thể tạo danh mục qua Backend API." });
+          set({ productCatalogError: "Khong the tao danh muc qua Backend API." });
           throw error;
         }
       },
@@ -373,12 +312,12 @@ export const useDashboardStore = create<DashboardState>()(
         try {
           const saved = await updateAdminCategory(updated.id, updated);
           set((state) => ({
-            categories: state.categories.map((c) => (c.id === saved.id ? saved : c)),
+            categories: state.categories.map((category) => (category.id === saved.id ? saved : category)),
             productCatalogError: null,
           }));
         } catch (error) {
           console.error("Failed to update category", error);
-          set({ productCatalogError: "Không thể cập nhật danh mục qua Backend API." });
+          set({ productCatalogError: "Khong the cap nhat danh muc qua Backend API." });
           throw error;
         }
       },
@@ -386,24 +325,23 @@ export const useDashboardStore = create<DashboardState>()(
         try {
           await deleteAdminCategory(id);
           set((state) => ({
-            categories: state.categories.filter((c) => c.id !== id),
+            categories: state.categories.filter((category) => category.id !== id),
             productCatalogError: null,
           }));
         } catch (error) {
           console.error("Failed to delete category", error);
-          set({ productCatalogError: "Không thể xóa danh mục qua Backend API." });
+          set({ productCatalogError: "Khong the xoa danh muc qua Backend API." });
           throw error;
         }
       },
 
-      // Toppings CRUD
       addTopping: async (topping) => {
         try {
           const created = await createAdminTopping(topping);
           set((state) => ({ toppings: [...state.toppings, created], productCatalogError: null }));
         } catch (error) {
           console.error("Failed to create topping", error);
-          set({ productCatalogError: "Không thể tạo topping qua Backend API." });
+          set({ productCatalogError: "Khong the tao topping qua Backend API." });
           throw error;
         }
       },
@@ -411,12 +349,12 @@ export const useDashboardStore = create<DashboardState>()(
         try {
           const saved = await updateAdminTopping(updated.id, updated);
           set((state) => ({
-            toppings: state.toppings.map((t) => (t.id === saved.id ? saved : t)),
+            toppings: state.toppings.map((topping) => (topping.id === saved.id ? saved : topping)),
             productCatalogError: null,
           }));
         } catch (error) {
           console.error("Failed to update topping", error);
-          set({ productCatalogError: "Không thể cập nhật topping qua Backend API." });
+          set({ productCatalogError: "Khong the cap nhat topping qua Backend API." });
           throw error;
         }
       },
@@ -424,31 +362,28 @@ export const useDashboardStore = create<DashboardState>()(
         try {
           await deleteAdminTopping(id);
           set((state) => ({
-            toppings: state.toppings.filter((t) => t.id !== id),
+            toppings: state.toppings.filter((topping) => topping.id !== id),
             productCatalogError: null,
           }));
         } catch (error) {
           console.error("Failed to delete topping", error);
-          set({ productCatalogError: "Không thể xóa topping qua Backend API." });
+          set({ productCatalogError: "Khong the xoa topping qua Backend API." });
           throw error;
         }
       },
 
-      // Employees CRUD
       addEmployee: async (employee) => {
         try {
-          const roleIdMap: Record<string, number> = {
-            admin: 1,
+          const roleIdMap: Record<Employee["role"], number> = {
             manager: 2,
-            staff: 3
+            staff: 3,
           };
-          const roleId = roleIdMap[employee.role] || 3;
           await createUser({
             fullName: employee.fullName,
             email: employee.email,
             phone: employee.phone,
             password: employee.password || "Password@123",
-            roleId,
+            roleId: roleIdMap[employee.role],
             status: employee.status === "active" ? "ACTIVE" : "INACTIVE"
           });
           await get().hydrateUsers();
@@ -459,17 +394,15 @@ export const useDashboardStore = create<DashboardState>()(
       },
       updateEmployee: async (updated) => {
         try {
-          const roleIdMap: Record<string, number> = {
-            admin: 1,
+          const roleIdMap: Record<Employee["role"], number> = {
             manager: 2,
-            staff: 3
+            staff: 3,
           };
-          const roleId = roleIdMap[updated.role] || 3;
           await updateUser(updated.id, {
             fullName: updated.fullName,
             email: updated.email,
             phone: updated.phone,
-            roleId,
+            roleId: roleIdMap[updated.role],
             status: updated.status === "active" ? "ACTIVE" : "INACTIVE"
           });
           await get().hydrateUsers();
@@ -488,95 +421,15 @@ export const useDashboardStore = create<DashboardState>()(
         }
       },
 
-      // Orders Operations
-      addOrder: (orderInput) => {
-        const state = get();
-        const nextId = Math.max(...state.orders.map(o => o.id), 0) + 1;
-        const dateStr = new Date().toISOString().slice(2, 10).replace(/-/g, "");
-        const codeNum = String(nextId % 1000).padStart(3, "0");
-        const orderCode = `LL-${dateStr}-${codeNum}`;
-        const storeName = state.branches.find(b => b.id === orderInput.storeId)?.name || "Lowlands Coffee";
-        const newOrder: OrderExtended = {
-          ...orderInput,
-          id: nextId,
-          orderCode,
-          storeName,
-          status: "pending",
-          createdAt: new Date().toISOString()
-        };
+      addOrder: () => unsupported("Order backend chua trien khai."),
+      updateOrderStatus: () => unsupported("Order backend chua trien khai."),
 
-        // Update statistics for customers
-        let updatedCustomers = [...state.customers];
-        if (orderInput.receiverPhone && orderInput.receiverPhone !== "N/A") {
-          const custIdx = updatedCustomers.findIndex(c => c.phone === orderInput.receiverPhone);
-          if (custIdx !== -1) {
-            updatedCustomers[custIdx] = {
-              ...updatedCustomers[custIdx],
-              orderCount: updatedCustomers[custIdx].orderCount + 1,
-              totalSpent: updatedCustomers[custIdx].totalSpent + orderInput.totalAmount
-            };
-          } else {
-            updatedCustomers.push({
-              id: Math.max(...updatedCustomers.map(c => c.id), 0) + 1,
-              fullName: orderInput.receiverName,
-              email: orderInput.receiverName.toLowerCase().replace(/\s+/g, "") + "@gmail.com",
-              phone: orderInput.receiverPhone,
-              status: "active",
-              orderCount: 1,
-              totalSpent: orderInput.totalAmount
-            });
-          }
-        }
+      addPromotion: () => unsupported("Promotion backend chua trien khai."),
+      updatePromotion: () => unsupported("Promotion backend chua trien khai."),
+      deletePromotion: () => unsupported("Promotion backend chua trien khai."),
 
-        set({
-          orders: [newOrder, ...state.orders],
-          customers: updatedCustomers
-        });
-
-        return newOrder;
-      },
-      updateOrderStatus: (id, status) => set((state) => ({
-        orders: state.orders.map((o) => (o.id === id ? { ...o, status } : o))
-      })),
-
-      // Promotions CRUD
-      addPromotion: (promo) => set((state) => ({
-        promotions: [...state.promotions, { ...promo, id: Math.max(...state.promotions.map(p => p.id), 0) + 1 }]
-      })),
-      updatePromotion: (updated) => set((state) => ({
-        promotions: state.promotions.map((p) => (p.id === updated.id ? updated : p))
-      })),
-      deletePromotion: (id) => set((state) => ({
-        promotions: state.promotions.filter((p) => p.id !== id)
-      })),
-
-      // Inventory
-      updateIngredientQty: (id, amount) => set((state) => ({
-        ingredients: state.ingredients.map((ing) => {
-          if (ing.id === id) {
-            const nextQty = Math.max(0, ing.quantity + amount);
-            return {
-              ...ing,
-              quantity: parseFloat(nextQty.toFixed(2)),
-              status: getIngredientStatus(nextQty, ing.minAlertLevel)
-            };
-          }
-          return ing;
-        })
-      })),
-      importStock: (id, qty) => set((state) => ({
-        ingredients: state.ingredients.map((ing) => {
-          if (ing.id === id) {
-            const nextQty = ing.quantity + qty;
-            return {
-              ...ing,
-              quantity: parseFloat(nextQty.toFixed(2)),
-              status: getIngredientStatus(nextQty, ing.minAlertLevel)
-            };
-          }
-          return ing;
-        })
-      }))
+      updateIngredientQty: () => unsupported("Inventory phai cap nhat qua backend ledger."),
+      importStock: () => unsupported("Nhap kho phai cap nhat qua Goods Receipt API."),
     }),
     {
       name: "lowlands-dashboard-store",
@@ -584,8 +437,15 @@ export const useDashboardStore = create<DashboardState>()(
       merge: (persistedState, currentState) => ({
         ...currentState,
         ...(persistedState as Partial<DashboardState>),
+        branches: currentState.branches,
         products: currentState.products,
         categories: currentState.categories,
+        toppings: currentState.toppings,
+        employees: currentState.employees,
+        customers: currentState.customers,
+        orders: currentState.orders,
+        promotions: currentState.promotions,
+        ingredients: currentState.ingredients,
         productCatalogError: currentState.productCatalogError,
       }),
       onRehydrateStorage: () => (state) => {

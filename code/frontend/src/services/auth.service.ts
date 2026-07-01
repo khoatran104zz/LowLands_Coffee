@@ -1,5 +1,5 @@
 import axiosInstance from "@/lib/axios";
-import { User, Store, Promotion } from "@/types";
+import { User } from "@/types";
 
 export interface LoginRequest {
   email: string;
@@ -44,13 +44,4 @@ export const getProfile = async (): Promise<User> => {
 export const updateProfile = async (userData: Partial<User>): Promise<User> => {
   const response = await axiosInstance.put<ApiResponse<User>>("/auth/profile", userData);
   return response.data.data;
-};
-
-export const getStores = async (): Promise<Store[]> => {
-  const response = await axiosInstance.get<ApiResponse<Store[]>>("/stores");
-  return response.data.data;
-};
-
-export const getPromotions = async (): Promise<Promotion[]> => {
-  return [];
 };
