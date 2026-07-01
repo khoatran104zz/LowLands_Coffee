@@ -77,9 +77,9 @@ export default function AdminCategoriesPage() {
     if (isConfirmed) {
       try {
         await deleteCategory(category.id);
-        toast.success("Xóa danh mục thành công!");
+        toast.success(t("admin.categoriesPage.successDelete"));
       } catch {
-        toast.error("Không thể xóa danh mục qua Backend API.");
+        toast.error(t("admin.categoriesPage.errorDelete"));
       }
     }
   };
@@ -87,7 +87,7 @@ export default function AdminCategoriesPage() {
   const handleSaveCategory = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim()) {
-      toast.error("Vui lòng điền tên danh mục!");
+      toast.error(t("admin.categoriesPage.errorValidation"));
       return;
     }
 
@@ -99,17 +99,17 @@ export default function AdminCategoriesPage() {
           description: formDesc.trim(),
           status: formStatus
         });
-        toast.success("Cập nhật danh mục thành công!");
+        toast.success(t("admin.categoriesPage.successUpdate"));
       } else {
         await addCategory({
           name: formName.trim(),
           description: formDesc.trim(),
           status: formStatus
         });
-        toast.success("Thêm danh mục mới thành công!");
+        toast.success(t("admin.categoriesPage.successCreate"));
       }
     } catch {
-      toast.error("Không thể lưu danh mục qua Backend API.");
+      toast.error(t("admin.categoriesPage.errorSave"));
       return;
     }
     setIsFormOpen(false);

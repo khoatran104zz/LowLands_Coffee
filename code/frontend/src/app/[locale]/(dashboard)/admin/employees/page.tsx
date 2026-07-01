@@ -53,10 +53,10 @@ export default function AdminEmployeesPage() {
   const columns: Column<Employee>[] = [
     {
       key: "employeeCode",
-      header: "Ma NV",
-      render: (item) => item.employeeCode || "Chua co ma"
+      header: t("admin.employeesPage.colCode") || "Mã NV",
+      render: (item) => item.employeeCode || t("admin.employeesPage.noCode") || "Chưa có mã"
     },
-    { key: "fullName", header: "Ho va ten" },
+    { key: "fullName", header: t("admin.employeesPage.colName") },
     {
       key: "role",
       header: t("admin.employeesPage.colRole"),

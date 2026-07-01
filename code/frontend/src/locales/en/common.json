@@ -24,6 +24,7 @@
   "total": "Total Amount",
   "actions": "Actions",
   "save": "Save",
+  "saving": "Saving...",
   "cancel": "Cancel",
   "confirm": "Confirm",
   "confirmDeleteTitle": "Confirm deletion",

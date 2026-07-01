@@ -37,7 +37,7 @@ export default function AdminBranchesPage() {
       setBranches(data);
     } catch (error) {
       console.error("Failed to load stores", error);
-      toast.error("Khong the tai danh sach chi nhanh tu Backend API.");
+      toast.error(t("admin.branchesPage.errorLoad"));
       setBranches([]);
     } finally {
       setIsLoading(false);
@@ -100,18 +100,18 @@ export default function AdminBranchesPage() {
 
     try {
       await deleteStore(branch.id);
-      toast.success("Xoa chi nhanh thanh cong!");
+      toast.success(t("admin.branchesPage.successDelete"));
       await loadBranches();
     } catch (error) {
       console.error("Failed to delete store", error);
-      toast.error("Khong the xoa chi nhanh qua Backend API.");
+      toast.error(t("admin.branchesPage.errorDelete"));
     }
   };
 
   const handleSaveBranch = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!formName.trim() || !formAddress.trim()) {
-      toast.error("Vui long nhap ten va dia chi chi nhanh.");
+      toast.error(t("admin.branchesPage.errorValidation"));
       return;
     }
 
@@ -125,17 +125,17 @@ export default function AdminBranchesPage() {
 
       if (editingBranch) {
         await updateStore(editingBranch.id, payload);
-        toast.success("Cap nhat chi nhanh thanh cong!");
+        toast.success(t("admin.branchesPage.successUpdate"));
       } else {
         await createStore(payload);
-        toast.success("Them chi nhanh moi thanh cong!");
+        toast.success(t("admin.branchesPage.successCreate"));
       }
 
       setIsFormOpen(false);
       await loadBranches();
     } catch (error) {
       console.error("Failed to save store", error);
-      toast.error("Khong the luu chi nhanh qua Backend API.");
+      toast.error(t("admin.branchesPage.errorSave"));
     }
   };
 
@@ -199,39 +199,39 @@ export default function AdminBranchesPage() {
       >
         <form onSubmit={handleSaveBranch} className="space-y-4 text-left">
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-muted-foreground uppercase">Ten chi nhanh *</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.branchesPage.labelName")}</label>
             <Input
               required
               value={formName}
               onChange={(event) => setFormName(event.target.value)}
-              placeholder="Vi du: Lowlands Coffee - Ho Con Rua"
+              placeholder={t("admin.branchesPage.placeholderName")}
               className="h-10 text-xs border-border bg-background"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-muted-foreground uppercase">Dia chi *</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.branchesPage.labelAddress")}</label>
             <Input
               required
               value={formAddress}
               onChange={(event) => setFormAddress(event.target.value)}
-              placeholder="Vi du: 42 Pham Ngoc Thach, Quan 3, TP. HCM"
+              placeholder={t("admin.branchesPage.placeholderAddress")}
               className="h-10 text-xs border-border bg-background"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-muted-foreground uppercase">Dien thoai</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.branchesPage.labelPhone")}</label>
               <Input
                 value={formPhone}
                 onChange={(event) => setFormPhone(event.target.value)}
-                placeholder="Vi du: 028.3822.4466"
+                placeholder={t("admin.branchesPage.placeholderPhone")}
                 className="h-10 text-xs border-border bg-background"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-muted-foreground uppercase">Trang thai *</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.branchesPage.labelStatus")}</label>
               <select
                 value={formStatus}
                 onChange={(event) => setFormStatus(event.target.value)}
