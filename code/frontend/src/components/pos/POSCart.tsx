@@ -1,22 +1,41 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Trash2, Plus, Minus, ReceiptText, Ticket, HelpCircle, Utensils, ShoppingBag } from "lucide-react";
-import { CartItem, Product, ProductVariant, Topping, Promotion, Order } from "@/types";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { Trash2, Plus, Minus, ReceiptText, Ticket, Utensils, ShoppingBag } from "lucide-react";
+import { CartItem, Promotion, Order } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useTranslation";
+import { createOrder } from "@/services/order.service";
 
 interface POSCartProps {
   items: CartItem[];
+  storeId?: number | null;
   onUpdateQty: (itemId: string, newQty: number) => void;
   onRemoveItem: (itemId: string) => void;
   onClearCart: () => void;
-  onCheckoutSuccess: (order: any) => void;
+  onCheckoutSuccess: (order: POSReceiptOrder) => void;
 }
+
+interface POSReceiptOrder extends Order {
+  cashReceived: number;
+  changeReturned: number;
+  vat: number;
+  serviceType: "dine_in" | "takeaway";
+  tableNumber: string;
+}
+
+const getOrderErrorMessage = (error: unknown) => {
+  const responseMessage = (error as { response?: { data?: { message?: string } } }).response?.data?.message;
+  if (responseMessage) {
+    return responseMessage;
+  }
+  return error instanceof Error ? error.message : "Không thể tạo đơn hàng qua backend.";
+};
 
 export function POSCart({
   items,
+  storeId,
   onUpdateQty,
   onRemoveItem,
   onClearCart,
@@ -36,6 +55,7 @@ export function POSCart({
 
   // Checkout modal
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [cashReceived, setCashReceived] = useState<number>(0);
   const [customerName, setCustomerName] = useState("Khách lẻ");
   const [customerPhone, setCustomerPhone] = useState("");
@@ -49,9 +69,7 @@ export function POSCart({
 
   const discount = 0;
 
-  // VAT: 10% on discounted amount
-  const vat = Math.round((subtotal - discount) * 0.1);
-  const total = Math.max(0, subtotal - discount + vat);
+  const total = Math.max(0, subtotal - discount);
   const changeReturned = Math.max(0, cashReceived - total);
 
   // Refs for tracking callback state in useEffect
@@ -70,7 +88,22 @@ export function POSCart({
     tableNumber
   });
 
-  stateRef.current = {
+  useEffect(() => {
+    stateRef.current = {
+      isCheckoutOpen,
+      items,
+      paymentMethod,
+      total,
+      cashReceived,
+      customerName,
+      customerPhone,
+      subtotal,
+      discount,
+      orderNote,
+      serviceType,
+      tableNumber
+    };
+  }, [
     isCheckoutOpen,
     items,
     paymentMethod,
@@ -83,36 +116,7 @@ export function POSCart({
     orderNote,
     serviceType,
     tableNumber
-  };
-
-  // Keyboard shortcut listeners
-  useEffect(() => {
-    const handleEscapePressed = () => {
-      setIsCheckoutOpen(false);
-    };
-
-    const handleEnterPressed = () => {
-      const state = stateRef.current;
-      if (state.items.length === 0) return;
-
-      if (!state.isCheckoutOpen) {
-        // Open checkout modal
-        setCashReceived(state.paymentMethod === "cod" ? state.total : 0);
-        setIsCheckoutOpen(true);
-      } else {
-        // In checkout modal, trigger payment
-        handleConfirmPayment();
-      }
-    };
-
-    window.addEventListener("pos-escape-pressed", handleEscapePressed);
-    window.addEventListener("pos-enter-pressed", handleEnterPressed);
-    
-    return () => {
-      window.removeEventListener("pos-escape-pressed", handleEscapePressed);
-      window.removeEventListener("pos-enter-pressed", handleEnterPressed);
-    };
-  }, []);
+  ]);
 
   // Apply promo handler
   const handleApplyPromo = () => {
@@ -136,6 +140,10 @@ export function POSCart({
       toast.warning("Giỏ hàng của bạn đang trống!");
       return;
     }
+    if (!storeId) {
+      toast.error("Tài khoản chưa được gán chi nhánh. Vui lòng cập nhật chi nhánh nhân viên rồi đăng nhập lại.");
+      return;
+    }
     if (serviceType === "dine_in" && !tableNumber) {
       toast.warning("Vui lòng chọn số bàn trước khi thanh toán!");
       return;
@@ -144,19 +152,15 @@ export function POSCart({
     setIsCheckoutOpen(true);
   };
 
-  const handleCancelClick = () => {
-    if (items.length === 0) return;
-    onClearCart();
-    setPromoCode("");
-    setAppliedPromo(null);
-    setOrderNote("");
-    setServiceType("takeaway");
-    setTableNumber("");
-    toast.info("Đã hủy đơn hàng hiện tại");
-  };
-
-  const handleConfirmPayment = () => {
+  const handleConfirmPayment = useCallback(async () => {
     const state = stateRef.current;
+    if (isSubmitting) {
+      return;
+    }
+    if (!storeId) {
+      toast.error("Tài khoản chưa được gán chi nhánh. Vui lòng cập nhật chi nhánh nhân viên rồi đăng nhập lại.");
+      return;
+    }
     if (state.paymentMethod === "cod" && state.cashReceived < state.total) {
       toast.error("Số tiền khách đưa không đủ!");
       return;
@@ -185,41 +189,75 @@ export function POSCart({
       ? `Tại bàn: ${state.tableNumber}` 
       : "Mang đi (Mua tại quầy)";
 
-    const finalOrder = {
-      storeId: 2, // Default store for simulation
-      orderType: "pickup" as const,
+    const finalOrder: Order = {
+      storeId,
+      orderType: state.serviceType,
       receiverName: state.customerName || "Khách lẻ",
       receiverPhone: state.customerPhone || "N/A",
       deliveryAddress: destinationAddress,
       subtotal: state.subtotal,
       discountAmount: state.discount,
-      totalAmount: state.total, // contains subtotal - discount + vat
+      totalAmount: state.total,
       paymentMethod: state.paymentMethod,
       note: state.orderNote || undefined,
       items: orderItems
     };
 
-    // Callback to parent to add to Zustand store and trigger receipt modal
-    onCheckoutSuccess({
-      ...finalOrder,
-      cashReceived: state.paymentMethod === "cod" ? state.cashReceived : state.total,
-      changeReturned: state.paymentMethod === "cod" ? (state.cashReceived - state.total) : 0,
-      vat,
-      serviceType: state.serviceType,
-      tableNumber: state.tableNumber
-    });
+    try {
+      setIsSubmitting(true);
+      const savedOrder = await createOrder(finalOrder);
+      const backendTotal = savedOrder.totalAmount ?? state.total;
+      onCheckoutSuccess({
+        ...savedOrder,
+        cashReceived: state.paymentMethod === "cod" ? state.cashReceived : backendTotal,
+        changeReturned: state.paymentMethod === "cod" ? Math.max(0, state.cashReceived - backendTotal) : 0,
+        vat: 0,
+        serviceType: state.serviceType,
+        tableNumber: state.tableNumber
+      });
 
-    // Reset state
-    setIsCheckoutOpen(false);
-    setPromoCode("");
-    setAppliedPromo(null);
-    setOrderNote("");
-    setCustomerName("Khách lẻ");
-    setCustomerPhone("");
-    setServiceType("takeaway");
-    setTableNumber("");
-    toast.success("Thanh toán đơn hàng thành công!");
-  };
+      setIsCheckoutOpen(false);
+      setPromoCode("");
+      setAppliedPromo(null);
+      setOrderNote("");
+      setCustomerName("Khách lẻ");
+      setCustomerPhone("");
+      setServiceType("takeaway");
+      setTableNumber("");
+      toast.success("Tạo đơn hàng thành công!");
+    } catch (error: unknown) {
+      toast.error(getOrderErrorMessage(error));
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [isSubmitting, onCheckoutSuccess, storeId]);
+
+  // Keyboard shortcut listeners
+  useEffect(() => {
+    const handleEscapePressed = () => {
+      setIsCheckoutOpen(false);
+    };
+
+    const handleEnterPressed = () => {
+      const state = stateRef.current;
+      if (state.items.length === 0) return;
+
+      if (!state.isCheckoutOpen) {
+        setCashReceived(state.paymentMethod === "cod" ? state.total : 0);
+        setIsCheckoutOpen(true);
+      } else {
+        void handleConfirmPayment();
+      }
+    };
+
+    window.addEventListener("pos-escape-pressed", handleEscapePressed);
+    window.addEventListener("pos-enter-pressed", handleEnterPressed);
+
+    return () => {
+      window.removeEventListener("pos-escape-pressed", handleEscapePressed);
+      window.removeEventListener("pos-enter-pressed", handleEnterPressed);
+    };
+  }, [handleConfirmPayment]);
 
   const handleUpdateQtyLocal = (itemId: string, newQty: number) => {
     onUpdateQty(itemId, newQty);
@@ -416,10 +454,6 @@ export function POSCart({
                 <span>-{discount.toLocaleString("vi-VN")}đ</span>
               </div>
             )}
-            <div className="flex justify-between">
-              <span>Phí phục vụ (5%):</span>
-              <span className="text-foreground">{vat.toLocaleString("vi-VN")}đ</span>
-            </div>
             <div className="flex justify-between text-sm font-black text-foreground pt-1.5 border-t border-dashed border-border/40 mt-1">
               <span>Tổng cộng:</span>
               <span className="text-[#C8510A] font-outfit text-base leading-none">{total.toLocaleString("vi-VN")}đ</span>
@@ -589,10 +623,10 @@ export function POSCart({
             </Button>
             <Button
               onClick={handleConfirmPayment}
-              disabled={paymentMethod === "cod" && cashReceived < total}
+              disabled={isSubmitting || (paymentMethod === "cod" && cashReceived < total)}
               className="w-1/2 bg-[#C8510A] hover:bg-[#B04308] text-white rounded-lg h-10 text-xs font-extrabold shadow-sm"
             >
-              Xác nhận &amp; In hóa đơn (Enter)
+              {isSubmitting ? "Đang tạo đơn..." : "Xác nhận & In hóa đơn (Enter)"}
             </Button>
           </div>
         </div>

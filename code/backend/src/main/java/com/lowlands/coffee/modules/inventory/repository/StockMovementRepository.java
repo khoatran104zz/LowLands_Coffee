@@ -11,6 +11,12 @@ import java.util.List;
 
 public interface StockMovementRepository extends JpaRepository<StockMovementEntity, Long> {
 
+    boolean existsByMovementTypeAndReferenceTypeAndReferenceId(
+            String movementType,
+            String referenceType,
+            Long referenceId
+    );
+
     @Override
     @EntityGraph(attributePaths = {"store", "ingredient", "createdBy"})
     List<StockMovementEntity> findAll();
