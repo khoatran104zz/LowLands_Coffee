@@ -81,15 +81,9 @@ export default function ManagerReportsPage() {
               <span className="font-bold text-zinc-800">{myBranchOrders.length} hóa đơn</span>
             </div>
             <div className="flex justify-between pt-1">
-<<<<<<< HEAD
-              <span className="text-muted-foreground select-none">Doanh thu ghi nhận ca:</span>
-              <span className="text-amber-900 font-bold">
-                {myBranchOrders.filter(o => o.status === "completed").reduce((sum, o) => sum + o.totalAmount, 0).toLocaleString("vi-VN")}đ
-=======
               <span className="text-[#948175] font-bold select-none uppercase text-[10px]">Tổng doanh thu quầy ghi nhận:</span>
               <span className="text-amber-900 font-extrabold text-sm">
-                {myBranchOrders.filter(o => o.status === "completed").reduce((sum, o) => sum + o.totalAmount, 0).toLocaleString()}đ
->>>>>>> ad73e0ec1bba26164b072ee16b065260d83343ed
+                {myBranchOrders.filter(o => o.status === "completed").reduce((sum, o) => sum + o.totalAmount, 0).toLocaleString("vi-VN")}đ
               </span>
             </div>
           </div>

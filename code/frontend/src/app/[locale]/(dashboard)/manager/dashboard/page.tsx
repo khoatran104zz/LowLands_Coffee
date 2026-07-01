@@ -116,13 +116,8 @@ export default function ManagerDashboardPage() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
-<<<<<<< HEAD
-          title={t("staff.manager.todayRevenue")}
-          value={`${displayRevenue.toLocaleString("vi-VN")}đ`}
-=======
           title={t("staff.manager.todayRevenue") || "Doanh thu hôm nay"}
-          value={`${displayRevenue.toLocaleString()}đ`}
->>>>>>> ad73e0ec1bba26164b072ee16b065260d83343ed
+          value={`${displayRevenue.toLocaleString("vi-VN")}đ`}
           icon={DollarSign}
           description="Doanh số thực tế của chi nhánh"
         />

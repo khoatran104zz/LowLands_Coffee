@@ -52,13 +52,8 @@ export default function ManagerOrdersPage() {
     },
     {
       key: "totalAmount",
-<<<<<<< HEAD
-      header: "Thành tiền",
-      render: (item) => <span className="font-bold text-amber-900">{item.totalAmount.toLocaleString("vi-VN")}đ</span>
-=======
       header: t("admin.ordersPage.colTotal") || "Thành tiền",
-      render: (item) => <span className="font-extrabold text-amber-900">{item.totalAmount.toLocaleString()}đ</span>
->>>>>>> ad73e0ec1bba26164b072ee16b065260d83343ed
+      render: (item) => <span className="font-bold text-amber-900">{item.totalAmount.toLocaleString("vi-VN")}đ</span>
     },
     {
       key: "paymentMethod",
@@ -204,75 +199,29 @@ export default function ManagerOrdersPage() {
                       <th className="p-3 text-right">Thành tiền</th>
                     </tr>
                   </thead>
-<<<<<<< HEAD
                   <tbody className="divide-y divide-border/40">
                     {selectedOrder.items.map((item, idx) => (
                       <React.Fragment key={idx}>
                         <tr>
-                          <td className="py-3 px-4 font-bold text-foreground">{item.productName}</td>
-                          <td className="py-3 px-4 text-center">Size {item.size}</td>
+                          <td className="py-3 px-4 font-bold text-foreground">
+                            <div>
+                              <span className="font-bold text-zinc-800 block">{item.productName}</span>
+                              {item.note && <span className="text-[10px] text-amber-900 block mt-0.5">Lưu ý: {item.note}</span>}
+                            </div>
+                          </td>
                           <td className="py-3 px-4 text-center">{item.quantity}</td>
+                          <td className="py-3 px-4 text-right">{item.unitPrice?.toLocaleString("vi-VN")}đ</td>
                           <td className="py-3 px-4 text-right font-bold">
                             {(item.totalPrice).toLocaleString("vi-VN")}đ
                           </td>
                         </tr>
-                        {item.toppings && item.toppings.map((top, tIdx) => (
-                          <tr key={`t-${idx}-${tIdx}`} className="bg-muted/10 text-muted-foreground">
-                            <td className="py-1 px-4 pl-8 italic">+ {top.toppingName}</td>
-                            <td className="py-1 px-4 text-center">-</td>
-                            <td className="py-1 px-4 text-center">{top.quantity}</td>
-                            <td className="py-1 px-4 text-right">
-                              {((top.unitPrice * top.quantity) * item.quantity).toLocaleString("vi-VN")}đ
-                            </td>
-                          </tr>
-                        ))}
-                        {item.note && (
-                          <tr className="bg-amber-800/[0.01]">
-                            <td colSpan={4} className="py-1.5 px-4 italic text-amber-800 text-[11px]">
-                              Chú thích: {item.note}
-                            </td>
-                          </tr>
-                        )}
                       </React.Fragment>
-=======
-                  <tbody className="divide-y divide-zinc-250 bg-white">
-                    {selectedOrder.items?.map((item, idx) => (
-                      <tr key={idx} className="hover:bg-zinc-50/50">
-                        <td className="p-3">
-                          <div>
-                            <span className="font-extrabold text-zinc-800 block">{item.productName}</span>
-                            {item.note && <span className="text-[10px] text-amber-900 block mt-0.5">Lưu ý: {item.note}</span>}
-                          </div>
-                        </td>
-                        <td className="p-3 text-center">{item.quantity}</td>
-                        <td className="p-3 text-right">{item.unitPrice.toLocaleString()}đ</td>
-                        <td className="p-3 text-right">{item.totalPrice.toLocaleString()}đ</td>
-                      </tr>
->>>>>>> ad73e0ec1bba26164b072ee16b065260d83343ed
                     ))}
                   </tbody>
                 </table>
               </div>
             </div>
 
-<<<<<<< HEAD
-            <div className="flex justify-end pt-2 border-t border-border/40">
-              <div className="w-60 text-xs font-semibold text-foreground space-y-1">
-                <div className="flex justify-between text-muted-foreground">
-                  <span>Tạm tính:</span>
-                  <span>{selectedOrder.subtotal.toLocaleString("vi-VN")}đ</span>
-                </div>
-                {selectedOrder.discountAmount > 0 && (
-                  <div className="flex justify-between text-emerald-700">
-                    <span>Khuyến mãi:</span>
-                    <span>-{selectedOrder.discountAmount.toLocaleString("vi-VN")}đ</span>
-                  </div>
-                )}
-                <div className="flex justify-between font-bold text-sm text-amber-900 pt-1">
-                  <span>Tổng cộng:</span>
-                  <span>{selectedOrder.totalAmount.toLocaleString("vi-VN")}đ</span>
-                </div>
-=======
             {/* General Info */}
             <div className="grid grid-cols-2 gap-4 text-xs bg-zinc-50/50 p-4 rounded-xl border border-zinc-200">
               <div>
@@ -286,9 +235,9 @@ export default function ManagerOrdersPage() {
               <div className="col-span-2">
                 <span className="block text-zinc-400 font-bold uppercase text-[9px]">Địa chỉ giao hàng</span>
                 <span className="font-semibold text-zinc-800 mt-0.5 block">{selectedOrder.deliveryAddress || "Mua mang đi tại quầy"}</span>
->>>>>>> ad73e0ec1bba26164b072ee16b065260d83343ed
               </div>
             </div>
+
 
             {/* Footer Summary */}
             <div className="flex justify-between items-center border-t border-zinc-100 pt-4 mt-2">
