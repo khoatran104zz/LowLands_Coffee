@@ -53,16 +53,16 @@ export function Header({ locale, onOpenMobileSidebar }: HeaderProps) {
   ];
 
   const getHeaderTitle = () => {
-    if (pathname.includes("/dashboard")) return t("sidebar.dashboard");
-    if (pathname.includes("/orders")) return t("sidebar.orders");
-    if (pathname.includes("/inventory/import-notes")) return t("sidebar.importNotes");
-    if (pathname.includes("/inventory/history")) return t("sidebar.stockHistory");
-    if (pathname.includes("/inventory")) return t("sidebar.stockBalance");
-    if (pathname.includes("/staff")) return t("sidebar.employees");
-    if (pathname.includes("/shifts")) return t("sidebar.shifts");
-    if (pathname.includes("/revenue")) return t("sidebar.revenue");
-    if (pathname.includes("/reports")) return t("sidebar.statisticalReports");
-    return t("sidebar.dashboard");
+    if (pathname.includes("/dashboard")) return t("common.sidebar.dashboard");
+    if (pathname.includes("/orders")) return t("common.sidebar.orders");
+    if (pathname.includes("/inventory/import-notes")) return t("common.sidebar.importNotes");
+    if (pathname.includes("/inventory/history")) return t("common.sidebar.stockHistory");
+    if (pathname.includes("/inventory")) return t("common.sidebar.stockBalance");
+    if (pathname.includes("/staff")) return t("common.sidebar.employees");
+    if (pathname.includes("/shifts")) return t("common.sidebar.shifts");
+    if (pathname.includes("/revenue")) return t("common.sidebar.revenue");
+    if (pathname.includes("/reports")) return t("common.sidebar.statisticalReports");
+    return t("common.sidebar.dashboard");
   };
 
   const getRoleLabel = (roleName: string) => {

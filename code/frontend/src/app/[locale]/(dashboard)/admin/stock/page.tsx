@@ -84,8 +84,9 @@ export default function AdminStockPage() {
 
   const getStockStatus = (balance: StockBalance) => {
     const qty = balance.currentStock;
+    const minStock = balance.minStock ?? 0;
     if (qty <= 0) return "out_of_stock";
-    if (qty <= 5) return "low_stock";
+    if (minStock > 0 && qty <= minStock) return "low_stock";
     return "in_stock";
   };
 
@@ -103,14 +104,23 @@ export default function AdminStockPage() {
 
   // Calculate statistics
   const totalItemsCount = stockBalances.length;
-  const outOfStockCount = stockBalances.filter(b => b.currentStock <= 0).length;
-  const lowStockCount = stockBalances.filter(b => b.currentStock > 0 && b.currentStock <= 5).length;
-  const inStockCount = stockBalances.filter(b => b.currentStock > 5).length;
+  const outOfStockCount = stockBalances.filter(b => getStockStatus(b) === "out_of_stock").length;
+  const lowStockCount = stockBalances.filter(b => getStockStatus(b) === "low_stock").length;
+  const inStockCount = stockBalances.filter(b => getStockStatus(b) === "in_stock").length;
 
   const columns: Column<StockBalanceWithId>[] = [
     { key: "storeName", header: t("admin.stockPage.colBranchName") },
     { key: "ingredientCode", header: t("admin.stockPage.colCode") },
     { key: "ingredientName", header: t("admin.stockPage.colName") },
+    {
+      key: "minStock",
+      header: t("admin.stockPage.colMinStock"),
+      render: (item) => (
+        <span className="font-bold text-xs text-zinc-500">
+          {item.minStock} {item.unit}
+        </span>
+      )
+    },
     {
       key: "currentStock",
       header: t("admin.stockPage.colStock"),

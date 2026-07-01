@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { AlertCircle, AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
+import { AlertCircle } from "lucide-react";
 import { Ingredient } from "@/store/dashboardStore";
 import { useAuthStore } from "@/store/auth.store";
 import { createStockAdjustment, getStockBalances, StockBalance } from "@/services/inventory.service";
@@ -14,18 +14,17 @@ import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useTranslation";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 
-const LOW_STOCK_THRESHOLD = 5;
-
 const toInventoryRow = (balance: StockBalance): Ingredient => {
   const quantity = Number(balance.currentStock);
+  const minAlertLevel = Number(balance.minStock ?? 0);
   return {
     id: balance.ingredientId,
     storeId: balance.storeId,
     name: balance.ingredientName,
     quantity,
     unit: balance.unit,
-    minAlertLevel: LOW_STOCK_THRESHOLD,
-    status: quantity <= 0 ? "out_of_stock" : quantity <= LOW_STOCK_THRESHOLD ? "low_stock" : "in_stock",
+    minAlertLevel,
+    status: quantity <= 0 ? "out_of_stock" : minAlertLevel > 0 && quantity <= minAlertLevel ? "low_stock" : "in_stock",
   };
 };
 
@@ -69,6 +68,15 @@ export default function ManagerInventoryPage() {
     { key: "id", header: t("admin.stockPage.colId") || "ID" },
     { key: "name", header: t("admin.stockPage.colName") || "Tên nguyên liệu" },
     {
+      key: "minAlertLevel",
+      header: t("admin.stockPage.colMinStock") || "Tồn tối thiểu",
+      render: (item) => (
+        <span className="font-bold text-xs text-zinc-500">
+          {item.minAlertLevel} {item.unit}
+        </span>
+      ),
+    },
+    {
       key: "quantity",
       header: t("admin.stockPage.colStock") || "Tồn kho thực tế",
       render: (item) => (
@@ -81,7 +89,7 @@ export default function ManagerInventoryPage() {
       key: "status",
       header: t("admin.stockPage.colAlert") || "Cảnh báo tồn",
       render: (item) => {
-        const status = item.quantity <= 0 ? "out_of_stock" : item.quantity <= LOW_STOCK_THRESHOLD ? "low_stock" : "in_stock";
+        const status = item.quantity <= 0 ? "out_of_stock" : item.minAlertLevel > 0 && item.quantity <= item.minAlertLevel ? "low_stock" : "in_stock";
         return <StatusBadge status={status} />;
       },
     },
@@ -89,7 +97,7 @@ export default function ManagerInventoryPage() {
 
   const handleOpenRestock = (ingredient: Ingredient) => {
     setSelectedIngId(ingredient.id);
-    setRestockQty(ingredient.unit === "ml" || ingredient.unit === "gram" ? 500 : 10);
+    setRestockQty(ingredient.unit === "ml" || ingredient.unit === "g" ? 500 : 10);
     setIsRestockOpen(true);
   };
 
@@ -136,7 +144,7 @@ export default function ManagerInventoryPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-left select-none">
         <div>
           <h1 className="text-xl font-bold text-amber-900 font-outfit uppercase tracking-wide">
-            {t("sidebar.stockBalance")} - {branchName}
+            {t("common.sidebar.stockBalance")} - {branchName}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold mt-1">
             {t("admin.stockPage.subtitle")}

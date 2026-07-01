@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Coins, TrendingUp, Calendar, ArrowRight } from "lucide-react";
+import { Coins, TrendingUp, Calendar } from "lucide-react";
 import { useDashboardStore } from "@/store/dashboardStore";
 import { DataTable, Column } from "@/components/admin/DataTable";
 import { ChartCard } from "@/components/admin/ChartCard";

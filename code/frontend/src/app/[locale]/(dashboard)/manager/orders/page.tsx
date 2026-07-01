@@ -194,8 +194,8 @@ export default function ManagerOrdersPage() {
                   <thead className="bg-zinc-50 border-b border-zinc-200 text-zinc-400 text-[10px] uppercase font-bold">
                     <tr>
                       <th className="p-3">Món nước</th>
+                      <th className="p-3 text-center">Size</th>
                       <th className="p-3 text-center">Số lượng</th>
-                      <th className="p-3 text-right">Đơn giá</th>
                       <th className="p-3 text-right">Thành tiền</th>
                     </tr>
                   </thead>
@@ -240,9 +240,23 @@ export default function ManagerOrdersPage() {
 
 
             {/* Footer Summary */}
-            <div className="flex justify-between items-center border-t border-zinc-100 pt-4 mt-2">
-              <span className="text-xs font-bold text-zinc-400 uppercase">Tổng cộng thanh toán:</span>
-              <span className="text-base font-extrabold text-[#c8510a]">{selectedOrder.totalAmount.toLocaleString()}đ</span>
+            <div className="flex justify-end border-t border-zinc-100 pt-4 mt-2">
+              <div className="w-64 text-xs font-semibold text-foreground space-y-1">
+                <div className="flex justify-between text-muted-foreground">
+                  <span>Tạm tính:</span>
+                  <span>{selectedOrder.subtotal.toLocaleString("vi-VN")}đ</span>
+                </div>
+                {selectedOrder.discountAmount > 0 && (
+                  <div className="flex justify-between text-emerald-700">
+                    <span>Khuyến mãi:</span>
+                    <span>-{selectedOrder.discountAmount.toLocaleString("vi-VN")}đ</span>
+                  </div>
+                )}
+                <div className="flex justify-between font-extrabold text-base text-[#c8510a] pt-1">
+                  <span>Tổng cộng:</span>
+                  <span>{selectedOrder.totalAmount.toLocaleString("vi-VN")}đ</span>
+                </div>
+              </div>
             </div>
           </div>
         )}

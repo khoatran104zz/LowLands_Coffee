@@ -15,6 +15,8 @@ public class IngredientMapper {
         response.setCode(entity.getCode());
         response.setName(entity.getName());
         response.setUnit(entity.getUnit());
+        response.setMinStock(entity.getMinStock());
+        response.setDescription(entity.getDescription());
         response.setStatus(entity.getStatus());
         response.setCreatedAt(entity.getCreatedAt());
         response.setUpdatedAt(entity.getUpdatedAt());

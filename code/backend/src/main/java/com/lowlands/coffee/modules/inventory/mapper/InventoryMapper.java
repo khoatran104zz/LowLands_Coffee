@@ -65,7 +65,8 @@ public class InventoryMapper {
         response.setIngredientCode((String) row[3]);
         response.setIngredientName((String) row[4]);
         response.setUnit((String) row[5]);
-        response.setCurrentStock((BigDecimal) row[6]);
+        response.setMinStock((BigDecimal) row[6]);
+        response.setCurrentStock((BigDecimal) row[7]);
         return response;
     }
 

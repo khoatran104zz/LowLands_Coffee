@@ -141,6 +141,7 @@
     "colName": "Tên nguyên liệu",
     "colCategory": "Danh mục",
     "colUnit": "Đơn vị tính",
+    "colMinStock": "Tồn tối thiểu",
     "colStatus": "Trạng thái",
     "loading": "Đang tải dữ liệu nguyên liệu từ máy chủ...",
     "labelCode": "Mã nguyên liệu *",
@@ -150,12 +151,17 @@
     "placeholderName": "Ví dụ: Cà phê Robusta Đắk Lắk",
     "labelUnit": "Đơn vị tính *",
     "placeholderUnit": "Ví dụ: kg, ml, lon, hộp",
+    "labelMinStock": "Tồn tối thiểu *",
+    "placeholderMinStock": "Ví dụ: 5000",
     "labelStatus": "Trạng thái hoạt động",
+    "labelDescription": "Mô tả / Ghi chú",
+    "placeholderDescription": "Ví dụ: Vinamilk Fresh Milk, ly lạnh size M, hoặc nhà cung cấp ưu tiên",
     "deleteTitle": "Xác nhận xóa nguyên liệu",
     "deleteMessage": "Bạn có chắc chắn muốn xóa nguyên liệu",
     "deleteConfirm": "Xác nhận xóa",
     "errorLoad": "Không thể tải danh sách nguyên liệu từ máy chủ.",
     "errorValidation": "Vui lòng điền đầy đủ các trường thông tin!",
+    "errorMinStock": "Mức tồn tối thiểu phải là số không âm!",
     "successCreate": "Thêm nguyên liệu mới thành công!",
     "successUpdate": "Cập nhật nguyên liệu thành công!",
     "successDelete": "Xóa nguyên liệu thành công!",
@@ -175,7 +181,15 @@
     "loading": "Đang tải danh sách công thức pha chế từ máy chủ..."
   },
   "ordersPage": {
+    "title": "Quản lý đơn hàng",
     "subtitle": "Quản lý đơn hàng sẽ được kích hoạt khi Order backend được triển khai.",
+    "searchPlaceholder": "Tìm theo mã hóa đơn, tên khách...",
+    "statusFilter": "Trạng thái",
+    "colCode": "Mã đơn hàng",
+    "colCustomer": "Khách hàng",
+    "colTotal": "Thành tiền",
+    "colPayment": "Thanh toán",
+    "colStatus": "Trạng thái",
     "placeholderTitle": "Order backend chưa triển khai",
     "placeholderDesc": "Trang này không còn dùng dữ liệu giả hoặc local state. Khi backend Order/Payment sẵn sàng, danh sách, chi tiết và cập nhật trạng thái đơn hàng sẽ được kết nối API thật."
   },
@@ -227,9 +241,12 @@
     "alertOutOfStock": "Hết hàng hoàn toàn",
     "anyAlert": "Mọi trạng thái",
     "loading": "Đang tải dữ liệu số dư tồn kho từ máy chủ...",
+    "loadingError": "Không thể tải tồn kho từ Backend API.",
+    "colId": "ID",
     "colBranchName": "Cửa hàng / Chi nhánh",
     "colCode": "Mã nguyên liệu",
     "colName": "Tên nguyên liệu",
+    "colMinStock": "Tồn tối thiểu",
     "colStock": "Tồn kho thực tế",
     "colUnit": "Đơn vị",
     "colAlert": "Cảnh báo tồn",
@@ -321,6 +338,7 @@
     "subtitle": "Quản lý tài khoản nhân viên và phân công cửa hàng.",
     "createBtn": "Tạo nhân viên",
     "searchPlaceholder": "Tìm tên nhân viên, số điện thoại, email...",
+    "colId": "Mã NV",
     "colCode": "Mã NV",
     "noCode": "Chưa có mã",
     "colName": "Họ và tên",
@@ -351,5 +369,3 @@
     "errorSave": "Không thể lưu tài khoản nhân viên qua API."
   }
 }
-
-

@@ -46,7 +46,7 @@ Example:
 
 ## 5. Response DTO
 
-`StockBalanceResponse`: `storeId`, `storeName`, `ingredientId`, `ingredientCode`, `ingredientName`, `unit`, `currentStock`.
+`StockBalanceResponse`: `storeId`, `storeName`, `ingredientId`, `ingredientCode`, `ingredientName`, `unit`, `minStock`, `currentStock`.
 
 `StockMovementResponse`: `id`, `storeId`, `storeName`, `ingredientId`, `ingredientCode`, `ingredientName`, `movementType`, `quantity`, `unit`, `referenceType`, `referenceId`, `note`, `createdById`, `createdByName`, `createdAt`.
 
@@ -59,9 +59,10 @@ Example:
       "storeId": 1,
       "storeName": "Lowlands Coffee - Default Store",
       "ingredientId": 1,
-      "ingredientCode": "ROBUSTA_BEAN",
-      "ingredientName": "Robusta Coffee Bean",
-      "unit": "gram",
+      "ingredientCode": "ING000004",
+      "ingredientName": "Robusta Beans",
+      "unit": "g",
+      "minStock": 5000,
       "currentStock": 6000
     }
   ]
@@ -74,6 +75,7 @@ Example:
 - Adjustment quantity must not be zero.
 - Manual adjustment creates `stock_movements.movement_type = ADJUSTMENT` and `reference_type = MANUAL_ADJUSTMENT`.
 - Stock balance is calculated by summing `IN`, subtracting `OUT`, and adding signed `ADJUSTMENT`.
+- `minStock` comes from ingredient master data and is returned so frontend can calculate low-stock warnings per ingredient.
 
 ## 7. Permission Matrix
 
@@ -102,6 +104,6 @@ Example:
 
 Future Sprint:
 
-- Low-stock threshold configuration per store/ingredient.
+- Low-stock threshold override per store/ingredient.
 - Stock movement filter by store, ingredient, type, date range.
 - Order completion stock-out integration.
