@@ -78,6 +78,25 @@
   "backToCustomer": "Quay lại Customer",
   "testMode": "Chế độ Test:",
   "details": "Chi tiết",
+  "sidebar": {
+    "dashboard": "Tổng quan",
+    "orders": "Đơn hàng",
+    "stockBalance": "Tồn kho",
+    "importNotes": "Phiếu nhập",
+    "stockHistory": "Lịch sử kho",
+    "employees": "Nhân viên",
+    "shifts": "Ca làm việc",
+    "revenue": "Doanh thu",
+    "statisticalReports": "Báo cáo thống kê",
+    "collapseMenu": "Thu gọn menu",
+    "expandMenu": "Mở rộng menu",
+    "groups": {
+      "business": "Vận hành",
+      "inventory": "Kho hàng",
+      "staff": "Nhân sự",
+      "reports": "Báo cáo"
+    }
+  },
   "pagination": "Hiển thị <bold>{start}</bold> đến <bold>{end}</bold> trong tổng số <bold>{total}</bold> bản ghi",
   "paginationShowing": "Hiển thị",
   "paginationTo": "đến",

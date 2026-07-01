@@ -39,39 +39,39 @@ export function Sidebar({ locale, isCollapsed, onToggleCollapse, onCloseMobile }
       id: "main",
       title: "",
       items: [
-        { href: `/${locale}/manager/dashboard`, label: t("sidebar.dashboard"), icon: LayoutDashboard }
+        { href: `/${locale}/manager/dashboard`, label: t("common.sidebar.dashboard"), icon: LayoutDashboard }
       ]
     },
     {
       id: "business",
-      title: t("sidebar.groups.business"),
+      title: t("common.sidebar.groups.business"),
       items: [
-        { href: `/${locale}/manager/orders`, label: t("sidebar.orders"), icon: Receipt }
+        { href: `/${locale}/manager/orders`, label: t("common.sidebar.orders"), icon: Receipt }
       ]
     },
     {
       id: "inventory",
-      title: t("sidebar.groups.inventory"),
+      title: t("common.sidebar.groups.inventory"),
       items: [
-        { href: `/${locale}/manager/inventory`, label: t("sidebar.stockBalance"), icon: Warehouse },
-        { href: `/${locale}/manager/inventory/import-notes`, label: t("sidebar.importNotes"), icon: FileDown },
-        { href: `/${locale}/manager/inventory/history`, label: t("sidebar.stockHistory"), icon: History }
+        { href: `/${locale}/manager/inventory`, label: t("common.sidebar.stockBalance"), icon: Warehouse },
+        { href: `/${locale}/manager/inventory/import-notes`, label: t("common.sidebar.importNotes"), icon: FileDown },
+        { href: `/${locale}/manager/inventory/history`, label: t("common.sidebar.stockHistory"), icon: History }
       ]
     },
     {
       id: "staff",
-      title: t("sidebar.groups.staff"),
+      title: t("common.sidebar.groups.staff"),
       items: [
-        { href: `/${locale}/manager/staff`, label: t("sidebar.employees"), icon: Users2 },
-        { href: `/${locale}/manager/shifts`, label: t("sidebar.shifts"), icon: Clock }
+        { href: `/${locale}/manager/staff`, label: t("common.sidebar.employees"), icon: Users2 },
+        { href: `/${locale}/manager/shifts`, label: t("common.sidebar.shifts"), icon: Clock }
       ]
     },
     {
       id: "reports",
-      title: t("sidebar.groups.reports"),
+      title: t("common.sidebar.groups.reports"),
       items: [
-        { href: `/${locale}/manager/revenue`, label: t("sidebar.revenue"), icon: Coins },
-        { href: `/${locale}/manager/reports`, label: t("sidebar.statisticalReports"), icon: LineChart }
+        { href: `/${locale}/manager/revenue`, label: t("common.sidebar.revenue"), icon: Coins },
+        { href: `/${locale}/manager/reports`, label: t("common.sidebar.statisticalReports"), icon: LineChart }
       ]
     }
   ];
@@ -196,7 +196,7 @@ export function Sidebar({ locale, isCollapsed, onToggleCollapse, onCloseMobile }
       <button
         onClick={onToggleCollapse}
         className="absolute top-1/2 -right-3 -translate-y-1/2 bg-[#c8510a] hover:bg-[#b04507] text-[#f7f2ed] rounded-full p-1 shadow-md border border-[#3d2e27] hidden lg:flex items-center justify-center cursor-pointer h-6 w-6 z-50 transition-all hover:scale-105"
-        title={isCollapsed ? t("sidebar.expandMenu") : t("sidebar.collapseMenu")}
+        title={isCollapsed ? t("common.sidebar.expandMenu") : t("common.sidebar.collapseMenu")}
       >
         {isCollapsed ? (
           <ChevronRight className="h-3.5 w-3.5" />

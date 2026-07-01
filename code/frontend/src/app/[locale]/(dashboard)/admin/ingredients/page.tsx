@@ -45,6 +45,8 @@ export default function AdminIngredientsPage() {
   const [formCode, setFormCode] = useState("");
   const [formName, setFormName] = useState("");
   const [formUnit, setFormUnit] = useState("");
+  const [formMinStock, setFormMinStock] = useState("0");
+  const [formDescription, setFormDescription] = useState("");
   const [formStatus, setFormStatus] = useState("active");
 
   const loadData = async () => {
@@ -76,7 +78,9 @@ export default function AdminIngredientsPage() {
     const matchesCategory = !categoryFilter || String(item.categoryId) === categoryFilter;
     const matchesSearch = !searchQuery ||
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.code.toLowerCase().includes(searchQuery.toLowerCase());
+      item.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.categoryName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.description?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -86,6 +90,15 @@ export default function AdminIngredientsPage() {
     { key: "name", header: t("admin.ingredientsPage.colName") },
     { key: "categoryName", header: t("admin.ingredientsPage.colCategory"), render: (item) => item.categoryName || `Mã DM: ${item.categoryId}` },
     { key: "unit", header: t("admin.ingredientsPage.colUnit") },
+    {
+      key: "minStock",
+      header: t("admin.ingredientsPage.colMinStock"),
+      render: (item) => (
+        <span className="font-bold text-zinc-700 dark:text-zinc-200">
+          {item.minStock} {item.unit}
+        </span>
+      )
+    },
     {
       key: "status",
       header: t("admin.ingredientsPage.colStatus"),
@@ -99,6 +112,8 @@ export default function AdminIngredientsPage() {
     setFormCode("");
     setFormName("");
     setFormUnit("");
+    setFormMinStock("0");
+    setFormDescription("");
     setFormStatus("active");
     setIsFormOpen(true);
   };
@@ -109,6 +124,8 @@ export default function AdminIngredientsPage() {
     setFormCode(item.code);
     setFormName(item.name);
     setFormUnit(item.unit);
+    setFormMinStock(String(item.minStock ?? 0));
+    setFormDescription(item.description || "");
     setFormStatus(item.status);
     setIsFormOpen(true);
   };
@@ -125,6 +142,12 @@ export default function AdminIngredientsPage() {
       return;
     }
 
+    const minStock = parseFloat(formMinStock);
+    if (isNaN(minStock) || minStock < 0) {
+      toast.error(t("admin.ingredientsPage.errorMinStock"));
+      return;
+    }
+
     setIsSaving(true);
     try {
       const payload = {
@@ -132,6 +155,8 @@ export default function AdminIngredientsPage() {
         code: formCode.trim(),
         name: formName.trim(),
         unit: formUnit.trim(),
+        minStock,
+        description: formDescription.trim(),
         status: formStatus
       };
 
@@ -266,7 +291,7 @@ export default function AdminIngredientsPage() {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div className="space-y-1.5">
             <label className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase">{t("admin.ingredientsPage.labelUnit")}</label>
             <Input
@@ -274,6 +299,19 @@ export default function AdminIngredientsPage() {
               value={formUnit}
               onChange={(e) => setFormUnit(e.target.value)}
               placeholder={t("admin.ingredientsPage.placeholderUnit")}
+              className="h-10 text-xs border-border bg-background"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase">{t("admin.ingredientsPage.labelMinStock")}</label>
+            <Input
+              required
+              type="number"
+              step="any"
+              min="0"
+              value={formMinStock}
+              onChange={(e) => setFormMinStock(e.target.value)}
+              placeholder={t("admin.ingredientsPage.placeholderMinStock")}
               className="h-10 text-xs border-border bg-background"
             />
           </div>
@@ -288,6 +326,16 @@ export default function AdminIngredientsPage() {
               <option value="inactive">{t("common.inactive")}</option>
             </select>
           </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase">{t("admin.ingredientsPage.labelDescription")}</label>
+          <Input
+            value={formDescription}
+            onChange={(e) => setFormDescription(e.target.value)}
+            placeholder={t("admin.ingredientsPage.placeholderDescription")}
+            className="h-10 text-xs border-border bg-background"
+          />
         </div>
 
         <div className="flex justify-end space-x-2 border-t border-zinc-100 pt-4 mt-2">

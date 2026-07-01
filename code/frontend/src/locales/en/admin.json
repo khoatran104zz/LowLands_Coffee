@@ -141,6 +141,7 @@
     "colName": "Ingredient Name",
     "colCategory": "Category",
     "colUnit": "Unit",
+    "colMinStock": "Min Stock",
     "colStatus": "Status",
     "loading": "Loading ingredients data from server...",
     "labelCode": "Ingredient Code *",
@@ -150,12 +151,17 @@
     "placeholderName": "Example: Robusta Coffee Dak Lak",
     "labelUnit": "Unit *",
     "placeholderUnit": "Example: kg, ml, can, box",
+    "labelMinStock": "Min Stock *",
+    "placeholderMinStock": "Example: 5000",
     "labelStatus": "Status",
+    "labelDescription": "Description / Notes",
+    "placeholderDescription": "Example: Vinamilk Fresh Milk, cold cup size M, or preferred supplier",
     "deleteTitle": "Confirm Delete Ingredient",
     "deleteMessage": "Are you sure you want to delete ingredient",
     "deleteConfirm": "Confirm Delete",
     "errorLoad": "Cannot load ingredient list from server.",
     "errorValidation": "Please fill in all required fields!",
+    "errorMinStock": "Minimum stock must be a non-negative number!",
     "successCreate": "Ingredient added successfully!",
     "successUpdate": "Ingredient updated successfully!",
     "successDelete": "Ingredient deleted successfully!",
@@ -175,7 +181,15 @@
     "loading": "Loading recipe list from server..."
   },
   "ordersPage": {
+    "title": "Order Management",
     "subtitle": "Order management will be enabled when the Order backend is implemented.",
+    "searchPlaceholder": "Search by invoice code or customer name...",
+    "statusFilter": "Status",
+    "colCode": "Order Code",
+    "colCustomer": "Customer",
+    "colTotal": "Total",
+    "colPayment": "Payment",
+    "colStatus": "Status",
     "placeholderTitle": "Order backend not implemented",
     "placeholderDesc": "This page no longer uses mockup orders or local state. When backend Order/Payment is ready, real-time list, details, and order state updates will be synced with real APIs."
   },
@@ -227,9 +241,12 @@
     "alertOutOfStock": "Out of stock",
     "anyAlert": "All alerts",
     "loading": "Loading stock balances from server...",
+    "loadingError": "Unable to load stock balances from Backend API.",
+    "colId": "ID",
     "colBranchName": "Store / Branch",
     "colCode": "Ingredient Code",
     "colName": "Ingredient Name",
+    "colMinStock": "Min Stock",
     "colStock": "Physical Stock",
     "colUnit": "Unit",
     "colAlert": "Stock Alert",
@@ -322,6 +339,8 @@
     "createBtn": "Create Employee",
     "searchPlaceholder": "Search employee name, phone, email...",
     "colId": "Emp ID",
+    "colCode": "Emp Code",
+    "noCode": "No code yet",
     "colName": "Full Name",
     "colRole": "Role",
     "colBranch": "Branch",
@@ -350,5 +369,3 @@
     "errorSave": "Could not save employee account via API."
   }
 }
-
-

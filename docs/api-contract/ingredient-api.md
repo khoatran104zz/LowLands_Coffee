@@ -7,8 +7,8 @@ Manages ingredient categories and ingredients used by recipes, goods receipts, a
 ## 2. Current Frontend Usage
 
 - `src/services/inventory.service.ts` consumes stock balance DTOs containing ingredient fields.
-- No current frontend service calls `/ingredients` or `/ingredient-categories` directly.
-- Mock gap: `dashboardStore.ts` defines local ingredient inventory objects not matching backend `IngredientResponse`.
+- `src/services/ingredient.service.ts` calls `/ingredients` and `/ingredient-categories`.
+- Admin ingredient UI manages ingredient master data, including category, unit, minimum stock, description, and status.
 
 ## 3. Existing Backend APIs
 
@@ -38,6 +38,8 @@ Manages ingredient categories and ingredients used by recipes, goods receipts, a
 |  | `code` | required, max 50 |
 |  | `name` | required, max 100 |
 |  | `unit` | required, max 20 |
+|  | `minStock` | decimal >= 0, optional; defaults to 0 |
+|  | `description` | max 1000 |
 |  | `status` | `active` or `inactive`, optional |
 | `IngredientUpdateRequest` | same fields | `status` required |
 
@@ -46,9 +48,11 @@ Example:
 ```json
 {
   "categoryId": 1,
-  "code": "ROBUSTA_BEAN",
-  "name": "Robusta Coffee Bean",
-  "unit": "gram",
+  "code": "ING000004",
+  "name": "Robusta Beans",
+  "unit": "g",
+  "minStock": 5000,
+  "description": "Vietnamese robusta beans for phin coffee",
   "status": "active"
 }
 ```
@@ -57,7 +61,7 @@ Example:
 
 `IngredientCategoryResponse`: `id`, `code`, `name`, `description`, `status`, `createdAt`, `updatedAt`.
 
-`IngredientResponse`: `id`, `categoryId`, `categoryName`, `code`, `name`, `unit`, `status`, `createdAt`, `updatedAt`.
+`IngredientResponse`: `id`, `categoryId`, `categoryName`, `code`, `name`, `unit`, `minStock`, `description`, `status`, `createdAt`, `updatedAt`.
 
 ```json
 {
@@ -67,9 +71,11 @@ Example:
     "id": 1,
     "categoryId": 1,
     "categoryName": "Coffee",
-    "code": "ROBUSTA_BEAN",
-    "name": "Robusta Coffee Bean",
-    "unit": "gram",
+    "code": "ING000004",
+    "name": "Robusta Beans",
+    "unit": "g",
+    "minStock": 5000,
+    "description": "Vietnamese robusta beans for phin coffee",
     "status": "active"
   }
 }
@@ -80,6 +86,7 @@ Example:
 - Category code must be unique.
 - Ingredient code must be unique.
 - Ingredient category must exist before creating/updating an ingredient.
+- `minStock` is non-negative and is used by stock-balance UIs for low-stock warning.
 - Deletes are soft deletes using `status = inactive`.
 - Ingredient does not store current stock; stock comes from inventory ledger.
 
@@ -103,8 +110,8 @@ Example:
 
 ## 9. Frontend Integration Notes
 
-- Add `ingredient.service.ts` when ingredient CRUD UI is implemented.
-- Inventory page should map backend stock balance fields instead of local `Ingredient` mock fields.
+- Ingredient master data includes packaging and other consumables because recipes can deduct cups, lids, straws, bags, napkins, and ingredients from the same stock ledger.
+- Inventory pages map low-stock warnings from `minStock` instead of using a fixed threshold.
 
 ## 10. Future Extension
 

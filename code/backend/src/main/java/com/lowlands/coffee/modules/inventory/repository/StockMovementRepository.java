@@ -33,7 +33,7 @@ public interface StockMovementRepository extends JpaRepository<StockMovementEnti
 
     @Query("""
             select sm.store.id, sm.store.name, sm.ingredient.id, sm.ingredient.code,
-                   sm.ingredient.name, sm.ingredient.unit,
+                   sm.ingredient.name, sm.ingredient.unit, sm.ingredient.minStock,
                    coalesce(sum(
                        case
                            when sm.movementType = 'IN' then sm.quantity
@@ -43,7 +43,8 @@ public interface StockMovementRepository extends JpaRepository<StockMovementEnti
                    ), 0)
             from StockMovementEntity sm
             group by sm.store.id, sm.store.name, sm.ingredient.id,
-                     sm.ingredient.code, sm.ingredient.name, sm.ingredient.unit
+                     sm.ingredient.code, sm.ingredient.name, sm.ingredient.unit,
+                     sm.ingredient.minStock
             order by sm.store.id, sm.ingredient.id
             """)
     List<Object[]> calculateAllStockBalances();

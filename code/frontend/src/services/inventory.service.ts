@@ -13,6 +13,7 @@ export interface StockBalance {
   ingredientCode: string;
   ingredientName: string;
   unit: string;
+  minStock: number;
   currentStock: number;
 }
 

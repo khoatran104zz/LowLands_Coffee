@@ -35,7 +35,7 @@ export default function ManagerReportsPage() {
       {/* Title */}
       <div className="text-left select-none">
         <h1 className="text-xl font-extrabold text-amber-900 font-outfit uppercase tracking-wide">
-          {t("sidebar.statisticalReports") || "Báo cáo thống kê"} - {branchName}
+          {t("common.sidebar.statisticalReports")} - {branchName}
         </h1>
         <p className="text-xs text-muted-foreground font-semibold mt-1">
           Báo cáo thống kê hiệu suất hoạt động, chấm công ca trực và doanh thu tại cửa hàng.

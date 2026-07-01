@@ -2,7 +2,7 @@
 
 ## 1. Purpose
 
-Defines ingredient quantities needed for each product variant. Recipes support future stock deduction when orders are completed.
+Defines ingredient and consumable quantities needed for each product variant. Recipes support future stock deduction when orders are completed, including beverage materials and packaging such as cups, lids, straws, bags, and napkins.
 
 ## 2. Current Frontend Usage
 
@@ -42,10 +42,11 @@ Example:
   "name": "Phin Sua Da M",
   "description": "Standard recipe",
   "status": "active",
-  "ingredients": [
-    { "ingredientId": 1, "quantity": 25, "unit": "gram" },
-    { "ingredientId": 2, "quantity": 40, "unit": "ml" }
-  ]
+    "ingredients": [
+      { "ingredientId": 1, "quantity": 25, "unit": "gram" },
+      { "ingredientId": 2, "quantity": 40, "unit": "ml" },
+      { "ingredientId": 42, "quantity": 1, "unit": "piece" }
+    ]
 }
 ```
 
@@ -85,6 +86,7 @@ Example:
 - Product variant must exist.
 - Every ingredient must exist.
 - Ingredient ids must be unique within one recipe.
+- Packaging and operational consumables are represented as ingredients, so recipe stock deduction can include both drink inputs and takeaway materials.
 - Delete is a soft delete using `status = inactive`.
 
 ## 7. Permission Matrix

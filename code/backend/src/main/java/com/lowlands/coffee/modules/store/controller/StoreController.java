@@ -29,13 +29,11 @@ public class StoreController {
     }
 
     @GetMapping
-    @PreAuthorize("hasAuthority('STORE_VIEW')")
     public ApiResponse<List<StoreResponse>> findAll() {
         return ApiResponse.success(storeService.findAll());
     }
 
     @GetMapping("/{id}")
-    @PreAuthorize("hasAuthority('STORE_VIEW')")
     public ApiResponse<StoreResponse> findById(@PathVariable Long id) {
         return ApiResponse.success(storeService.findById(id));
     }

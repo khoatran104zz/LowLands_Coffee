@@ -78,6 +78,25 @@
   "backToCustomer": "Back to Customer Portal",
   "testMode": "Test Mode:",
   "details": "Details",
+  "sidebar": {
+    "dashboard": "Overview",
+    "orders": "Orders",
+    "stockBalance": "Stock Balance",
+    "importNotes": "Import Notes",
+    "stockHistory": "Stock History",
+    "employees": "Employees",
+    "shifts": "Shifts",
+    "revenue": "Revenue",
+    "statisticalReports": "Statistical Reports",
+    "collapseMenu": "Collapse menu",
+    "expandMenu": "Expand menu",
+    "groups": {
+      "business": "Operations",
+      "inventory": "Inventory",
+      "staff": "Staff",
+      "reports": "Reports"
+    }
+  },
   "pagination": "Showing <bold>{start}</bold> to <bold>{end}</bold> of <bold>{total}</bold> entries",
   "paginationShowing": "Showing",
   "paginationTo": "to",

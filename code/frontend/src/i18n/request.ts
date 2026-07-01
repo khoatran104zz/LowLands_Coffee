@@ -6,7 +6,7 @@ export default getRequestConfig(async ({requestLocale}) => {
   const baseLocale = locales.includes(locale as Locale) ? (locale as Locale) : 'vi';
 
   const files = ['common', 'header', 'footer', 'landing', 'product', 'auth', 'admin', 'staff'];
-  const messages: Record<string, any> = {};
+  const messages: Record<string, unknown> = {};
 
   for (const file of files) {
     try {
@@ -16,9 +16,17 @@ export default getRequestConfig(async ({requestLocale}) => {
     }
   }
 
+  const commonMessages = messages.common;
+  if (
+    commonMessages &&
+    typeof commonMessages === 'object' &&
+    'sidebar' in commonMessages
+  ) {
+    messages.sidebar = commonMessages.sidebar;
+  }
+
   return {
     locale: baseLocale,
     messages
   };
 });
-
