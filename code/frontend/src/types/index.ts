@@ -11,7 +11,10 @@ export interface User {
   status: string;
   createdAt?: string;
   updatedAt?: string;
+  branchId?: number;
+  branchName?: string;
 }
+
 
 export interface Store {
   id: number;

@@ -29,4 +29,7 @@ public class UserUpdateRequest {
     @NotBlank
     @Size(max = 20)
     private String status;
+
+    private Long branchId;
 }
+

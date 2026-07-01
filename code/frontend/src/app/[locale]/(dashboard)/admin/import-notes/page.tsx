@@ -25,6 +25,7 @@ import { Filter } from "@/components/admin/Filter";
 import { FormModal } from "@/components/admin/FormModal";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface FormItem {
   ingredientId: number;
@@ -34,6 +35,7 @@ interface FormItem {
 }
 
 export default function AdminImportNotesPage() {
+  const { t } = useTranslation();
   const [receipts, setReceipts] = useState<GoodsReceipt[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
@@ -105,43 +107,43 @@ export default function AdminImportNotesPage() {
   });
 
   const columns: Column<GoodsReceipt>[] = [
-    { key: "id", header: "ID" },
-    { key: "receiptCode", header: "Mã phiếu" },
-    { key: "supplierName", header: "Nhà cung cấp", render: (item) => item.supplierName || `ID: ${item.supplierId}` },
-    { key: "storeName", header: "Chi nhánh nhận", render: (item) => item.storeName || `ID: ${item.storeId}` },
-    { key: "createdByName", header: "Người lập phiếu" },
+    { key: "id", header: t("admin.importNotesPage.colId") },
+    { key: "receiptCode", header: t("admin.importNotesPage.colCode") },
+    { key: "supplierName", header: t("admin.importNotesPage.colSupplier"), render: (item) => item.supplierName || `ID: ${item.supplierId}` },
+    { key: "storeName", header: t("admin.importNotesPage.colBranch"), render: (item) => item.storeName || `ID: ${item.storeId}` },
+    { key: "createdByName", header: t("admin.importNotesPage.colCreator") },
     {
       key: "totalAmount",
-      header: "Tổng giá trị",
+      header: t("admin.importNotesPage.colTotal"),
       render: (item) => `${item.totalAmount.toLocaleString()}đ`
     },
     {
       key: "createdAt",
-      header: "Ngày lập",
+      header: t("admin.importNotesPage.colDate"),
       render: (item) => item.createdAt ? new Date(item.createdAt).toLocaleDateString("vi-VN") : "N/A"
     },
     {
       key: "status",
-      header: "Trạng thái",
+      header: t("admin.importNotesPage.colStatus"),
       render: (item) => <StatusBadge status={item.status} />
     }
   ];
 
   const handleOpenCreate = () => {
     if (suppliers.length === 0) {
-      toast.error("Vui lòng thêm Nhà cung cấp trước khi lập phiếu nhập!");
+      toast.error(t("admin.importNotesPage.toastNoSuppliers"));
       return;
     }
     if (ingredients.length === 0) {
-      toast.error("Vui lòng thêm Nguyên liệu trước khi lập phiếu nhập!");
+      toast.error(t("admin.importNotesPage.toastNoIngredients"));
       return;
     }
     if (branches.length === 0) {
-      toast.error("Khong the lap phieu nhap vi chua tai duoc chi nhanh tu Backend API.");
+      toast.error(t("admin.importNotesPage.toastNoBranches"));
       return;
     }
     if (!currentUser?.id) {
-      toast.error("Khong xac dinh duoc nguoi tao phieu. Vui long dang nhap lai.");
+      toast.error(t("admin.dashboardPage.summaryError"));
       return;
     }
 
@@ -284,10 +286,10 @@ export default function AdminImportNotesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-left select-none">
         <div>
           <h1 className="text-xl font-extrabold text-amber-900 font-outfit uppercase tracking-wide">
-            Quản lý Nhập kho
+            {t("admin.importNotesPage.title")}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold mt-1">
-            Ghi nhận thông tin nhập nguyên vật liệu thô từ đối tác cung cấp vào kho của từng chi nhánh.
+            {t("admin.importNotesPage.subtitle")}
           </p>
         </div>
         <Button
@@ -295,7 +297,7 @@ export default function AdminImportNotesPage() {
           className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg px-4 h-10 text-xs font-semibold flex items-center space-x-2 shrink-0 self-start sm:self-auto cursor-pointer"
         >
           <Plus className="h-4 w-4" />
-          <span>Tạo phiếu nhập</span>
+          <span>{t("admin.createImportNote")}</span>
         </Button>
       </div>
 
@@ -304,21 +306,21 @@ export default function AdminImportNotesPage() {
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Tìm theo mã phiếu, nhà cung cấp, người lập..."
+          placeholder={t("admin.importNotesPage.searchPlaceholder")}
         />
         <Filter
-          label="Nhà cung cấp"
+          label={t("admin.importNotesPage.supplierFilter")}
           value={supplierFilter}
           onChange={setSupplierFilter}
           options={suppliers.map((s) => ({ value: String(s.id), label: s.name }))}
-          placeholder="Tất cả nhà cung cấp"
+          placeholder={t("admin.importNotesPage.allSuppliers")}
         />
       </div>
 
       {/* Data Table */}
       {isLoading ? (
         <div className="text-center py-20 text-xs text-muted-foreground font-semibold">
-          Đang tải danh sách phiếu nhập kho từ máy chủ...
+          {t("admin.importNotesPage.loading")}
         </div>
       ) : (
         <DataTable
@@ -348,7 +350,7 @@ export default function AdminImportNotesPage() {
       <FormModal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        title="Lập phiếu nhập kho mới"
+        title={t("admin.createImportNote")}
         onSubmit={handleSave}
         size="lg"
       >
@@ -496,7 +498,7 @@ export default function AdminImportNotesPage() {
       <FormModal
         isOpen={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}
-        title={`Chi tiết phiếu nhập: ${viewingReceipt?.receiptCode}`}
+        title={`${t("admin.editImportNote")}: ${viewingReceipt?.receiptCode}`}
         size="md"
       >
         {viewingReceipt && (

@@ -70,10 +70,10 @@ export default function AdminProductsPage() {
 
   // Columns definition
   const columns: Column<Product>[] = [
-    { key: "id", header: "ID" },
+    { key: "id", header: t("admin.productsPage.colId") },
     {
       key: "imageUrl",
-      header: "Ảnh",
+      header: t("admin.productsPage.colImage"),
       render: (item) => (
         <div className="h-10 w-10 rounded-lg overflow-hidden bg-muted flex items-center justify-center border border-border/40 select-none">
           {item.imageUrl ? (
@@ -84,18 +84,18 @@ export default function AdminProductsPage() {
         </div>
       )
     },
-    { key: "name", header: "Tên món" },
+    { key: "name", header: t("admin.productsPage.colName") },
     {
       key: "categoryId",
-      header: "Danh mục",
+      header: t("admin.productsPage.colCategory"),
       render: (item) => {
         const cat = categories.find((c) => c.id === item.categoryId);
-        return <span>{cat?.name || "Khác"}</span>;
+        return <span>{cat?.name || t("admin.productsPage.otherCategory")}</span>;
       }
     },
     {
       key: "variants",
-      header: "Giá bán",
+      header: t("admin.productsPage.colPrice"),
       render: (item) => {
         if (!item.variants || item.variants.length === 0) return <span>N/A</span>;
         // Show base price (usually size S, or list range)
@@ -108,7 +108,7 @@ export default function AdminProductsPage() {
     },
     {
       key: "status",
-      header: "Trạng thái",
+      header: t("admin.productsPage.colStatus"),
       render: (item) => <StatusBadge status={item.status} />
     }
   ];
@@ -251,7 +251,7 @@ export default function AdminProductsPage() {
             {t("common.products")}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold mt-1">
-            Thiết lập menu đồ uống, bánh ngọt và thông số giá cho toàn bộ cửa hàng.
+            {t("admin.productsPage.subtitle")}
           </p>
         </div>
         <Button
@@ -259,7 +259,7 @@ export default function AdminProductsPage() {
           className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg px-4 h-10 text-xs font-semibold flex items-center space-x-2 shrink-0 self-start sm:self-auto"
         >
           <Plus className="h-4 w-4" />
-          <span>{t("common.add")} món mới</span>
+          <span>{t("admin.createProduct")}</span>
         </Button>
       </div>
 
@@ -275,14 +275,14 @@ export default function AdminProductsPage() {
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Tìm tên món nước, mô tả..."
+          placeholder={t("admin.productsPage.searchPlaceholder")}
         />
         <Filter
-          label="Danh mục"
+          label={t("admin.productsPage.categoryFilter")}
           value={categoryFilter}
           onChange={setCategoryFilter}
           options={categoryFilterOptions}
-          placeholder="Tất cả danh mục"
+          placeholder={t("admin.productsPage.allCategories")}
         />
       </div>
 

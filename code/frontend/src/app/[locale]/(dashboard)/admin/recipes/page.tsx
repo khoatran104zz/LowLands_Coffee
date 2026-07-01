@@ -20,6 +20,7 @@ import { SearchBar } from "@/components/admin/SearchBar";
 import { FormModal } from "@/components/admin/FormModal";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface FormIngRow {
   ingredientId: number;
@@ -28,6 +29,7 @@ interface FormIngRow {
 }
 
 export default function AdminRecipesPage() {
+  const { t } = useTranslation();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -102,12 +104,12 @@ export default function AdminRecipesPage() {
   });
 
   const columns: Column<Recipe>[] = [
-    { key: "id", header: "ID" },
-    { key: "code", header: "Mã CT" },
-    { key: "name", header: "Tên công thức" },
+    { key: "id", header: t("admin.recipesPage.colId") },
+    { key: "code", header: t("admin.recipesPage.colCode") },
+    { key: "name", header: t("admin.recipesPage.colName") },
     {
       key: "productVariantId",
-      header: "Sản phẩm áp dụng",
+      header: t("admin.recipesPage.colProduct"),
       render: (item) => {
         const variant = flatVariants.find(v => v.id === item.productVariantId);
         return variant ? variant.label : `Mã biến thể: ${item.productVariantId}`;
@@ -115,7 +117,7 @@ export default function AdminRecipesPage() {
     },
     {
       key: "ingredients",
-      header: "Thành phần định lượng",
+      header: t("admin.recipesPage.colIngredients"),
       render: (item) => (
         <div className="flex flex-wrap gap-1.5 max-w-sm">
           {item.ingredients?.map((ing, i) => (
@@ -131,7 +133,7 @@ export default function AdminRecipesPage() {
     },
     {
       key: "status",
-      header: "Trạng thái",
+      header: t("admin.recipesPage.colStatus"),
       render: (item) => <StatusBadge status={item.status} />
     }
   ];
@@ -262,10 +264,10 @@ export default function AdminRecipesPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-left select-none">
         <div>
           <h1 className="text-xl font-extrabold text-amber-900 font-outfit uppercase tracking-wide">
-            Quản lý Công thức (Recipes)
+            {t("admin.recipesPage.title")}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold mt-1">
-            Định nghĩa công thức chế biến chuẩn cho từng kích cỡ sản phẩm uống để hệ thống tự động trừ kho nguyên liệu.
+            {t("admin.recipesPage.subtitle")}
           </p>
         </div>
         <Button
@@ -273,7 +275,7 @@ export default function AdminRecipesPage() {
           className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg px-4 h-10 text-xs font-semibold flex items-center space-x-2 shrink-0 self-start sm:self-auto cursor-pointer"
         >
           <Plus className="h-4 w-4" />
-          <span>Tạo công thức</span>
+          <span>{t("admin.createRecipe")}</span>
         </Button>
       </div>
 
@@ -282,14 +284,14 @@ export default function AdminRecipesPage() {
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Tìm theo tên công thức hoặc mã công thức..."
+          placeholder={t("admin.recipesPage.searchPlaceholder")}
         />
       </div>
 
       {/* Data Table */}
       {isLoading ? (
         <div className="text-center py-20 text-xs text-muted-foreground font-semibold">
-          Đang tải danh sách công thức pha chế từ máy chủ...
+          {t("admin.recipesPage.loading")}
         </div>
       ) : (
         <DataTable
@@ -306,7 +308,7 @@ export default function AdminRecipesPage() {
       <FormModal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        title={editingItem ? "Cập nhật công thức pha chế" : "Tạo công thức pha chế mới"}
+        title={editingItem ? t("admin.editRecipe") : t("admin.createRecipe")}
         onSubmit={handleSave}
         size="lg"
       >

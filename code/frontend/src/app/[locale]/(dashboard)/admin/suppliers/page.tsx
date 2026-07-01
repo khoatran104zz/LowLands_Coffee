@@ -18,8 +18,10 @@ import { Filter } from "@/components/admin/Filter";
 import { FormModal } from "@/components/admin/FormModal";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function AdminSuppliersPage() {
+  const { t } = useTranslation();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
@@ -76,15 +78,15 @@ export default function AdminSuppliersPage() {
   });
 
   const columns: Column<Supplier>[] = [
-    { key: "id", header: "ID" },
-    { key: "code", header: "Mã NCC" },
-    { key: "name", header: "Tên nhà cung cấp" },
-    { key: "contactName", header: "Liên hệ" },
-    { key: "phone", header: "Điện thoại" },
-    { key: "taxCode", header: "MST" },
+    { key: "id", header: t("admin.suppliersPage.colId") },
+    { key: "code", header: t("admin.suppliersPage.colCode") },
+    { key: "name", header: t("admin.suppliersPage.colName") },
+    { key: "contactName", header: t("admin.suppliersPage.colContact") },
+    { key: "phone", header: t("admin.suppliersPage.colPhone") },
+    { key: "taxCode", header: t("admin.suppliersPage.colTax") },
     {
       key: "status",
-      header: "Trạng thái",
+      header: t("admin.suppliersPage.colStatus"),
       render: (item) => <StatusBadge status={item.status} />
     }
   ];
@@ -179,10 +181,10 @@ export default function AdminSuppliersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-left select-none">
         <div>
           <h1 className="text-xl font-extrabold text-amber-900 font-outfit uppercase tracking-wide">
-            Danh sách Nhà cung cấp
+            {t("admin.suppliersPage.title")}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold mt-1">
-            Quản lý các nhà phân phối nguyên liệu thô, hợp đồng cung ứng và thông tin liên hệ đại lý.
+            {t("admin.suppliersPage.subtitle")}
           </p>
         </div>
         <Button
@@ -190,7 +192,7 @@ export default function AdminSuppliersPage() {
           className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg px-4 h-10 text-xs font-semibold flex items-center space-x-2 shrink-0 self-start sm:self-auto cursor-pointer"
         >
           <Plus className="h-4 w-4" />
-          <span>Thêm nhà cung cấp</span>
+          <span>{t("admin.createSupplier")}</span>
         </Button>
       </div>
 
@@ -199,24 +201,24 @@ export default function AdminSuppliersPage() {
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Tìm theo tên, mã NCC, người liên hệ..."
+          placeholder={t("admin.suppliersPage.searchPlaceholder")}
         />
         <Filter
-          label="Trạng thái"
+          label={t("admin.suppliersPage.statusFilter")}
           value={statusFilter}
           onChange={setStatusFilter}
           options={[
-            { value: "active", label: "Đang hợp tác" },
-            { value: "inactive", label: "Tạm ngưng" }
+            { value: "active", label: t("admin.suppliersPage.statusActive") },
+            { value: "inactive", label: t("admin.suppliersPage.statusInactive") }
           ]}
-          placeholder="Tất cả trạng thái"
+          placeholder={t("admin.suppliersPage.allStatus")}
         />
       </div>
 
       {/* Data Table */}
       {isLoading ? (
         <div className="text-center py-20 text-xs text-muted-foreground font-semibold">
-          Đang tải danh sách nhà cung cấp từ máy chủ...
+          {t("admin.suppliersPage.loading")}
         </div>
       ) : (
         <DataTable
@@ -233,7 +235,7 @@ export default function AdminSuppliersPage() {
       <FormModal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        title={editingItem ? "Cập nhật nhà cung cấp" : "Thêm nhà cung cấp mới"}
+        title={editingItem ? t("admin.editSupplier") : t("admin.createSupplier")}
         onSubmit={handleSave}
       >
         <div className="grid grid-cols-2 gap-4">
