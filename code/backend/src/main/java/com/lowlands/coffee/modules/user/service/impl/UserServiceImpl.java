@@ -83,20 +83,15 @@ public class UserServiceImpl implements UserService {
         UserEntity user = userMapper.toEntity(request);
         user.setRole(getRole(request.getRoleId()));
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-<<<<<<< HEAD
-        UserEntity saved = userRepository.save(user);
-        employeeService.syncEmployeeForUserRole(saved);
-        attachEmployee(saved);
-        return userMapper.toResponse(saved);
-=======
         UserEntity savedUser = userRepository.save(user);
 
+        employeeService.syncEmployeeForUserRole(savedUser);
+        attachEmployee(savedUser);
         handleBranchAssignment(savedUser, request.getBranchId());
 
         UserResponse response = userMapper.toResponse(savedUser);
         populateBranchInfo(savedUser.getId(), response);
         return response;
->>>>>>> ed4c16367ec5d7cae41957f30cbed29a33c97019
     }
 
     @Override
@@ -107,20 +102,15 @@ public class UserServiceImpl implements UserService {
         }
         userMapper.updateEntity(request, user);
         user.setRole(getRole(request.getRoleId()));
-<<<<<<< HEAD
-        UserEntity saved = userRepository.save(user);
-        employeeService.syncEmployeeForUserRole(saved);
-        attachEmployee(saved);
-        return userMapper.toResponse(saved);
-=======
         UserEntity savedUser = userRepository.save(user);
 
+        employeeService.syncEmployeeForUserRole(savedUser);
+        attachEmployee(savedUser);
         handleBranchAssignment(savedUser, request.getBranchId());
 
         UserResponse response = userMapper.toResponse(savedUser);
         populateBranchInfo(savedUser.getId(), response);
         return response;
->>>>>>> ed4c16367ec5d7cae41957f30cbed29a33c97019
     }
 
     @Override
@@ -138,11 +128,11 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
     }
 
-<<<<<<< HEAD
     private void attachEmployee(UserEntity user) {
         EmployeeEntity employee = employeeService.findByUserId(user.getId()).orElse(null);
         user.setEmployee(employee);
-=======
+    }
+
     private void populateBranchInfo(Long userId, UserResponse response) {
         storeUserRepository.findByUserId(userId).stream()
                 .filter(su -> "active".equalsIgnoreCase(su.getStatus()))
@@ -187,7 +177,6 @@ public class UserServiceImpl implements UserService {
                 storeUserRepository.save(assignment);
             }
         }
->>>>>>> ed4c16367ec5d7cae41957f30cbed29a33c97019
     }
 }
 

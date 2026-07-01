@@ -50,7 +50,6 @@ export default function AdminEmployeesPage() {
     void fetchBranches();
   }, [hydrateUsers]);
 
-<<<<<<< HEAD
   const columns: Column<Employee>[] = [
     {
       key: "employeeCode",
@@ -58,16 +57,6 @@ export default function AdminEmployeesPage() {
       render: (item) => item.employeeCode || "Chua co ma"
     },
     { key: "fullName", header: "Ho va ten" },
-=======
-
-  if (!isMounted) {
-    return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
-  }
-
-  const columns: Column<Employee>[] = [
-    { key: "id", header: t("admin.employeesPage.colId") },
-    { key: "fullName", header: t("admin.employeesPage.colName") },
->>>>>>> ed4c16367ec5d7cae41957f30cbed29a33c97019
     {
       key: "role",
       header: t("admin.employeesPage.colRole"),
@@ -158,12 +147,8 @@ export default function AdminEmployeesPage() {
         email: formEmail.trim(),
         phone: formPhone.trim(),
         role: formRole,
-<<<<<<< HEAD
-        branchName: "Chua gan",
-=======
         branchId: formBranchId ? Number(formBranchId) : 0,
         branchName: selectedBranch ? selectedBranch.name : t("admin.employeesPage.unassigned"),
->>>>>>> ed4c16367ec5d7cae41957f30cbed29a33c97019
         status: formStatus,
         password: formPassword
       };
@@ -299,10 +284,6 @@ export default function AdminEmployeesPage() {
             </div>
           </div>
 
-<<<<<<< HEAD
-          <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-3 text-xs font-semibold text-amber-900">
-            Backend chua ho tro gan chi nhanh cho nhan vien trong Admin UI. Thong tin chi nhanh se hien thi la &quot;Chua gan&quot;.
-=======
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.employeesPage.labelBranch")}</label>
             <select
@@ -317,7 +298,6 @@ export default function AdminEmployeesPage() {
                 </option>
               ))}
             </select>
->>>>>>> ed4c16367ec5d7cae41957f30cbed29a33c97019
           </div>
 
 
