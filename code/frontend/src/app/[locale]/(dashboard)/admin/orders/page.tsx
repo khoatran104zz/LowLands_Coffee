@@ -4,10 +4,11 @@ import React, { useState, useEffect } from "react";
 import { Receipt } from "lucide-react";
 import { OrderExtended } from "@/mock/orders";
 import { useDashboardStore } from "@/store/dashboardStore";
-import { DataTable, Column } from "@/components/tables/DataTable";
-import { SearchBar } from "@/components/tables/SearchBar";
-import { Filter } from "@/components/tables/Filter";
-import { Modal } from "@/components/ui/Modal";
+import { DataTable, Column } from "@/components/admin/DataTable";
+import { SearchBar } from "@/components/admin/SearchBar";
+import { Filter } from "@/components/admin/Filter";
+import { FormModal } from "@/components/admin/FormModal";
+import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -81,25 +82,7 @@ export default function AdminOrdersPage() {
     {
       key: "status",
       header: "Trạng thái",
-      render: (item) => {
-        const styles = {
-          pending: "bg-blue-500/10 text-blue-700",
-          preparing: "bg-amber-500/10 text-amber-700",
-          completed: "bg-emerald-500/10 text-emerald-700",
-          cancelled: "bg-rose-500/10 text-rose-700"
-        };
-        const labels = {
-          pending: "Chờ pha chế",
-          preparing: "Đang làm món",
-          completed: "Hoàn tất",
-          cancelled: "Đã hủy"
-        };
-        return (
-          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold select-none ${styles[item.status]}`}>
-            {labels[item.status]}
-          </span>
-        );
-      }
+      render: (item) => <StatusBadge status={item.status === "preparing" ? "processing" : item.status} />
     }
   ];
 
@@ -160,7 +143,7 @@ export default function AdminOrdersPage() {
       />
 
       {/* Detail Modal */}
-      <Modal
+      <FormModal
         isOpen={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}
         title={`Chi tiết đơn hàng ${selectedOrder?.orderCode || ""}`}
@@ -315,7 +298,7 @@ export default function AdminOrdersPage() {
             </div>
           </div>
         )}
-      </Modal>
+      </FormModal>
     </div>
   );
 }

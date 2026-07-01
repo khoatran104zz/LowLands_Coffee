@@ -4,10 +4,11 @@ import React, { useState, useEffect } from "react";
 import { Plus } from "lucide-react";
 import { Employee } from "@/mock/employees";
 import { useDashboardStore } from "@/store/dashboardStore";
-import { DataTable, Column } from "@/components/tables/DataTable";
-import { SearchBar } from "@/components/tables/SearchBar";
-import { Filter } from "@/components/tables/Filter";
-import { Modal } from "@/components/ui/Modal";
+import { DataTable, Column } from "@/components/admin/DataTable";
+import { SearchBar } from "@/components/admin/SearchBar";
+import { Filter } from "@/components/admin/Filter";
+import { FormModal } from "@/components/admin/FormModal";
+import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -86,17 +87,7 @@ export default function AdminEmployeesPage() {
     {
       key: "status",
       header: "Trạng thái",
-      render: (item) => (
-        <span
-          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold select-none ${
-            item.status === "active"
-              ? "bg-emerald-500/10 text-emerald-700"
-              : "bg-zinc-500/10 text-zinc-650"
-          }`}
-        >
-          {item.status === "active" ? "Đang trực" : "Đã nghỉ"}
-        </span>
-      )
+      render: (item) => <StatusBadge status={item.status} />
     }
   ];
 
@@ -243,7 +234,7 @@ export default function AdminEmployeesPage() {
       />
 
       {/* Form Modal */}
-      <Modal
+      <FormModal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         title={editingEmployee ? t("admin.editEmployee") : t("admin.createEmployee")}
@@ -372,7 +363,7 @@ export default function AdminEmployeesPage() {
             </Button>
           </div>
         </form>
-      </Modal>
+      </FormModal>
 
       
     </div>

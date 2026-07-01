@@ -4,9 +4,10 @@ import React, { useState, useEffect } from "react";
 import { Plus, Tag } from "lucide-react";
 import { Promotion } from "@/types";
 import { useDashboardStore } from "@/store/dashboardStore";
-import { DataTable, Column } from "@/components/tables/DataTable";
-import { SearchBar } from "@/components/tables/SearchBar";
-import { Modal } from "@/components/ui/Modal";
+import { DataTable, Column } from "@/components/admin/DataTable";
+import { SearchBar } from "@/components/admin/SearchBar";
+import { FormModal } from "@/components/admin/FormModal";
+import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
@@ -68,17 +69,7 @@ export default function AdminPromotionsPage() {
     {
       key: "status",
       header: "Trạng thái",
-      render: (item) => (
-        <span
-          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold select-none ${
-            item.status === "active"
-              ? "bg-emerald-500/10 text-emerald-700"
-              : "bg-zinc-500/10 text-zinc-650"
-          }`}
-        >
-          {item.status === "active" ? "Đang áp dụng" : "Đã tạm dừng"}
-        </span>
-      )
+      render: (item) => <StatusBadge status={item.status} />
     }
   ];
 
@@ -192,7 +183,7 @@ export default function AdminPromotionsPage() {
       />
 
       {/* Form Modal */}
-      <Modal
+      <FormModal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
         title={editingPromo ? t("admin.editPromotion") : t("admin.createPromotion")}
@@ -289,7 +280,7 @@ export default function AdminPromotionsPage() {
             </Button>
           </div>
         </form>
-      </Modal>
+      </FormModal>
 
       
     </div>

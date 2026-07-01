@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { DollarSign, ShoppingBag, Users, Store } from "lucide-react";
-import { StatsCard } from "@/components/dashboard/StatsCard";
+import { StatsCard } from "@/components/admin/StatsCard";
+import { ChartCard } from "@/components/admin/ChartCard";
 import { LineChart, BarChart, PieChart, ChartDataItem } from "@/components/charts/Chart";
 import { useDashboardStore } from "@/store/dashboardStore";
 import { AdminDashboardSummary, getAdminDashboardSummary } from "@/services/dashboard.service";
@@ -144,36 +145,44 @@ export default function AdminDashboardPage() {
       {/* Charts Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Chart 1 */}
-        <div className="space-y-2">
-          <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-left pl-1">
-            {t("admin.revenueMonthChart")}
-          </h4>
-          <LineChart data={revenueByMonthData} />
-        </div>
+        <ChartCard
+          title={t("admin.revenueMonthChart")}
+          description="Thống kê tổng hợp doanh thu theo từng tháng"
+        >
+          <div className="w-full h-full flex items-center justify-center">
+            <LineChart data={revenueByMonthData} />
+          </div>
+        </ChartCard>
 
         {/* Chart 2 */}
-        <div className="space-y-2">
-          <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-left pl-1">
-            {t("admin.revenueBranchChart")}
-          </h4>
-          <PieChart data={revenueByBranchData} />
-        </div>
+        <ChartCard
+          title={t("admin.revenueBranchChart")}
+          description="Tỷ lệ doanh thu đóng góp từ các chi nhánh"
+        >
+          <div className="w-full h-full flex items-center justify-center">
+            <PieChart data={revenueByBranchData} />
+          </div>
+        </ChartCard>
 
         {/* Chart 3 */}
-        <div className="space-y-2">
-          <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-left pl-1">
-            {t("admin.bestSellersChart")}
-          </h4>
-          <BarChart data={bestSellingProductsData} />
-        </div>
+        <ChartCard
+          title={t("admin.bestSellersChart")}
+          description="Top 5 đồ uống được đặt mua nhiều nhất"
+        >
+          <div className="w-full h-full flex items-center justify-center">
+            <BarChart data={bestSellingProductsData} />
+          </div>
+        </ChartCard>
 
         {/* Chart 4 */}
-        <div className="space-y-2">
-          <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-left pl-1">
-            {t("admin.customerGrowthChart")}
-          </h4>
-          <LineChart data={customerGrowthData} />
-        </div>
+        <ChartCard
+          title={t("admin.customerGrowthChart")}
+          description="Số lượng khách hàng đăng ký mới"
+        >
+          <div className="w-full h-full flex items-center justify-center">
+            <LineChart data={customerGrowthData} />
+          </div>
+        </ChartCard>
       </div>
     </div>
   );
