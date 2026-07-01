@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { Plus } from "lucide-react";
+import { AlertCircle, Plus } from "lucide-react";
 import { Topping } from "@/types";
 import { useDashboardStore } from "@/store/dashboardStore";
 import { DataTable, Column } from "@/components/admin/DataTable";
@@ -17,11 +17,11 @@ import { useConfirm } from "@/hooks/useConfirm";
 export default function AdminToppingsPage() {
   const { t } = useTranslation();
   const confirm = useConfirm();
-  const [isMounted, setIsMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   const toppings = useDashboardStore((state) => state.toppings) || [];
-  const hydrateProductCatalog = useDashboardStore((state) => state.hydrateProductCatalog);
+  const productCatalogError = useDashboardStore((state) => state.productCatalogError);
+  const hydrateToppings = useDashboardStore((state) => state.hydrateToppings);
   const addTopping = useDashboardStore((state) => state.addTopping);
   const updateTopping = useDashboardStore((state) => state.updateTopping);
   const deleteTopping = useDashboardStore((state) => state.deleteTopping);
@@ -34,11 +34,8 @@ export default function AdminToppingsPage() {
   const [formStatus, setFormStatus] = useState("active");
 
   useEffect(() => {
-    setIsMounted(true);
-    void hydrateProductCatalog("admin");
-  }, [hydrateProductCatalog]);
-
-  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
+    void hydrateToppings();
+  }, [hydrateToppings]);
 
   const columns: Column<Topping>[] = [
     { key: "id", header: "ID" },
@@ -148,6 +145,13 @@ export default function AdminToppingsPage() {
           <span>Thêm topping</span>
         </Button>
       </div>
+
+      {productCatalogError && (
+        <div className="flex items-start gap-2.5 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" />
+          <span>{productCatalogError}</span>
+        </div>
+      )}
 
       {/* Filter search */}
       <div className="flex flex-col md:flex-row md:items-center gap-4 bg-card border border-border/80 rounded-xl p-4 shadow-2xs">
