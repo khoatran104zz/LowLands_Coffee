@@ -474,6 +474,7 @@ export const useDashboardStore = create<DashboardState>()(
         void state?.hydrateProductCatalog("public");
         void state?.hydrateUsers();
       },
+      skipHydration: true,
     }
   )
 );

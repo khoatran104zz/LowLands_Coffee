@@ -5,19 +5,40 @@ interface AuthState {
   user: User | null;
   token: string | null;
   isAuthenticated: boolean;
+  hasHydrated: boolean;
   
   // Actions
+  hydrateFromStorage: () => void;
   login: (user: User, token: string, refreshToken?: string) => void;
   logout: () => void;
   updateUser: (user: User) => void;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-  user: typeof window !== "undefined" && localStorage.getItem("lowlands_user")
-    ? JSON.parse(localStorage.getItem("lowlands_user") as string)
-    : null,
-  token: typeof window !== "undefined" ? localStorage.getItem("lowlands_token") : null,
-  isAuthenticated: typeof window !== "undefined" ? Boolean(localStorage.getItem("lowlands_token")) : false,
+  user: null,
+  token: null,
+  isAuthenticated: false,
+  hasHydrated: false,
+
+  hydrateFromStorage: () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const token = localStorage.getItem("lowlands_token");
+    const savedUser = localStorage.getItem("lowlands_user");
+    let user: User | null = null;
+
+    if (savedUser) {
+      try {
+        user = JSON.parse(savedUser) as User;
+      } catch {
+        localStorage.removeItem("lowlands_user");
+      }
+    }
+
+    set({ user, token, isAuthenticated: Boolean(token), hasHydrated: true });
+  },
 
   login: (user, token, refreshToken) => {
     // Save to local storage for persistence
@@ -28,7 +49,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       }
       localStorage.setItem("lowlands_user", JSON.stringify(user));
     }
-    set({ user, token, isAuthenticated: true });
+    set({ user, token, isAuthenticated: true, hasHydrated: true });
   },
 
   logout: () => {
@@ -37,7 +58,7 @@ export const useAuthStore = create<AuthState>((set) => ({
       localStorage.removeItem("lowlands_refresh_token");
       localStorage.removeItem("lowlands_user");
     }
-    set({ user: null, token: null, isAuthenticated: false });
+    set({ user: null, token: null, isAuthenticated: false, hasHydrated: true });
   },
 
   updateUser: (user) => {

@@ -197,7 +197,7 @@ export function FeaturedProducts() {
 
                     <div className="mt-4 flex items-center justify-between">
                       <span className="text-sm font-black text-[#C8510A] leading-none">
-                        {displayPrice.toLocaleString()}d
+                        {displayPrice.toLocaleString("vi-VN")}d
                       </span>
 
                       <button

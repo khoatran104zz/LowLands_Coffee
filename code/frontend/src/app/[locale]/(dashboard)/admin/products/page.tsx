@@ -102,8 +102,8 @@ export default function AdminProductsPage() {
         const prices = item.variants.map((v) => v.price);
         const minPrice = Math.min(...prices);
         const maxPrice = Math.max(...prices);
-        if (minPrice === maxPrice) return <span>{minPrice.toLocaleString()}đ</span>;
-        return <span>{minPrice.toLocaleString()}đ - {maxPrice.toLocaleString()}đ</span>;
+        if (minPrice === maxPrice) return <span>{minPrice.toLocaleString("vi-VN")}đ</span>;
+        return <span>{minPrice.toLocaleString("vi-VN")}đ - {maxPrice.toLocaleString("vi-VN")}đ</span>;
       }
     },
     {

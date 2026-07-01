@@ -114,7 +114,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
               {product.name}
             </h4>
             <span className="text-xs font-extrabold text-[#C8510A] mt-1.5 block leading-none">
-              {displayPrice.toLocaleString()}đ
+              {displayPrice.toLocaleString("vi-VN")}đ
             </span>
           </div>
           {!isOutOfStock && (
@@ -156,7 +156,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
                             : "border-border bg-background hover:bg-muted/10 text-foreground"
                       }`}
                     >
-                      Size {v.size} ({v.price.toLocaleString()}đ)
+                      Size {v.size} ({v.price.toLocaleString("vi-VN")}đ)
                       {!isVariantActive && " - Hết"}
                     </button>
                   );
@@ -197,7 +197,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
                         <span>{t.name}</span>
                       </div>
                       <span className="text-[10px] text-muted-foreground">
-                        {isToppingActive ? `+${t.price.toLocaleString()}đ` : "Hết hàng"}
+                        {isToppingActive ? `+${t.price.toLocaleString("vi-VN")}đ` : "Hết hàng"}
                       </span>
                     </div>
                   );
@@ -224,7 +224,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             <div className="text-left">
               <span className="text-xs text-muted-foreground block font-medium">{t("common.total")}:</span>
               <span className="text-base font-black text-[#C8510A] font-outfit">
-                {currentTotal.toLocaleString()}đ
+                {currentTotal.toLocaleString("vi-VN")}đ
               </span>
             </div>
             <div className="flex space-x-2">

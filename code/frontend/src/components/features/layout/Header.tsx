@@ -60,6 +60,7 @@ export function Header() {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    useAuthStore.getState().hydrateFromStorage();
     setIsMounted(true);
   }, []);
   

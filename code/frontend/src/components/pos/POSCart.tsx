@@ -121,7 +121,7 @@ export function POSCart({
     
     if (promo) {
       if (subtotal < promo.minOrderAmount) {
-        toast.error(`Đơn hàng chưa đạt tối thiểu ${promo.minOrderAmount.toLocaleString()}đ`);
+        toast.error(`Đơn hàng chưa đạt tối thiểu ${promo.minOrderAmount.toLocaleString("vi-VN")}đ`);
       } else {
         setAppliedPromo(promo);
         toast.success(`Áp dụng mã giảm giá ${promo.code} thành công!`);
@@ -340,7 +340,7 @@ export function POSCart({
               <div className="flex items-center space-x-3 shrink-0 ml-2">
                 <span className="text-[10px] text-muted-foreground font-black">× {item.quantity}</span>
                 <span className="text-xs font-extrabold text-foreground min-w-[50px] text-right">
-                  {((item.variant.price + item.toppings.reduce((sum, t) => sum + t.topping.price * t.quantity, 0)) * item.quantity).toLocaleString()}đ
+                  {((item.variant.price + item.toppings.reduce((sum, t) => sum + t.topping.price * t.quantity, 0)) * item.quantity).toLocaleString("vi-VN")}đ
                 </span>
                 
                 <div className="flex flex-col items-center space-y-0.5">
@@ -408,21 +408,21 @@ export function POSCart({
           <div className="space-y-1.5 text-xs text-muted-foreground font-semibold border-b border-border/40 pb-2.5">
             <div className="flex justify-between">
               <span>Tạm tính:</span>
-              <span className="text-foreground">{subtotal.toLocaleString()}đ</span>
+              <span className="text-foreground">{subtotal.toLocaleString("vi-VN")}đ</span>
             </div>
             {discount > 0 && (
               <div className="flex justify-between text-emerald-700 font-bold">
                 <span>Giảm giá:</span>
-                <span>-{discount.toLocaleString()}đ</span>
+                <span>-{discount.toLocaleString("vi-VN")}đ</span>
               </div>
             )}
             <div className="flex justify-between">
               <span>Phí phục vụ (5%):</span>
-              <span className="text-foreground">{vat.toLocaleString()}đ</span>
+              <span className="text-foreground">{vat.toLocaleString("vi-VN")}đ</span>
             </div>
             <div className="flex justify-between text-sm font-black text-foreground pt-1.5 border-t border-dashed border-border/40 mt-1">
               <span>Tổng cộng:</span>
-              <span className="text-[#C8510A] font-outfit text-base leading-none">{total.toLocaleString()}đ</span>
+              <span className="text-[#C8510A] font-outfit text-base leading-none">{total.toLocaleString("vi-VN")}đ</span>
             </div>
           </div>
 
@@ -527,7 +527,7 @@ export function POSCart({
             </div>
             <div className="flex justify-between text-xs font-semibold text-foreground/80">
               <span>Tổng cộng (gồm VAT):</span>
-              <span className="font-extrabold text-[#C8510A]">{total.toLocaleString()}đ</span>
+              <span className="font-extrabold text-[#C8510A]">{total.toLocaleString("vi-VN")}đ</span>
             </div>
             <div className="flex justify-between text-xs font-semibold text-foreground/80">
               <span>Phương thức thanh toán:</span>
@@ -569,7 +569,7 @@ export function POSCart({
                     onClick={() => setCashReceived(val)}
                     className="py-1 border border-border/80 rounded-md text-[10px] font-bold bg-background hover:bg-muted transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                   >
-                    {val.toLocaleString()}đ
+                    {val.toLocaleString("vi-VN")}đ
                   </button>
                 ))}
               </div>
@@ -577,7 +577,7 @@ export function POSCart({
               <div className="flex justify-between items-center text-xs font-black pt-2.5 border-t border-dashed border-border/50 mt-2">
                 <span className="text-muted-foreground">Tiền thối lại:</span>
                 <span className={changeReturned > 0 ? "text-emerald-700 text-sm font-black" : "text-foreground text-sm font-black"}>
-                  {changeReturned.toLocaleString()}đ
+                  {changeReturned.toLocaleString("vi-VN")}đ
                 </span>
               </div>
             </div>

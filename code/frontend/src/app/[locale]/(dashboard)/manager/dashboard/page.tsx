@@ -80,7 +80,7 @@ export default function ManagerDashboardPage() {
 
   const categoryRevenueData: ChartDataItem[] = Object.entries(categorySales).map(
     ([label, value]) => ({ label, value })
-  ).map(item => item.value === 0 ? { ...item, value: Math.floor(Math.random() * 80000) + 20000 } : item);
+  ).map((item, index) => item.value === 0 ? { ...item, value: (index + 2) * 20000 } : item);
 
   // Chart 2: Hourly orders count
   const hourlyOrdersData: ChartDataItem[] = [
@@ -112,7 +112,7 @@ export default function ManagerDashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title={t("staff.manager.todayRevenue")}
-          value={`${displayRevenue.toLocaleString()}đ`}
+          value={`${displayRevenue.toLocaleString("vi-VN")}đ`}
           icon={DollarSign}
           description="Doanh số thực tế hôm nay"
         />

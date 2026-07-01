@@ -1,13 +1,18 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { Link, usePathname } from "@/i18n/navigation";
 import { useTranslation } from "@/hooks/useTranslation";
 import Image from "next/image";
 
 export function Footer() {
   const { t } = useTranslation();
-  const currentYear = new Date().getFullYear();
+  const [currentYear, setCurrentYear] = useState("2026");
   const pathname = usePathname();
+
+  useEffect(() => {
+    setCurrentYear(String(new Date().getFullYear()));
+  }, []);
 
   return (
     <footer className="w-full border-t border-border bg-card text-card-foreground">
