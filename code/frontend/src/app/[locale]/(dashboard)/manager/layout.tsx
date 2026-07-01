@@ -1,6 +1,6 @@
 import React from "react";
-import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { ManagerLayout } from "@/components/manager/ManagerLayout";
 
-export default function ManagerLayout({ children }: { children: React.ReactNode }) {
-  return <DashboardLayout role="manager">{children}</DashboardLayout>;
+export default function ManagerLayoutComponent({ children }: { children: React.ReactNode }) {
+  return <ManagerLayout>{children}</ManagerLayout>;
 }

@@ -232,8 +232,14 @@
       "kho": "Warehouse",
       "recipe": "Recipe",
       "business": "Business",
-      "reports": "Reports"
+      "reports": "Reports",
+      "overview": "Overview",
+      "inventory": "Branch Stock",
+      "staff": "Staff Management"
     },
+    "stockBalance": "Stock Balance",
+    "stockHistory": "Inventory History",
+    "shifts": "Working Shifts",
     "dashboard": "Dashboard",
     "branches": "Manage Branches",
     "products": "Manage Products",
