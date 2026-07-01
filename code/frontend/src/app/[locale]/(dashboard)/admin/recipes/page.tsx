@@ -20,6 +20,7 @@ import { SearchBar } from "@/components/admin/SearchBar";
 import { FormModal } from "@/components/admin/FormModal";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface FormIngRow {
   ingredientId: number;
@@ -28,6 +29,7 @@ interface FormIngRow {
 }
 
 export default function AdminRecipesPage() {
+  const { t } = useTranslation();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -273,7 +275,7 @@ export default function AdminRecipesPage() {
           className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg px-4 h-10 text-xs font-semibold flex items-center space-x-2 shrink-0 self-start sm:self-auto cursor-pointer"
         >
           <Plus className="h-4 w-4" />
-          <span>Tạo công thức</span>
+          <span>{t("admin.createRecipe")}</span>
         </Button>
       </div>
 
@@ -306,7 +308,7 @@ export default function AdminRecipesPage() {
       <FormModal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        title={editingItem ? "Cập nhật công thức pha chế" : "Tạo công thức pha chế mới"}
+        title={editingItem ? t("admin.editRecipe") : t("admin.createRecipe")}
         onSubmit={handleSave}
         size="lg"
       >

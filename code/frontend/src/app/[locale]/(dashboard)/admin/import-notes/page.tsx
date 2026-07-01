@@ -25,6 +25,7 @@ import { Filter } from "@/components/admin/Filter";
 import { FormModal } from "@/components/admin/FormModal";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { useTranslation } from "@/hooks/useTranslation";
 
 interface FormItem {
   ingredientId: number;
@@ -34,6 +35,7 @@ interface FormItem {
 }
 
 export default function AdminImportNotesPage() {
+  const { t } = useTranslation();
   const [receipts, setReceipts] = useState<GoodsReceipt[]>([]);
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
@@ -295,7 +297,7 @@ export default function AdminImportNotesPage() {
           className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg px-4 h-10 text-xs font-semibold flex items-center space-x-2 shrink-0 self-start sm:self-auto cursor-pointer"
         >
           <Plus className="h-4 w-4" />
-          <span>Tạo phiếu nhập</span>
+          <span>{t("admin.createImportNote")}</span>
         </Button>
       </div>
 
@@ -348,7 +350,7 @@ export default function AdminImportNotesPage() {
       <FormModal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        title="Lập phiếu nhập kho mới"
+        title={t("admin.createImportNote")}
         onSubmit={handleSave}
         size="lg"
       >
@@ -496,7 +498,7 @@ export default function AdminImportNotesPage() {
       <FormModal
         isOpen={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}
-        title={`Chi tiết phiếu nhập: ${viewingReceipt?.receiptCode}`}
+        title={`${t("admin.editImportNote")}: ${viewingReceipt?.receiptCode}`}
         size="md"
       >
         {viewingReceipt && (

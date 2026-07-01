@@ -23,6 +23,16 @@
   "createPromotion": "Tạo chương trình khuyến mãi",
   "editPromotion": "Cập nhật chương trình khuyến mãi",
   "deletePromotionConfirm": "Bạn có chắc chắn muốn xóa mã khuyến mãi này?",
+  "createTopping": "Thêm topping mới",
+  "editTopping": "Cập nhật topping",
+  "createSupplier": "Thêm nhà cung cấp mới",
+  "editSupplier": "Cập nhật nhà cung cấp",
+  "createRecipe": "Tạo công thức mới",
+  "editRecipe": "Cập nhật công thức",
+  "createIngredient": "Thêm nguyên liệu mới",
+  "editIngredient": "Cập nhật nguyên liệu",
+  "createImportNote": "Tạo phiếu nhập kho",
+  "editImportNote": "Chi tiết phiếu nhập kho",
   "sidebar": {
     "groups": {
       "org": "Tổ chức",

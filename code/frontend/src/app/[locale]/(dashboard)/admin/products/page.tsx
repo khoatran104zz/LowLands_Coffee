@@ -259,7 +259,7 @@ export default function AdminProductsPage() {
           className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg px-4 h-10 text-xs font-semibold flex items-center space-x-2 shrink-0 self-start sm:self-auto"
         >
           <Plus className="h-4 w-4" />
-          <span>{t("common.add")} món mới</span>
+          <span>{t("admin.createProduct")}</span>
         </Button>
       </div>
 
