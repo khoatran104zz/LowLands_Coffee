@@ -1,7 +1,6 @@
-package com.lowlands.coffee.modules.user.entity;
+package com.lowlands.coffee.modules.employee.entity;
 
-import com.lowlands.coffee.modules.employee.entity.EmployeeEntity;
-import com.lowlands.coffee.modules.role.entity.RoleEntity;
+import com.lowlands.coffee.modules.user.entity.UserEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -9,7 +8,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.PreUpdate;
@@ -22,34 +20,22 @@ import java.time.LocalDateTime;
 @Getter
 @Setter
 @Entity
-@Table(name = "users")
-public class UserEntity {
+@Table(name = "employees")
+public class EmployeeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "full_name", nullable = false, length = 100)
-    private String fullName;
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", nullable = false, unique = true)
+    private UserEntity user;
 
-    @Column(nullable = false, unique = true, length = 100)
-    private String email;
-
-    @Column(length = 20)
-    private String phone;
-
-    @Column(nullable = false)
-    private String password;
-
-    @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "role_id", nullable = false)
-    private RoleEntity role;
+    @Column(name = "employee_code", nullable = false, unique = true, length = 30)
+    private String employeeCode;
 
     @Column(nullable = false, length = 20)
     private String status;
-
-    @OneToOne(mappedBy = "user", fetch = FetchType.LAZY)
-    private EmployeeEntity employee;
 
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;

@@ -2,6 +2,8 @@ package com.lowlands.coffee.modules.user.service.impl;
 
 import com.lowlands.coffee.common.exception.BadRequestException;
 import com.lowlands.coffee.common.exception.ResourceNotFoundException;
+import com.lowlands.coffee.modules.employee.entity.EmployeeEntity;
+import com.lowlands.coffee.modules.employee.service.EmployeeService;
 import com.lowlands.coffee.modules.role.entity.RoleEntity;
 import com.lowlands.coffee.modules.role.repository.RoleRepository;
 import com.lowlands.coffee.modules.user.dto.request.UserCreateRequest;
@@ -23,17 +25,20 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
+    private final EmployeeService employeeService;
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
 
     public UserServiceImpl(
             UserRepository userRepository,
             RoleRepository roleRepository,
+            EmployeeService employeeService,
             UserMapper userMapper,
             PasswordEncoder passwordEncoder
     ) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
+        this.employeeService = employeeService;
         this.userMapper = userMapper;
         this.passwordEncoder = passwordEncoder;
     }
@@ -58,7 +63,10 @@ public class UserServiceImpl implements UserService {
         UserEntity user = userMapper.toEntity(request);
         user.setRole(getRole(request.getRoleId()));
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        return userMapper.toResponse(userRepository.save(user));
+        UserEntity saved = userRepository.save(user);
+        employeeService.syncEmployeeForUserRole(saved);
+        attachEmployee(saved);
+        return userMapper.toResponse(saved);
     }
 
     @Override
@@ -69,7 +77,10 @@ public class UserServiceImpl implements UserService {
         }
         userMapper.updateEntity(request, user);
         user.setRole(getRole(request.getRoleId()));
-        return userMapper.toResponse(userRepository.save(user));
+        UserEntity saved = userRepository.save(user);
+        employeeService.syncEmployeeForUserRole(saved);
+        attachEmployee(saved);
+        return userMapper.toResponse(saved);
     }
 
     @Override
@@ -85,5 +96,10 @@ public class UserServiceImpl implements UserService {
     private RoleEntity getRole(Long id) {
         return roleRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Role not found"));
+    }
+
+    private void attachEmployee(UserEntity user) {
+        EmployeeEntity employee = employeeService.findByUserId(user.getId()).orElse(null);
+        user.setEmployee(employee);
     }
 }

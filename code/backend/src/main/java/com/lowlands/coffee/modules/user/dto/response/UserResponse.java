@@ -18,6 +18,7 @@ public class UserResponse {
     private Long roleId;
     private String roleName;
     private String role;
+    private String employeeCode;
     private List<String> permissions = new ArrayList<>();
     private String status;
     private LocalDateTime createdAt;

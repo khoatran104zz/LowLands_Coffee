@@ -5,7 +5,7 @@ Date: 2026-07-01
 ## Pages Integrated With Real API
 
 - Admin Branches: now uses Store API through `store.service.ts` for list/create/update/delete and reloads after mutations.
-- Admin Employees: uses User API through `dashboardStore.hydrateUsers`, `createUser`, `updateUser`, `deleteUser`; filters STAFF/MANAGER only.
+- Admin Employees: uses User API through `dashboardStore.hydrateUsers`, `createUser`, `updateUser`, `deleteUser`; filters STAFF/MANAGER only and displays backend `employeeCode` from the Employee profile.
 - Admin Customers: uses User API and filters CUSTOMER users.
 - Admin Dashboard: uses `/api/v1/admin/dashboard/summary` only.
 - Admin Categories, Products, Toppings: kept on real Product/Category/Topping admin APIs.
@@ -62,6 +62,7 @@ Kept:
 
 - `/api/v1/stores`
 - `/api/v1/users`
+- `employees.employee_code` is returned through User API responses for STAFF/MANAGER users.
 - `/api/v1/admin/dashboard/summary`
 - `/api/v1/admin/categories`
 - `/api/v1/admin/products`
@@ -112,11 +113,12 @@ Kept:
 
 - `npm.cmd run type-check`: passed.
 - `npm.cmd run dev`: started successfully at `http://localhost:3000`.
-- Backend build/run was not executed because this sprint did not change backend code.
+- Backend employee integration added later: `mvn test` passed after Flyway V20 and Employee module changes.
 
 ## Remaining Issues
 
 - Employee store assignment is shown as unsupported until StoreUser assignment API exists.
+- Employee profile exists for STAFF/MANAGER users, but StoreUser assignment still references `users.id` through `store_users.staff_id`.
 - Admin Reports and detailed Dashboard charts remain no-data placeholders until Order/Payment/report APIs exist.
 - POS checkout still cannot create a real backend order because Order backend is missing.
 - Customer cart promotion entry now routes to a clear backend-not-implemented service instead of mock data.

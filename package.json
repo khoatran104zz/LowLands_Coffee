@@ -4,7 +4,7 @@
   "scripts": {
     "backend": "node scripts/run-backend-neon.js",
     "frontend": "npm --prefix code/frontend run dev",
-    "dev": "concurrently -n backend,frontend -c blue,green \"npm run backend\" \"npm run frontend\"",
+    "dev": "node scripts/run-dev.js",
     "start": "npm run dev",
     "dev:backend": "npm run backend",
     "dev:frontend": "npm run frontend"

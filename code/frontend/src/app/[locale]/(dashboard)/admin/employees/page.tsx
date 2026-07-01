@@ -16,7 +16,6 @@ import { useConfirm } from "@/hooks/useConfirm";
 export default function AdminEmployeesPage() {
   const { t } = useTranslation();
   const confirm = useConfirm();
-  const [isMounted, setIsMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const employees = useDashboardStore((state) => state.employees);
   const addEmployee = useDashboardStore((state) => state.addEmployee);
@@ -33,16 +32,15 @@ export default function AdminEmployeesPage() {
   const [formStatus, setFormStatus] = useState<Employee["status"]>("active");
 
   useEffect(() => {
-    setIsMounted(true);
     void hydrateUsers();
   }, [hydrateUsers]);
 
-  if (!isMounted) {
-    return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
-  }
-
   const columns: Column<Employee>[] = [
-    { key: "id", header: "Ma NV" },
+    {
+      key: "employeeCode",
+      header: "Ma NV",
+      render: (item) => item.employeeCode || "Chua co ma"
+    },
     { key: "fullName", header: "Ho va ten" },
     {
       key: "role",
@@ -124,7 +122,6 @@ export default function AdminEmployeesPage() {
         email: formEmail.trim(),
         phone: formPhone.trim(),
         role: formRole,
-        branchId: 0,
         branchName: "Chua gan",
         status: formStatus,
         password: formPassword
@@ -259,7 +256,7 @@ export default function AdminEmployeesPage() {
           </div>
 
           <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-3 text-xs font-semibold text-amber-900">
-            Backend chua ho tro gan chi nhanh cho nhan vien trong Admin UI. Thong tin chi nhanh se hien thi la "Chua gan".
+            Backend chua ho tro gan chi nhanh cho nhan vien trong Admin UI. Thong tin chi nhanh se hien thi la &quot;Chua gan&quot;.
           </div>
 
           <div className="flex justify-end space-x-2 border-t border-border/40 pt-4 mt-2">

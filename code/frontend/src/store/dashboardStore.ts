@@ -27,9 +27,10 @@ import {
 
 export interface Employee {
   id: number;
+  employeeCode?: string | null;
   fullName: string;
   role: "manager" | "staff";
-  branchId: number;
+  branchId?: number;
   branchName: string;
   email: string;
   phone: string;
@@ -248,9 +249,9 @@ export const useDashboardStore = create<DashboardState>()(
               const role = (user.roleName || user.role || "").toUpperCase();
               return {
                 id: user.id,
+                employeeCode: user.employeeCode,
                 fullName: user.fullName,
                 role: role === "MANAGER" ? "manager" : "staff",
-                branchId: 0,
                 branchName: "Chua gan",
                 email: user.email,
                 phone: user.phone || "",

@@ -23,7 +23,7 @@ He thong nen duoc hieu theo cac lop nghiep vu sau:
 | Layer | Module chinh | Vai tro |
 | --- | --- | --- |
 | Identity & Access | Authentication, User, Role, Permission | Dinh danh nguoi dung va kiem soat quyen |
-| Organization | Store, Store User | Quan ly chi nhanh va nhan su theo chi nhanh |
+| Organization | Employee, Store, Store User | Quan ly ho so nhan vien, chi nhanh va nhan su theo chi nhanh |
 | Catalog | Category, Product, Variant, Topping | Quan ly mat hang duoc ban tren menu/POS |
 | Production Formula | Ingredient Category, Ingredient, Recipe, Recipe Ingredient | Dinh nghia cong thuc tieu hao nguyen lieu |
 | Supply & Inventory | Supplier, Goods Receipt, Goods Receipt Item, Stock Movement, Inventory | Nhap hang, dieu chinh ton kho, tinh ton hien tai |
@@ -53,8 +53,16 @@ He thong nen duoc hieu theo cac lop nghiep vu sau:
 - Vai tro: Tai khoan nguoi dung.
 - Muc dich: Luu thong tin dang nhap, trang thai, vai tro.
 - Ai su dung: Admin quan ly user; Auth dung de xac thuc; Order dung de gan customer/staff.
-- Quan he: Role, Store User, Customer Address, Order.
-- Hien trang: Da co backend module user.
+- Quan he: Role, Employee, Store User, Customer Address, Order.
+- Hien trang: Da co backend module user. Employee code khong nam tren users; neu user la MANAGER/STAFF thi co employee profile rieng.
+
+### Employee
+
+- Vai tro: Ho so nhan vien cho user noi bo.
+- Muc dich: Luu ma nhan vien va trang thai ho so nhan vien tach khoi tai khoan dang nhap.
+- Ai su dung: Admin khi tao/cap nhat nhan vien; Store User khi gan nhan vien vao chi nhanh.
+- Quan he: User 1-1 Employee. Store User hien van tham chieu User theo thiet ke hien co.
+- Hien trang: Da bo sung bang/module employee toi thieu. Backend tu sinh `employee_code` theo format `EMP0001` cho MANAGER/STAFF, khong sinh cho CUSTOMER.
 
 ### Customer
 
@@ -299,6 +307,7 @@ Neu sau nay can Warehouse tong, nen thiet ke lai thanh `Inventory Location` hoac
 | Du lieu | Source of truth nen dung |
 | --- | --- |
 | Dang nhap/quyen | Backend Auth + Role/Permission |
+| Employee code | `employees.employee_code` |
 | Product catalog | Backend Product/Category/Topping API |
 | Ton kho | `stock_movements` ledger theo store + ingredient |
 | Nhap hang | Goods Receipt da complete |
@@ -309,7 +318,7 @@ Neu sau nay can Warehouse tong, nen thiet ke lai thanh `Inventory Location` hoac
 
 ## 7. Current State Summary
 
-- Product, Category, Topping, Ingredient, Supplier, Recipe, Inventory, Goods Receipt da co backend theo nhieu muc do.
+- User/Employee, Product, Category, Topping, Ingredient, Supplier, Recipe, Inventory, Goods Receipt da co backend theo nhieu muc do.
 - Order, Payment, Cart, Promotion, Customer Address da co trong business/DBML/design nhung chua dong bo thanh module backend/frontend that day du.
 - Frontend da co nhieu man hinh, nhung mot so phan van dung mock/local state, dac biet orders, promotions, store locator fallback, mot so dashboard/POS flow.
 - Permission da co RBAC, nhung route gate theo `/admin`, `/manager`, `/staff` lam mot so permission bi gioi han boi duong dan.

@@ -4,6 +4,7 @@ import com.lowlands.coffee.modules.ingredient.entity.IngredientCategoryEntity;
 import com.lowlands.coffee.modules.ingredient.entity.IngredientEntity;
 import com.lowlands.coffee.modules.ingredient.repository.IngredientCategoryRepository;
 import com.lowlands.coffee.modules.ingredient.repository.IngredientRepository;
+import com.lowlands.coffee.modules.employee.service.EmployeeService;
 import com.lowlands.coffee.modules.inventory.entity.GoodsReceiptEntity;
 import com.lowlands.coffee.modules.inventory.entity.GoodsReceiptItemEntity;
 import com.lowlands.coffee.modules.inventory.entity.StockMovementEntity;
@@ -42,6 +43,7 @@ public class DataBootstrap {
             IngredientRepository ingredientRepository,
             GoodsReceiptRepository goodsReceiptRepository,
             StockMovementRepository stockMovementRepository,
+            EmployeeService employeeService,
             PasswordEncoder passwordEncoder
     ) {
         return args -> {
@@ -85,6 +87,8 @@ public class DataBootstrap {
                     userRepository,
                     passwordEncoder
             );
+            employeeService.ensureEmployeeForUser(manager);
+            employeeService.ensureEmployeeForUser(staff);
 
             StoreEntity defaultStore = ensureDefaultStore(storeRepository);
             ensureStoreUser(manager, defaultStore, "MANAGER", storeUserRepository);
