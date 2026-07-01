@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
 import { useAuthStore } from "@/store/auth.store";
+import { useDashboardStore } from "@/store/dashboardStore";
 import { RefreshCw } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
 
@@ -24,10 +25,22 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
+  const hydrateFromStorage = useAuthStore((state) => state.hydrateFromStorage);
 
   useEffect(() => {
+    hydrateFromStorage();
+    if (!useDashboardStore.persist.hasHydrated()) {
+      void useDashboardStore.persist.rehydrate();
+    }
     setIsMounted(true);
-    
+  }, [hydrateFromStorage]);
+
+  useEffect(() => {
+    if (!isMounted || !hasHydrated) {
+      return;
+    }
+
     // Load collapse state from local storage
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("lowlands_admin_sidebar_collapsed");
@@ -51,7 +64,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         router.push(`/${locale}/portal/login`);
       }
     }
-  }, [isMounted, isAuthenticated, user, router, locale]);
+  }, [isMounted, hasHydrated, isAuthenticated, user, router, locale]);
 
   const handleToggleCollapse = () => {
     const nextVal = !isCollapsed;
@@ -63,7 +76,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   const hasAccess = isAuthenticated && user && user.roleName?.toLowerCase() === "admin";
 
-  if (!isMounted || !hasAccess) {
+  if (!isMounted || !hasHydrated || !hasAccess) {
     return (
       <div className="h-screen w-screen bg-[#241a15] flex flex-col items-center justify-center gap-3 text-amber-500 font-sans select-none">
         <RefreshCw className="h-8 w-8 animate-spin" />

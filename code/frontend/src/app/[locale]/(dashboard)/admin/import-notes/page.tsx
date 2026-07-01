@@ -115,7 +115,7 @@ export default function AdminImportNotesPage() {
     {
       key: "totalAmount",
       header: t("admin.importNotesPage.colTotal"),
-      render: (item) => `${item.totalAmount.toLocaleString()}đ`
+      render: (item) => `${item.totalAmount.toLocaleString("vi-VN")}đ`
     },
     {
       key: "createdAt",
@@ -470,7 +470,7 @@ export default function AdminImportNotesPage() {
           {/* Form Total Check */}
           <div className="flex justify-between items-center bg-amber-50/50 p-3 rounded-lg border border-amber-100 mt-2 select-none">
             <span className="text-xs font-bold text-amber-950 font-outfit uppercase">Tổng giá trị đơn nhập:</span>
-            <span className="text-sm font-extrabold text-[#c8510a]">{formTotalAmount.toLocaleString()}đ</span>
+            <span className="text-sm font-extrabold text-[#c8510a]">{formTotalAmount.toLocaleString("vi-VN")}đ</span>
           </div>
         </div>
 
@@ -542,8 +542,8 @@ export default function AdminImportNotesPage() {
                       <span className="text-[10px] text-zinc-400 font-medium">Mã: {item.ingredientCode}</span>
                     </div>
                     <div className="text-right">
-                      <span className="font-semibold text-zinc-700 block">{item.quantity} {item.unit} x {item.unitPrice.toLocaleString()}đ</span>
-                      <span className="text-[10px] font-extrabold text-[#c8510a] block">{(item.totalPrice || (item.quantity * item.unitPrice)).toLocaleString()}đ</span>
+                      <span className="font-semibold text-zinc-700 block">{item.quantity} {item.unit} x {item.unitPrice.toLocaleString("vi-VN")}đ</span>
+                      <span className="text-[10px] font-extrabold text-[#c8510a] block">{(item.totalPrice || (item.quantity * item.unitPrice)).toLocaleString("vi-VN")}đ</span>
                     </div>
                   </div>
                 ))}
@@ -552,7 +552,7 @@ export default function AdminImportNotesPage() {
 
             <div className="flex justify-between items-center bg-amber-50/50 p-3 rounded-lg border border-amber-100 select-none">
               <span className="text-xs font-bold text-amber-950 font-outfit uppercase">Tổng cộng:</span>
-              <span className="text-sm font-extrabold text-[#c8510a]">{viewingReceipt.totalAmount.toLocaleString()}đ</span>
+              <span className="text-sm font-extrabold text-[#c8510a]">{viewingReceipt.totalAmount.toLocaleString("vi-VN")}đ</span>
             </div>
 
             <div className="flex justify-end space-x-2 border-t border-zinc-100 pt-3 mt-1">

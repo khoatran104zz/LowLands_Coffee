@@ -56,7 +56,7 @@ export default function ManagerOrdersPage() {
     {
       key: "totalAmount",
       header: "Thành tiền",
-      render: (item) => <span className="font-bold text-amber-900">{item.totalAmount.toLocaleString()}đ</span>
+      render: (item) => <span className="font-bold text-amber-900">{item.totalAmount.toLocaleString("vi-VN")}đ</span>
     },
     {
       key: "paymentMethod",
@@ -215,7 +215,7 @@ export default function ManagerOrdersPage() {
                           <td className="py-3 px-4 text-center">Size {item.size}</td>
                           <td className="py-3 px-4 text-center">{item.quantity}</td>
                           <td className="py-3 px-4 text-right font-bold">
-                            {(item.totalPrice).toLocaleString()}đ
+                            {(item.totalPrice).toLocaleString("vi-VN")}đ
                           </td>
                         </tr>
                         {item.toppings && item.toppings.map((top, tIdx) => (
@@ -224,7 +224,7 @@ export default function ManagerOrdersPage() {
                             <td className="py-1 px-4 text-center">-</td>
                             <td className="py-1 px-4 text-center">{top.quantity}</td>
                             <td className="py-1 px-4 text-right">
-                              {((top.unitPrice * top.quantity) * item.quantity).toLocaleString()}đ
+                              {((top.unitPrice * top.quantity) * item.quantity).toLocaleString("vi-VN")}đ
                             </td>
                           </tr>
                         ))}
@@ -246,17 +246,17 @@ export default function ManagerOrdersPage() {
               <div className="w-60 text-xs font-semibold text-foreground space-y-1">
                 <div className="flex justify-between text-muted-foreground">
                   <span>Tạm tính:</span>
-                  <span>{selectedOrder.subtotal.toLocaleString()}đ</span>
+                  <span>{selectedOrder.subtotal.toLocaleString("vi-VN")}đ</span>
                 </div>
                 {selectedOrder.discountAmount > 0 && (
                   <div className="flex justify-between text-emerald-700">
                     <span>Khuyến mãi:</span>
-                    <span>-{selectedOrder.discountAmount.toLocaleString()}đ</span>
+                    <span>-{selectedOrder.discountAmount.toLocaleString("vi-VN")}đ</span>
                   </div>
                 )}
                 <div className="flex justify-between font-bold text-sm text-amber-900 pt-1">
                   <span>Tổng cộng:</span>
-                  <span>{selectedOrder.totalAmount.toLocaleString()}đ</span>
+                  <span>{selectedOrder.totalAmount.toLocaleString("vi-VN")}đ</span>
                 </div>
               </div>
             </div>

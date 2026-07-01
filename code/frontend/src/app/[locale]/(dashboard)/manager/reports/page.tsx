@@ -84,7 +84,7 @@ export default function ManagerReportsPage() {
             <div className="flex justify-between pt-1">
               <span className="text-muted-foreground select-none">Doanh thu ghi nhận ca:</span>
               <span className="text-amber-900 font-bold">
-                {myBranchOrders.filter(o => o.status === "completed").reduce((sum, o) => sum + o.totalAmount, 0).toLocaleString()}đ
+                {myBranchOrders.filter(o => o.status === "completed").reduce((sum, o) => sum + o.totalAmount, 0).toLocaleString("vi-VN")}đ
               </span>
             </div>
           </div>

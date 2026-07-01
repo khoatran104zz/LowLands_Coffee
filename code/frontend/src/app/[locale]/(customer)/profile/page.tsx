@@ -16,7 +16,7 @@ export default function ProfilePage() {
   const { t } = useTranslation();
   const router = useRouter();
 
-  const { user, isAuthenticated, logout, updateUser } = useAuthStore();
+  const { user, isAuthenticated, hasHydrated, hydrateFromStorage, logout, updateUser } = useAuthStore();
 
   const [fullName, setFullName] = useState(user?.fullName || "");
   const [phone, setPhone] = useState(user?.phone || "");
@@ -28,10 +28,23 @@ export default function ProfilePage() {
 
   // Security Check: Redirect to login if user session is empty
   useEffect(() => {
+    hydrateFromStorage();
+  }, [hydrateFromStorage]);
+
+  useEffect(() => {
+    if (!hasHydrated) {
+      return;
+    }
+
     if (!isAuthenticated) {
       router.push("/login");
     }
-  }, [isAuthenticated, router]);
+  }, [hasHydrated, isAuthenticated, router]);
+
+  useEffect(() => {
+    setFullName(user?.fullName || "");
+    setPhone(user?.phone || "");
+  }, [user]);
 
   // Load Order History from backend database API
   useEffect(() => {
@@ -81,7 +94,7 @@ export default function ProfilePage() {
     }).format(amount);
   };
 
-  if (!isAuthenticated) {
+  if (!hasHydrated || !isAuthenticated) {
     return (
       <div className="py-20 text-center text-xs text-muted-foreground">
         {t("common.loading")}

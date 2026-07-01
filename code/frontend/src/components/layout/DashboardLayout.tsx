@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useConfirm } from "@/hooks/useConfirm";
 import { useAuthStore } from "@/store/auth.store";
+import { useDashboardStore } from "@/store/dashboardStore";
 import { AccountDropdown } from "../account/AccountDropdown";
 import { AccountModal } from "../account/AccountModal";
 
@@ -31,11 +32,23 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
   const [isMounted, setIsMounted] = useState(false);
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
+  const hydrateFromStorage = useAuthStore((state) => state.hydrateFromStorage);
   const logout = useAuthStore((state) => state.logout);
 
   useEffect(() => {
+    hydrateFromStorage();
+    if (!useDashboardStore.persist.hasHydrated()) {
+      void useDashboardStore.persist.rehydrate();
+    }
     setIsMounted(true);
-    
+  }, [hydrateFromStorage]);
+
+  useEffect(() => {
+    if (!isMounted || !hasHydrated) {
+      return;
+    }
+
     if (!isAuthenticated || !user) {
       router.push(`/${locale}/portal/login`);
       return;
@@ -57,7 +70,7 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
         router.push(`/${locale}/portal/login`);
       }
     }
-  }, [isMounted, isAuthenticated, user, role, router, locale]);
+  }, [isMounted, hasHydrated, isAuthenticated, user, role, router, locale]);
 
   const handleOpenAccountSettings = (tab: string = "profile") => {
     setDefaultAccountTab(tab);
@@ -84,7 +97,7 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
     (role === "manager" && (userRole === "manager" || userRole === "admin"))
   );
 
-  if (!isMounted || !hasAccess) {
+  if (!isMounted || !hasHydrated || !hasAccess) {
     return (
       <div className="h-screen w-screen bg-zinc-950 flex flex-col items-center justify-center gap-3 text-amber-500 font-sans select-none">
         <RefreshCw className="h-8 w-8 animate-spin" />

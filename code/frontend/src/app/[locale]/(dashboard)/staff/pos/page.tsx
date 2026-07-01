@@ -34,6 +34,8 @@ export default function StaffPOSPage() {
   
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
+  const hasHydrated = useAuthStore((state) => state.hasHydrated);
+  const hydrateFromStorage = useAuthStore((state) => state.hydrateFromStorage);
   const logout = useAuthStore((state) => state.logout);
 
   const handleOpenAccountSettings = (tab: string = "profile") => {
@@ -72,11 +74,19 @@ export default function StaffPOSPage() {
   const [receiptData, setReceiptData] = useState<any>(null);
 
   useEffect(() => {
+    hydrateFromStorage();
+    if (!useDashboardStore.persist.hasHydrated()) {
+      void useDashboardStore.persist.rehydrate();
+    }
     setIsMounted(true);
     void hydrateProductCatalog("public");
-  }, [hydrateProductCatalog]);
+  }, [hydrateFromStorage, hydrateProductCatalog]);
 
   useEffect(() => {
+    if (!isMounted || !hasHydrated) {
+      return;
+    }
+
     if (!isAuthenticated || !user) {
       router.push(`/${locale}/portal/login`);
       return;
@@ -86,7 +96,7 @@ export default function StaffPOSPage() {
       toast.error("Tài khoản không có quyền truy cập màn hình POS!");
       router.push(`/${locale}/portal/login`);
     }
-  }, [isMounted, isAuthenticated, user, router, locale]);
+  }, [isMounted, hasHydrated, isAuthenticated, user, router, locale]);
 
   useEffect(() => {
     if (categories.length > 0 && selectedCategoryId === null) {
@@ -125,7 +135,7 @@ export default function StaffPOSPage() {
   const userRole = user?.roleName?.toUpperCase();
   const hasAccess = isAuthenticated && user && (userRole === "STAFF" || userRole === "ADMIN" || userRole === "MANAGER");
 
-  if (!isMounted || !hasAccess) {
+  if (!isMounted || !hasHydrated || !hasAccess) {
     return (
       <div className="h-screen w-screen bg-zinc-950 flex flex-col items-center justify-center gap-3 text-amber-500 font-sans select-none">
         <svg className="h-8 w-8 animate-spin text-amber-800" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -573,9 +583,9 @@ export default function StaffPOSPage() {
                         </div>
                         <div className="space-y-1 text-right">
                           <div className="text-[9px] font-bold text-muted-foreground uppercase tracking-wider">Tổng tiền:</div>
-                          <div className="font-black text-[#C8510A] text-sm leading-none">{ord.totalAmount.toLocaleString()}đ</div>
+                          <div className="font-black text-[#C8510A] text-sm leading-none">{ord.totalAmount.toLocaleString("vi-VN")}đ</div>
                           <div className="text-[9px] text-muted-foreground font-medium mt-0.5">
-                            Tạm: {ord.subtotal.toLocaleString()}đ - giảm: {ord.discountAmount.toLocaleString()}đ
+                            Tạm: {ord.subtotal.toLocaleString("vi-VN")}đ - giảm: {ord.discountAmount.toLocaleString("vi-VN")}đ
                           </div>
                         </div>
                       </div>
@@ -664,17 +674,17 @@ export default function StaffPOSPage() {
                   <div key={idx} className="space-y-0.5">
                     <div className="flex justify-between font-bold text-zinc-950">
                       <span>{item.productName} (Size {item.size})</span>
-                      <span>{(item.unitPrice * item.quantity).toLocaleString()}đ</span>
+                      <span>{(item.unitPrice * item.quantity).toLocaleString("vi-VN")}đ</span>
                     </div>
                     <div className="flex justify-between text-[9px] text-zinc-550 pl-2">
-                      <span>Đơn giá: {item.unitPrice.toLocaleString()}đ x{item.quantity}</span>
+                      <span>Đơn giá: {item.unitPrice.toLocaleString("vi-VN")}đ x{item.quantity}</span>
                     </div>
                     
                     {/* Toppings list */}
                     {item.toppings && item.toppings.map((top: any, tIdx: number) => (
                       <div key={tIdx} className="flex justify-between text-[9px] text-zinc-600 pl-4 italic">
                         <span>+ {top.toppingName} (x{top.quantity})</span>
-                        <span>{((top.unitPrice * top.quantity) * item.quantity).toLocaleString()}đ</span>
+                        <span>{((top.unitPrice * top.quantity) * item.quantity).toLocaleString("vi-VN")}đ</span>
                       </div>
                     ))}
                     
@@ -702,34 +712,34 @@ export default function StaffPOSPage() {
               <div className="space-y-1 text-[11px] text-zinc-900">
                 <div className="flex justify-between">
                   <span>Tạm tính:</span>
-                  <span>{receiptData.subtotal.toLocaleString()}đ</span>
+                  <span>{receiptData.subtotal.toLocaleString("vi-VN")}đ</span>
                 </div>
                 {receiptData.discountAmount > 0 && (
                   <div className="flex justify-between text-emerald-800 font-semibold">
                     <span>Khuyến mãi:</span>
-                    <span>-{receiptData.discountAmount.toLocaleString()}đ</span>
+                    <span>-{receiptData.discountAmount.toLocaleString("vi-VN")}đ</span>
                   </div>
                 )}
                 {receiptData.vat > 0 && (
                   <div className="flex justify-between">
                     <span>Thuế VAT (10%):</span>
-                    <span>{receiptData.vat.toLocaleString()}đ</span>
+                    <span>{receiptData.vat.toLocaleString("vi-VN")}đ</span>
                   </div>
                 )}
                 <div className="flex justify-between font-black text-sm text-zinc-950 pt-1.5 border-t border-dashed border-zinc-350 mt-1">
                   <span>TỔNG CỘNG:</span>
-                  <span>{receiptData.totalAmount.toLocaleString()}đ</span>
+                  <span>{receiptData.totalAmount.toLocaleString("vi-VN")}đ</span>
                 </div>
                 
                 {receiptData.paymentMethod === "cod" ? (
                   <>
                     <div className="flex justify-between text-[9px] pt-1 text-zinc-600">
                       <span>Tiền mặt nhận:</span>
-                      <span>{receiptData.cashReceived.toLocaleString()}đ</span>
+                      <span>{receiptData.cashReceived.toLocaleString("vi-VN")}đ</span>
                     </div>
                     <div className="flex justify-between text-[9px] text-zinc-600">
                       <span>Tiền thối lại:</span>
-                      <span>{receiptData.changeReturned.toLocaleString()}đ</span>
+                      <span>{receiptData.changeReturned.toLocaleString("vi-VN")}đ</span>
                     </div>
                   </>
                 ) : (

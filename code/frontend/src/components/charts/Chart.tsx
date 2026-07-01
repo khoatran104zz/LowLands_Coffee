@@ -152,7 +152,7 @@ export function LineChart({
                   className="text-[10px] font-bold fill-white text-center"
                   textAnchor="middle"
                 >
-                  {pt.value.toLocaleString()}đ
+                  {pt.value.toLocaleString("vi-VN")}đ
                 </text>
               </g>
             )}
@@ -268,7 +268,7 @@ export function BarChart({
                     className="text-[9px] font-bold fill-white text-center"
                     textAnchor="middle"
                   >
-                    {item.value.toLocaleString()}
+                    {item.value.toLocaleString("vi-VN")}
                   </text>
                 </g>
               )}
@@ -397,7 +397,7 @@ export function PieChart({ data, height = 200, className }: PieChartProps) {
             <div className="flex-grow min-w-0">
               <span className="block truncate text-foreground/80 font-semibold">{slice.label}</span>
               <span className="block text-[10px] text-muted-foreground font-semibold">
-                {slice.value.toLocaleString()} ({slice.percentage}%)
+                {slice.value.toLocaleString("vi-VN")} ({slice.percentage}%)
               </span>
             </div>
           </div>

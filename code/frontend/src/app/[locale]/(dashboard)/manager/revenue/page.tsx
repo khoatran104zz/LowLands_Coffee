@@ -43,7 +43,7 @@ export default function ManagerRevenuePage() {
     {
       key: "totalAmount",
       header: "Thanh toán",
-      render: (item) => <span className="font-bold text-amber-900">{item.totalAmount.toLocaleString()}đ</span>
+      render: (item) => <span className="font-bold text-amber-900">{item.totalAmount.toLocaleString("vi-VN")}đ</span>
     },
     {
       key: "paymentMethod",
@@ -82,7 +82,7 @@ export default function ManagerRevenuePage() {
           <div>
             <span className="text-[10px] text-muted-foreground font-bold uppercase block tracking-wider">{t("staff.manager.todayRevenue")}</span>
             <span className="text-lg font-bold text-foreground font-outfit mt-0.5 block">
-              {todayRevenue.toLocaleString()}đ
+              {todayRevenue.toLocaleString("vi-VN")}đ
             </span>
           </div>
         </div>
@@ -94,7 +94,7 @@ export default function ManagerRevenuePage() {
           <div>
             <span className="text-[10px] text-muted-foreground font-bold uppercase block tracking-wider">{t("staff.manager.weeklyRevenue")}</span>
             <span className="text-lg font-bold text-foreground font-outfit mt-0.5 block">
-              {weeklyRevenue.toLocaleString()}đ
+              {weeklyRevenue.toLocaleString("vi-VN")}đ
             </span>
           </div>
         </div>
@@ -106,7 +106,7 @@ export default function ManagerRevenuePage() {
           <div>
             <span className="text-[10px] text-muted-foreground font-bold uppercase block tracking-wider">{t("staff.manager.monthlyRevenue")}</span>
             <span className="text-lg font-bold text-foreground font-outfit mt-0.5 block">
-              {monthlyRevenue.toLocaleString()}đ
+              {monthlyRevenue.toLocaleString("vi-VN")}đ
             </span>
           </div>
         </div>
