@@ -188,11 +188,45 @@ export const useDashboardStore = create<DashboardState>()(
           if (typeof window === "undefined" || !localStorage.getItem("lowlands_token")) {
             return;
           }
+
+          // Prevent non-admin roles from fetching admin product catalog (prevents 403 Forbidden logs)
+          const userStr = localStorage.getItem("lowlands_user");
+          if (userStr) {
+            try {
+              const user = JSON.parse(userStr);
+              const userRole = (user.roleName || user.role || "").toUpperCase();
+              const allowedRoles = ["ADMIN", "MANAGER", "STAFF"];
+              if (!allowedRoles.includes(userRole)) {
+                return;
+              }
+            } catch (e) {
+              console.error("Failed to parse user details for catalog validation", e);
+            }
+          }
         }
+
         try {
+          const userStr = typeof window !== "undefined" ? localStorage.getItem("lowlands_user") : null;
+          const userRole = userStr ? (() => {
+            try {
+              const user = JSON.parse(userStr);
+              return (user.roleName || user.role || "").toUpperCase();
+            } catch {
+              return "";
+            }
+          })() : "";
+
+          const isAdminOrStaff = ["ADMIN", "MANAGER", "STAFF"].includes(userRole);
+
           const [products, categories, toppings] = source === "admin"
             ? await Promise.all([getAdminProducts(), getAdminCategories(), getAdminToppings()])
-            : await Promise.all([getProducts(), getCategories(), getAdminToppings().catch(() => [] as Topping[])]);
+            : await Promise.all([
+                getProducts(),
+                getCategories(),
+                isAdminOrStaff
+                  ? getAdminToppings().catch(() => [] as Topping[])
+                  : Promise.resolve([] as Topping[])
+              ]);
           set({ products, categories, toppings, productCatalogError: null });
         } catch (error) {
           console.error("Failed to hydrate product catalog", error);
@@ -209,6 +243,22 @@ export const useDashboardStore = create<DashboardState>()(
         if (typeof window === "undefined" || !localStorage.getItem("lowlands_token")) {
           return;
         }
+
+        // Prevent non-admin/manager/staff users (like CUSTOMER) from calling getUsers endpoint, preventing 403 Forbidden responses
+        const userStr = localStorage.getItem("lowlands_user");
+        if (userStr) {
+          try {
+            const user = JSON.parse(userStr);
+            const userRole = (user.roleName || user.role || "").toUpperCase();
+            const allowedRoles = ["ADMIN", "MANAGER", "STAFF"];
+            if (!allowedRoles.includes(userRole)) {
+              return;
+            }
+          } catch (e) {
+            console.error("Failed to parse user details for role validation", e);
+          }
+        }
+
         try {
           const users = await getUsers();
           const roleMap: Record<string, "admin" | "manager" | "staff"> = {

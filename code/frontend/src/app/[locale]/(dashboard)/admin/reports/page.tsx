@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { BarChart, LineChart, PieChart, ChartDataItem } from "@/components/charts/Chart";
+import { ChartCard } from "@/components/admin/ChartCard";
 import { useDashboardStore } from "@/store/dashboardStore";
 import { useTranslation } from "@/hooks/useTranslation";
 import { FileText, TrendingUp, ShoppingCart, HelpCircle } from "lucide-react";
@@ -116,20 +117,24 @@ export default function AdminReportsPage() {
       {/* Reports charts grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Payment options distribution */}
-        <div className="space-y-2">
-          <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-left pl-1">
-            Phân bổ phương thức thanh toán
-          </h4>
-          <PieChart data={paymentData} />
-        </div>
+        <ChartCard
+          title="Phân bổ phương thức thanh toán"
+          description="Tỷ lệ phân phối các loại hình thanh toán được sử dụng"
+        >
+          <div className="w-full h-full flex items-center justify-center">
+            <PieChart data={paymentData} />
+          </div>
+        </ChartCard>
 
         {/* Branch revenues comparisons */}
-        <div className="space-y-2">
-          <h4 className="text-xs font-bold text-muted-foreground uppercase tracking-wider text-left pl-1">
-            Doanh thu chi tiết theo chi nhánh (đ)
-          </h4>
-          <BarChart data={branchData} />
-        </div>
+        <ChartCard
+          title="Doanh thu chi tiết theo chi nhánh (đ)"
+          description="Doanh thu tích lũy được đối chiếu giữa các cửa hàng"
+        >
+          <div className="w-full h-full flex items-center justify-center">
+            <BarChart data={branchData} />
+          </div>
+        </ChartCard>
       </div>
 
       {/* Overview status list */}
