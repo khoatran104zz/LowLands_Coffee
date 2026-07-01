@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { Header } from "./Header";
@@ -21,31 +21,37 @@ export function ManagerLayout({ children }: ManagerLayoutProps) {
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const hasRedirected = useRef(false);
 
   const user = useAuthStore((state) => state.user);
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
+  // Effect 1: On mount, restore sidebar state
   useEffect(() => {
     setIsMounted(true);
-    
-    // Load collapse state from local storage
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("lowlands_manager_sidebar_collapsed");
       if (saved) {
         setIsCollapsed(saved === "true");
       }
     }
+  }, []);
 
+  // Effect 2: Auth guard — only runs ONCE after mount, prevents redirect loops
+  useEffect(() => {
     if (!isMounted) return;
+    if (hasRedirected.current) return;
 
     if (!isAuthenticated || !user) {
+      hasRedirected.current = true;
       router.push(`/${locale}/portal/login`);
       return;
     }
 
-    const userRole = user.roleName?.toLowerCase();
-    if (userRole !== "manager" && userRole !== "admin") {
-      if (userRole === "staff") {
+    const userRole = user.roleName?.toUpperCase();
+    if (userRole !== "MANAGER" && userRole !== "ADMIN") {
+      hasRedirected.current = true;
+      if (userRole === "STAFF") {
         router.push(`/${locale}/staff/pos`);
       } else {
         router.push(`/${locale}/portal/login`);
@@ -61,11 +67,21 @@ export function ManagerLayout({ children }: ManagerLayoutProps) {
     }
   };
 
-  const hasAccess = isAuthenticated && user && (
-    user.roleName?.toLowerCase() === "manager" || user.roleName?.toLowerCase() === "admin"
-  );
+  // Show loading while hydrating
+  if (!isMounted) {
+    return (
+      <div className="h-screen w-screen bg-[#241a15] flex flex-col items-center justify-center gap-3 text-amber-500 font-sans select-none">
+        <RefreshCw className="h-8 w-8 animate-spin" />
+        <span className="text-xs font-bold uppercase tracking-widest text-zinc-400">{t("common.loading")}</span>
+      </div>
+    );
+  }
 
-  if (!isMounted || !hasAccess) {
+  // After mount, check access
+  const userRole = user?.roleName?.toUpperCase();
+  const hasAccess = isAuthenticated && user && (userRole === "MANAGER" || userRole === "ADMIN");
+
+  if (!hasAccess) {
     return (
       <div className="h-screen w-screen bg-[#241a15] flex flex-col items-center justify-center gap-3 text-amber-500 font-sans select-none">
         <RefreshCw className="h-8 w-8 animate-spin" />
