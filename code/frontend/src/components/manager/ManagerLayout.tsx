@@ -36,6 +36,8 @@ export function ManagerLayout({ children }: ManagerLayoutProps) {
       }
     }
 
+    if (!isMounted) return;
+
     if (!isAuthenticated || !user) {
       router.push(`/${locale}/portal/login`);
       return;
