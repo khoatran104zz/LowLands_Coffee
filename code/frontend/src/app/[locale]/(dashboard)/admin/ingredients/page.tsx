@@ -20,8 +20,10 @@ import { Filter } from "@/components/admin/Filter";
 import { FormModal } from "@/components/admin/FormModal";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function AdminIngredientsPage() {
+  const { t } = useTranslation();
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [categories, setCategories] = useState<IngredientCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -183,7 +185,7 @@ export default function AdminIngredientsPage() {
           className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg px-4 h-10 text-xs font-semibold flex items-center space-x-2 shrink-0 self-start sm:self-auto cursor-pointer"
         >
           <Plus className="h-4 w-4" />
-          <span>Thêm nguyên liệu</span>
+          <span>{t("admin.createIngredient")}</span>
         </Button>
       </div>
 
@@ -223,7 +225,7 @@ export default function AdminIngredientsPage() {
       <FormModal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        title={editingItem ? "Cập nhật nguyên liệu" : "Thêm nguyên liệu mới"}
+        title={editingItem ? t("admin.editIngredient") : t("admin.createIngredient")}
         onSubmit={handleSave}
       >
         <div className="grid grid-cols-2 gap-4">

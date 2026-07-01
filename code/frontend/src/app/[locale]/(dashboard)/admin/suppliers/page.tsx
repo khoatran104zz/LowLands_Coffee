@@ -18,8 +18,10 @@ import { Filter } from "@/components/admin/Filter";
 import { FormModal } from "@/components/admin/FormModal";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { useTranslation } from "@/hooks/useTranslation";
 
 export default function AdminSuppliersPage() {
+  const { t } = useTranslation();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
@@ -190,7 +192,7 @@ export default function AdminSuppliersPage() {
           className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg px-4 h-10 text-xs font-semibold flex items-center space-x-2 shrink-0 self-start sm:self-auto cursor-pointer"
         >
           <Plus className="h-4 w-4" />
-          <span>Thêm nhà cung cấp</span>
+          <span>{t("admin.createSupplier")}</span>
         </Button>
       </div>
 
@@ -233,7 +235,7 @@ export default function AdminSuppliersPage() {
       <FormModal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        title={editingItem ? "Cập nhật nhà cung cấp" : "Thêm nhà cung cấp mới"}
+        title={editingItem ? t("admin.editSupplier") : t("admin.createSupplier")}
         onSubmit={handleSave}
       >
         <div className="grid grid-cols-2 gap-4">

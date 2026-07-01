@@ -142,7 +142,7 @@ export default function AdminToppingsPage() {
           className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg px-4 h-10 text-xs font-semibold flex items-center space-x-2 shrink-0 self-start sm:self-auto"
         >
           <Plus className="h-4 w-4" />
-          <span>Thêm topping</span>
+          <span>{t("admin.createTopping")}</span>
         </Button>
       </div>
 
@@ -176,7 +176,7 @@ export default function AdminToppingsPage() {
       <FormModal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        title={editingTopping ? "Chỉnh sửa Topping" : "Thêm Topping Mới"}
+        title={editingTopping ? t("admin.editTopping") : t("admin.createTopping")}
         size="md"
       >
         <form onSubmit={handleSaveTopping} className="space-y-4 text-left">
