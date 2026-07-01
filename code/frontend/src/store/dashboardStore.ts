@@ -250,8 +250,8 @@ export const useDashboardStore = create<DashboardState>()(
                 id: user.id,
                 fullName: user.fullName,
                 role: role === "MANAGER" ? "manager" : "staff",
-                branchId: 0,
-                branchName: "Chua gan",
+                branchId: user.branchId || 0,
+                branchName: user.branchName || "Chua gan",
                 email: user.email,
                 phone: user.phone || "",
                 status: user.status?.toUpperCase() === "ACTIVE" ? "active" : "inactive",
@@ -402,7 +402,8 @@ export const useDashboardStore = create<DashboardState>()(
             phone: employee.phone,
             password: employee.password || "Password@123",
             roleId: roleIdMap[employee.role],
-            status: employee.status === "active" ? "ACTIVE" : "INACTIVE"
+            status: employee.status === "active" ? "ACTIVE" : "INACTIVE",
+            branchId: employee.branchId || undefined
           });
           await get().hydrateUsers();
         } catch (error) {
@@ -421,7 +422,8 @@ export const useDashboardStore = create<DashboardState>()(
             email: updated.email,
             phone: updated.phone,
             roleId: roleIdMap[updated.role],
-            status: updated.status === "active" ? "ACTIVE" : "INACTIVE"
+            status: updated.status === "active" ? "ACTIVE" : "INACTIVE",
+            branchId: updated.branchId || undefined
           });
           await get().hydrateUsers();
         } catch (error) {

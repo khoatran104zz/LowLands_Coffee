@@ -24,6 +24,14 @@
   "editPromotion": "Cập nhật chương trình khuyến mãi",
   "deletePromotionConfirm": "Bạn có chắc chắn muốn xóa mã khuyến mãi này?",
   "sidebar": {
+    "groups": {
+      "org": "Tổ chức",
+      "menu": "Thực đơn",
+      "kho": "Kho hàng",
+      "recipe": "Công thức",
+      "business": "Kinh doanh",
+      "reports": "Báo cáo"
+    },
     "dashboard": "Bảng điều khiển",
     "branches": "Quản lý chi nhánh",
     "products": "Quản lý sản phẩm",
@@ -38,6 +46,48 @@
     "inventory": "Quản lý kho hàng",
     "revenue": "Doanh thu chi nhánh",
     "pos": "Quầy bán hàng (POS)",
-    "history": "Lịch sử giao dịch"
+    "history": "Lịch sử giao dịch",
+    "ingredients": "Nguyên liệu",
+    "suppliers": "Nhà cung cấp",
+    "importNotes": "Phiếu nhập kho",
+    "stock": "Tồn kho",
+    "recipes": "Công thức pha chế",
+    "statisticalReports": "Báo cáo thống kê",
+    "collapseMenu": "Thu gọn menu"
+  },
+  "employeesPage": {
+    "title": "Quản lý nhân viên",
+    "subtitle": "Quản lý tài khoản nhân viên và phân công cửa hàng.",
+    "createBtn": "Tạo nhân viên",
+    "searchPlaceholder": "Tìm tên nhân viên, số điện thoại, email...",
+    "colId": "Mã NV",
+    "colName": "Họ và tên",
+    "colRole": "Chức vụ",
+    "colBranch": "Chi nhánh",
+    "colPhone": "Điện thoại",
+    "colEmail": "Email",
+    "colStatus": "Trạng thái",
+    "roleManager": "Cửa hàng trưởng",
+    "roleStaff": "Nhân viên",
+    "statusActive": "Hoạt động",
+    "statusInactive": "Tạm khóa",
+    "unassigned": "Chưa gán",
+    "allBranches": "Chưa phân công (Mọi chi nhánh)",
+    "labelName": "Họ và tên *",
+    "labelPhone": "Điện thoại",
+    "labelEmail": "Email *",
+    "labelPassword": "Mật khẩu khởi tạo *",
+    "labelRole": "Vai trò",
+    "labelStatus": "Trạng thái",
+    "labelBranch": "Phân công chi nhánh",
+    "errorNameEmail": "Vui lòng nhập họ tên và email.",
+    "errorPassword": "Mật khẩu khởi tạo không được để trống.",
+    "successDelete": "Đã xóa tài khoản nhân viên.",
+    "errorDelete": "Không thể xóa tài khoản nhân viên qua API.",
+    "successUpdate": "Cập nhật nhân viên thành công!",
+    "successCreate": "Tạo tài khoản nhân viên thành công!",
+    "errorSave": "Không thể lưu tài khoản nhân viên qua API."
   }
 }
+
+
