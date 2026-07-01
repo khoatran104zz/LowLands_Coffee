@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Employee } from "@/mock/employees";
-import { useDashboardStore } from "@/store/dashboardStore";
+import React, { useState } from "react";
+import { Employee, useDashboardStore } from "@/store/dashboardStore";
 import { DataTable, Column } from "@/components/tables/DataTable";
 import { SearchBar } from "@/components/tables/SearchBar";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -10,23 +9,20 @@ import { Sparkles } from "lucide-react";
 
 export default function ManagerStaffPage() {
   const { t } = useTranslation();
-  const [isMounted, setIsMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
 
   const employees = useDashboardStore((state) => state.employees);
-
-  useEffect(() => {
-    setIsMounted(true);
-  }, []);
-
-  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
 
   // StoreId = 2 Hồ Con Rùa branch employees ONLY
   const MY_BRANCH_ID = 2;
   const branchEmployees = employees.filter((e) => e.branchId === MY_BRANCH_ID);
 
   const columns: Column<Employee>[] = [
-    { key: "id", header: "Mã NV" },
+    {
+      key: "employeeCode",
+      header: "Mã NV",
+      render: (item) => item.employeeCode || "Chưa có mã"
+    },
     { key: "fullName", header: "Họ và tên" },
     { key: "workingShift", header: "Ca trực được giao" },
     { key: "phone", header: "Điện thoại" },

@@ -24,6 +24,7 @@ Backend dang dung cac permission sau qua `@PreAuthorize`:
 | Role | ROLE_VIEW, ROLE_CREATE, ROLE_UPDATE, ROLE_DELETE |
 | Permission | PERMISSION_VIEW, PERMISSION_CREATE, PERMISSION_UPDATE, PERMISSION_DELETE |
 | User | USER_VIEW, USER_CREATE, USER_UPDATE, USER_DELETE |
+| Employee | Managed through USER_VIEW, USER_CREATE, USER_UPDATE, USER_DELETE in current Admin user flow |
 | Store | STORE_VIEW, STORE_CREATE, STORE_UPDATE, STORE_DELETE |
 | Product | PRODUCT_VIEW, PRODUCT_CREATE, PRODUCT_UPDATE, PRODUCT_DELETE |
 | Category | CATEGORY_VIEW, CATEGORY_CREATE, CATEGORY_UPDATE, CATEGORY_DELETE |
@@ -78,6 +79,7 @@ Bang nay la kien truc quyen nghiep vu nen thong nhat. Cot "Current note" ghi nha
 | Role | V/C/U/D | - | - | - | Admin only hop ly |
 | Permission | V/C/U/D | - | - | - | Admin only hop ly |
 | User | V/C/U/D | V Store | V Own/Store basic | Own | Manager/staff scope can ro hon |
+| Employee | V/C/U/D via User flow | V Store | V Own/Store basic | - | Employee profile/code duoc tao tu UserService cho MANAGER/STAFF |
 | Store | V/C/U/D | V/U Store | V Store | Public store info | Store scope chua chat |
 | Store User | V/C/U/D | V Store | - | - | Can API/scope ro |
 | Category | V/C/U/D | V | V | Public active V | Admin route dang khoa create/update/delete |
@@ -115,6 +117,7 @@ Bang nay la kien truc quyen nghiep vu nen thong nhat. Cot "Current note" ghi nha
 ### MANAGER
 
 - Quan ly van hanh store duoc gan.
+- Co employee profile va employee code de phan biet voi customer account.
 - Xem/tao/cap nhat goods receipt cua store.
 - Xem va dieu chinh ton kho store.
 - Xem recipe/product/category de van hanh.
@@ -124,6 +127,7 @@ Bang nay la kien truc quyen nghiep vu nen thong nhat. Cot "Current note" ghi nha
 ### STAFF
 
 - Lam viec tai POS va van hanh ca.
+- Co employee profile va employee code.
 - Xem menu/product/category/topping.
 - Tao order/POS.
 - Xem inventory can thiet.
@@ -145,6 +149,7 @@ Bang nay la kien truc quyen nghiep vu nen thong nhat. Cot "Current note" ghi nha
 | --- | --- | --- |
 | Route gate vs permission | `/admin/**` yeu cau ADMIN truoc khi xet permission | Manager khong the dung product/category/topping admin API du co permission |
 | Store scope | Permission hien chu yeu theo role/action, chua dam bao du lieu thuoc store duoc gan | Manager/staff co nguy co xem/sua cross-store |
+| Employee permissions | Employee profile dang di theo User permissions thay vi permission rieng | Don gian cho phase hien tai, nhung neu Employee API rieng mo rong thi can EMPLOYEE_* |
 | Order permissions | Co trong thiet ke nhung chua co module/order enforcement day du | Khong the test RBAC order that |
 | Payment permissions | Chua thay permission rieng | Refund/payment update chua duoc bao ve ro |
 | Promotion permissions | Chua thay permission rieng | Promotion dang de lai frontend/local |

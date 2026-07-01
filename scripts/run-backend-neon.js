@@ -1,4 +1,5 @@
 const fs = require("fs");
+const net = require("net");
 const path = require("path");
 const { spawn } = require("child_process");
 
@@ -64,25 +65,59 @@ function validateEnvironment() {
   }
 }
 
+function assertPortAvailable(port) {
+  return new Promise((resolve, reject) => {
+    const server = net.createServer();
+
+    server.once("error", (error) => {
+      if (error.code === "EADDRINUSE") {
+        reject(new Error(`Port ${port} is already in use. Stop the running backend or set SERVER_PORT to another value.`));
+        return;
+      }
+
+      reject(error);
+    });
+
+    server.once("listening", () => {
+      server.close(resolve);
+    });
+
+    server.listen(port, "0.0.0.0");
+  });
+}
+
 loadDotEnv(envPath);
 validateEnvironment();
 
-console.log("Starting backend with Neon PostgreSQL environment.");
-console.log("Database credentials and URL are loaded but not printed.");
+const serverPort = Number.parseInt(process.env.SERVER_PORT || "8080", 10);
 
-const mvnCommand = process.platform === "win32" ? "mvn.cmd" : "mvn";
-const child = spawn(mvnCommand, ["spring-boot:run"], {
-  cwd: backendDir,
-  env: process.env,
-  stdio: "inherit",
-  shell: process.platform === "win32",
-});
+if (!Number.isInteger(serverPort) || serverPort < 1 || serverPort > 65535) {
+  throw new Error("SERVER_PORT must be a valid TCP port between 1 and 65535.");
+}
 
-child.on("exit", (code, signal) => {
-  if (signal) {
-    process.kill(process.pid, signal);
-    return;
-  }
+assertPortAvailable(serverPort)
+  .then(() => {
+    console.log("Starting backend with Neon PostgreSQL environment.");
+    console.log("Database credentials and URL are loaded but not printed.");
 
-  process.exit(code ?? 0);
-});
+    const mvnCommand = process.platform === "win32" ? "mvn.cmd" : "mvn";
+    const child = spawn(mvnCommand, ["spring-boot:run"], {
+      cwd: backendDir,
+      env: process.env,
+      stdio: "inherit",
+      shell: process.platform === "win32",
+    });
+
+    child.on("exit", (code, signal) => {
+      if (signal) {
+        process.kill(process.pid, signal);
+        return;
+      }
+
+      process.exit(code ?? 0);
+    });
+  })
+  .catch((error) => {
+    console.error(error.message);
+    process.exit(1);
+  });

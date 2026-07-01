@@ -16,6 +16,7 @@ public interface UserMapper {
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "role", ignore = true)
+    @Mapping(target = "employee", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     UserEntity toEntity(UserCreateRequest request);
@@ -23,12 +24,14 @@ public interface UserMapper {
     @Mapping(target = "roleId", source = "role.id")
     @Mapping(target = "roleName", source = "role.name")
     @Mapping(target = "role", source = "role.name")
+    @Mapping(target = "employeeCode", source = "employee.employeeCode")
     @Mapping(target = "permissions", expression = "java(toPermissionCodes(entity))")
     UserResponse toResponse(UserEntity entity);
 
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "password", ignore = true)
     @Mapping(target = "role", ignore = true)
+    @Mapping(target = "employee", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
     void updateEntity(UserUpdateRequest request, @MappingTarget UserEntity entity);

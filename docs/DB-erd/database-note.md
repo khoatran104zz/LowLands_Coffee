@@ -99,6 +99,30 @@ Quan he:
 User N-1 Role
 ```
 
+### employees
+
+Luu ho so nhan vien cho user co vai tro van hanh.
+
+Cot chinh:
+
+- `user_id`: lien ket 1-1 toi `users.id`, unique.
+- `employee_code`: ma nhan vien unique, backend tu sinh theo format `EMP0001`.
+- `status`: `active` hoac `inactive`.
+- `created_at`, `updated_at`: moc thoi gian tao/cap nhat ho so.
+
+Quy tac:
+
+- Chi tao employee profile cho user role `MANAGER` hoac `STAFF`.
+- User role `CUSTOMER` khong co employee profile.
+- Neu user chuyen tu CUSTOMER sang STAFF/MANAGER, backend tao employee profile neu chua co.
+- Neu user chuyen tu STAFF/MANAGER sang CUSTOMER/ADMIN, backend khong xoa employee profile; profile duoc chuyen `inactive`.
+
+Quan he:
+
+```text
+User 1-1 Employee
+```
+
 ---
 
 ## 4. Module Store Management
@@ -117,6 +141,8 @@ Quan he:
 Store 1-N StoreUser
 User 1-N StoreUser
 ```
+
+Ghi chu hien tai: `store_users` van tham chieu `users.id` qua cot `staff_id`. Employee profile la lop ho so nhan vien 1-1 voi user; khi bo sung API gan nhan vien vao store, can validate user co employee profile `active`.
 
 Vai tro trong cua hang:
 

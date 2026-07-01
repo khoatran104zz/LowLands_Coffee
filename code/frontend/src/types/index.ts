@@ -6,6 +6,7 @@ export interface User {
   roleId?: number;
   roleName?: string;
   role?: "ADMIN" | "MANAGER" | "STAFF" | "CUSTOMER" | string;
+  employeeCode?: string | null;
   permissions?: string[];
   status: string;
   createdAt?: string;
