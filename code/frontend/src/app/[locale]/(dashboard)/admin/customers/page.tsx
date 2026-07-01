@@ -31,23 +31,23 @@ export default function AdminCustomersPage() {
   });
 
   const columns: Column<CustomerExtended>[] = [
-    { key: "id", header: "Ma KH" },
-    { key: "fullName", header: "Ten khach hang" },
-    { key: "phone", header: "So dien thoai" },
-    { key: "email", header: "Email" },
+    { key: "id", header: t("admin.customersPage.colId") },
+    { key: "fullName", header: t("admin.customersPage.colName") },
+    { key: "phone", header: t("admin.customersPage.colPhone") },
+    { key: "email", header: t("admin.customersPage.colEmail") },
     {
       key: "orderCount",
-      header: "So don mua",
-      render: () => <span className="text-muted-foreground">Chua co du lieu</span>
+      header: t("admin.customersPage.colOrders"),
+      render: () => <span className="text-muted-foreground">{t("admin.customersPage.noData")}</span>
     },
     {
       key: "totalSpent",
-      header: "Tong chi tieu",
-      render: () => <span className="text-muted-foreground">Chua co du lieu</span>
+      header: t("admin.customersPage.colTotalSpent"),
+      render: () => <span className="text-muted-foreground">{t("admin.customersPage.noData")}</span>
     },
     {
       key: "status",
-      header: "Tai khoan",
+      header: t("admin.customersPage.colStatus"),
       render: (item) => <StatusBadge status={item.status} />
     }
   ];
@@ -59,7 +59,7 @@ export default function AdminCustomersPage() {
           {t("common.customers")}
         </h1>
         <p className="text-xs text-muted-foreground font-semibold mt-1">
-          Danh sach khach hang lay tu User API. Lich su don hang va tong chi tieu se co khi Order backend duoc trien khai.
+          {t("admin.customersPage.subtitle")}
         </p>
       </div>
 
@@ -67,15 +67,15 @@ export default function AdminCustomersPage() {
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Tim ten khach hang, so dien thoai, email..."
+          placeholder={t("admin.customersPage.searchPlaceholder")}
         />
         <Filter
-          label="Tai khoan"
+          label={t("admin.customersPage.statusFilter")}
           value={statusFilter}
           onChange={setStatusFilter}
           options={[
-            { value: "active", label: "Hoat dong" },
-            { value: "inactive", label: "Tam khoa" }
+            { value: "active", label: t("admin.customersPage.statusActive") },
+            { value: "inactive", label: t("admin.customersPage.statusInactive") }
           ]}
         />
       </div>
