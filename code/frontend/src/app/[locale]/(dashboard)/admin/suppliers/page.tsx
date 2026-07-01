@@ -78,15 +78,15 @@ export default function AdminSuppliersPage() {
   });
 
   const columns: Column<Supplier>[] = [
-    { key: "id", header: "ID" },
-    { key: "code", header: "Mã NCC" },
-    { key: "name", header: "Tên nhà cung cấp" },
-    { key: "contactName", header: "Liên hệ" },
-    { key: "phone", header: "Điện thoại" },
-    { key: "taxCode", header: "MST" },
+    { key: "id", header: t("admin.suppliersPage.colId") },
+    { key: "code", header: t("admin.suppliersPage.colCode") },
+    { key: "name", header: t("admin.suppliersPage.colName") },
+    { key: "contactName", header: t("admin.suppliersPage.colContact") },
+    { key: "phone", header: t("admin.suppliersPage.colPhone") },
+    { key: "taxCode", header: t("admin.suppliersPage.colTax") },
     {
       key: "status",
-      header: "Trạng thái",
+      header: t("admin.suppliersPage.colStatus"),
       render: (item) => <StatusBadge status={item.status} />
     }
   ];
@@ -181,10 +181,10 @@ export default function AdminSuppliersPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 text-left select-none">
         <div>
           <h1 className="text-xl font-extrabold text-amber-900 font-outfit uppercase tracking-wide">
-            Danh sách Nhà cung cấp
+            {t("admin.suppliersPage.title")}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold mt-1">
-            Quản lý các nhà phân phối nguyên liệu thô, hợp đồng cung ứng và thông tin liên hệ đại lý.
+            {t("admin.suppliersPage.subtitle")}
           </p>
         </div>
         <Button
@@ -201,24 +201,24 @@ export default function AdminSuppliersPage() {
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Tìm theo tên, mã NCC, người liên hệ..."
+          placeholder={t("admin.suppliersPage.searchPlaceholder")}
         />
         <Filter
-          label="Trạng thái"
+          label={t("admin.suppliersPage.statusFilter")}
           value={statusFilter}
           onChange={setStatusFilter}
           options={[
-            { value: "active", label: "Đang hợp tác" },
-            { value: "inactive", label: "Tạm ngưng" }
+            { value: "active", label: t("admin.suppliersPage.statusActive") },
+            { value: "inactive", label: t("admin.suppliersPage.statusInactive") }
           ]}
-          placeholder="Tất cả trạng thái"
+          placeholder={t("admin.suppliersPage.allStatus")}
         />
       </div>
 
       {/* Data Table */}
       {isLoading ? (
         <div className="text-center py-20 text-xs text-muted-foreground font-semibold">
-          Đang tải danh sách nhà cung cấp từ máy chủ...
+          {t("admin.suppliersPage.loading")}
         </div>
       ) : (
         <DataTable

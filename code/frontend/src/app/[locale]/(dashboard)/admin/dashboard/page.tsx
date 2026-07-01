@@ -31,7 +31,7 @@ export default function AdminDashboardPage() {
       })
       .catch((error) => {
         console.error("Failed to load admin dashboard summary", error);
-        setSummaryError("Khong the tai dashboard summary tu Backend API.");
+        setSummaryError(t("admin.dashboardPage.summaryError"));
         setSummary(null);
       });
   }, []);
@@ -56,7 +56,7 @@ export default function AdminDashboardPage() {
           {t("admin.dashboardTitle")}
         </h1>
         <p className="text-xs text-muted-foreground font-semibold mt-1">
-          Tong quan van hanh lay tu Backend Dashboard API. Doanh thu chi tiet can Order/Payment backend.
+          {t("admin.dashboardPage.subtitle")}
         </p>
         {summaryError && (
           <p className="mt-2 text-xs font-semibold text-rose-700">
@@ -68,57 +68,57 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title={t("admin.revenueTitle")}
-          value={`${totalRevenue.toLocaleString()}d`}
+          value={`${totalRevenue.toLocaleString()}đ`}
           icon={DollarSign}
-          description="Order/Payment backend chua trien khai day du"
+          description={t("admin.dashboardPage.revenueDesc")}
         />
         <StatsCard
           title={t("admin.ordersTitle")}
           value={totalOrders}
           icon={ShoppingBag}
-          description="Khong dung mock orders"
+          description={t("admin.dashboardPage.ordersDesc")}
         />
         <StatsCard
           title={t("admin.customersTitle")}
           value={totalUsers}
           icon={Users}
-          description="Tai khoan tu User API"
+          description={t("admin.dashboardPage.customersDesc")}
         />
         <StatsCard
           title={t("admin.branchesTitle")}
           value={totalStores}
           icon={Store}
-          description="Chi nhanh tu Store API"
+          description={t("admin.dashboardPage.branchesDesc")}
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ChartCard
           title={t("admin.revenueMonthChart")}
-          description="Can Order/Payment backend de hien thi du lieu that"
+          description={t("admin.dashboardPage.chartRevenueDesc")}
         >
-          <NoDataBlock message="Chua co du lieu doanh thu thang vi Order/Payment backend chua trien khai." />
+          <NoDataBlock message={t("admin.dashboardPage.chartRevenueNoData")} />
         </ChartCard>
 
         <ChartCard
           title={t("admin.revenueBranchChart")}
-          description="Khong tinh tu mock orders"
+          description={t("admin.dashboardPage.chartBranchDesc")}
         >
-          <NoDataBlock message="Chua co du lieu doanh thu theo chi nhanh." />
+          <NoDataBlock message={t("admin.dashboardPage.chartBranchNoData")} />
         </ChartCard>
 
         <ChartCard
           title={t("admin.bestSellersChart")}
-          description="Can Order backend de tong hop san pham ban chay"
+          description={t("admin.dashboardPage.chartProductDesc")}
         >
-          <NoDataBlock message="Chua co du lieu best seller." />
+          <NoDataBlock message={t("admin.dashboardPage.chartProductNoData")} />
         </ChartCard>
 
         <ChartCard
           title={t("admin.customerGrowthChart")}
-          description="Can report endpoint that de ve tang truong khach hang"
+          description={t("admin.dashboardPage.chartCustomerDesc")}
         >
-          <NoDataBlock message="Chua co du lieu report chi tiet." />
+          <NoDataBlock message={t("admin.dashboardPage.chartCustomerNoData")} />
         </ChartCard>
       </div>
     </div>

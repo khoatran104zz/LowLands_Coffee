@@ -191,22 +191,18 @@ export function Sidebar({ locale, isCollapsed, onToggleCollapse, onCloseMobile }
         ))}
       </div>
 
-      {/* Collapse/Expand Toggle (Desktop only) */}
-      <div className="p-3 border-t border-[#3d2e27] shrink-0 bg-[#1f1612] hidden lg:block">
-        <button
-          onClick={onToggleCollapse}
-          className="w-full flex items-center justify-center py-2 rounded-lg text-[#cab5a7] hover:text-white hover:bg-[#342721] transition-all cursor-pointer"
-        >
-          {isCollapsed ? (
-            <ChevronRight className="h-4 w-4" />
-          ) : (
-            <div className="flex items-center space-x-2 text-xs font-bold">
-              <ChevronLeft className="h-4 w-4" />
-              <span>{t("admin.sidebar.collapseMenu")}</span>
-            </div>
-          )}
-        </button>
-      </div>
+      {/* Floating Toggle Button on Right Border (Desktop only) */}
+      <button
+        onClick={onToggleCollapse}
+        className="absolute top-1/2 -right-3 -translate-y-1/2 bg-[#c8510a] hover:bg-[#b04507] text-[#f7f2ed] rounded-full p-1 shadow-md border border-[#3d2e27] hidden lg:flex items-center justify-center cursor-pointer h-6 w-6 z-50 transition-all hover:scale-105"
+        title={isCollapsed ? t("admin.sidebar.expandMenu") : t("admin.sidebar.collapseMenu")}
+      >
+        {isCollapsed ? (
+          <ChevronRight className="h-3.5 w-3.5" />
+        ) : (
+          <ChevronLeft className="h-3.5 w-3.5" />
+        )}
+      </button>
 
     </aside>
   );
