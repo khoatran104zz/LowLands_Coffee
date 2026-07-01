@@ -10,11 +10,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Eye, Edit, Trash2 } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
+import { cn } from "@/lib/utils";
 
 export interface Column<T> {
   key: string;
   header: string;
   render?: (item: T) => React.ReactNode;
+}
+
+export interface ExtraAction<T> {
+  icon: React.ComponentType<{ className?: string }>;
+  onClick: (item: T) => void;
+  color?: string;
+  title?: string;
+  visible?: (item: T) => boolean;
 }
 
 interface DataTableProps<T> {
@@ -26,6 +35,7 @@ interface DataTableProps<T> {
   onDelete?: (item: T) => void;
   onView?: (item: T) => void;
   pageSize?: number;
+  extraActions?: ExtraAction<T>[];
 }
 
 export function DataTable<T extends { id?: number | string }>({
@@ -36,7 +46,8 @@ export function DataTable<T extends { id?: number | string }>({
   onEdit,
   onDelete,
   onView,
-  pageSize = 7
+  pageSize = 7,
+  extraActions
 }: DataTableProps<T>) {
   const { t } = useTranslation();
   const [currentPage, setCurrentPage] = useState(1);
@@ -74,7 +85,7 @@ export function DataTable<T extends { id?: number | string }>({
                   {col.header}
                 </TableHead>
               ))}
-              {(onEdit || onDelete || onView) && (
+              {(onEdit || onDelete || onView || (extraActions && extraActions.length > 0)) && (
                 <TableHead className="text-[10px] font-bold text-zinc-400 dark:text-zinc-550 uppercase tracking-wider text-right py-3.5 px-6 select-none font-outfit">
                   {t("common.actions")}
                 </TableHead>
@@ -85,7 +96,7 @@ export function DataTable<T extends { id?: number | string }>({
             {paginatedData.length === 0 ? (
               <TableRow>
                 <TableCell
-                  colSpan={columns.length + ((onEdit || onDelete || onView) ? 1 : 0)}
+                  colSpan={columns.length + ((onEdit || onDelete || onView || (extraActions && extraActions.length > 0)) ? 1 : 0)}
                   className="h-48 text-center text-muted-foreground font-medium text-xs"
                 >
                   {t("common.emptyTable")}
@@ -102,9 +113,30 @@ export function DataTable<T extends { id?: number | string }>({
                       {col.render ? col.render(item) : String((item as any)[col.key] ?? "")}
                     </TableCell>
                   ))}
-                  {(onEdit || onDelete || onView) && (
+                  {(onEdit || onDelete || onView || (extraActions && extraActions.length > 0)) && (
                     <TableCell className="py-3 px-6 text-right">
                       <div className="flex items-center justify-end space-x-1.5">
+                        {extraActions?.map((act, actIdx) => {
+                          const Icon = act.icon;
+                          const isVisible = act.visible ? act.visible(item) : true;
+                          if (!isVisible) return null;
+                          return (
+                            <Button
+                              key={actIdx}
+                              variant="ghost"
+                              size="icon"
+                              type="button"
+                              onClick={() => act.onClick(item)}
+                              title={act.title}
+                              className={cn(
+                                "text-zinc-400 hover:bg-amber-50/50 dark:hover:bg-amber-950/20 transition-all h-7 w-7 rounded-md cursor-pointer",
+                                act.color
+                              )}
+                            >
+                              <Icon className="h-3.5 w-3.5" />
+                            </Button>
+                          );
+                        })}
                         {onView && (
                           <Button
                             variant="ghost"
