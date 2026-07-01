@@ -48,7 +48,7 @@ export function Sidebar({ locale, isCollapsed, onToggleCollapse, onCloseMobile }
     },
     {
       id: "org",
-      title: "Tổ chức",
+      title: t("admin.sidebar.groups.org"),
       items: [
         { href: `/${locale}/admin/branches`, label: t("common.branches"), icon: Store },
         { href: `/${locale}/admin/employees`, label: t("common.employees"), icon: Users2 }
@@ -56,7 +56,7 @@ export function Sidebar({ locale, isCollapsed, onToggleCollapse, onCloseMobile }
     },
     {
       id: "menu",
-      title: "Menu",
+      title: t("admin.sidebar.groups.menu"),
       items: [
         { href: `/${locale}/admin/categories`, label: t("common.categories"), icon: FolderTree },
         { href: `/${locale}/admin/products`, label: t("common.products"), icon: Coffee },
@@ -65,24 +65,24 @@ export function Sidebar({ locale, isCollapsed, onToggleCollapse, onCloseMobile }
     },
     {
       id: "kho",
-      title: "Kho hàng",
+      title: t("admin.sidebar.groups.kho"),
       items: [
-        { href: `/${locale}/admin/ingredients`, label: "Nguyên liệu", icon: Sprout },
-        { href: `/${locale}/admin/suppliers`, label: "Nhà cung cấp", icon: Truck },
-        { href: `/${locale}/admin/import-notes`, label: "Phiếu nhập kho", icon: FileDown },
-        { href: `/${locale}/admin/stock`, label: "Tồn kho", icon: Warehouse }
+        { href: `/${locale}/admin/ingredients`, label: t("admin.sidebar.ingredients"), icon: Sprout },
+        { href: `/${locale}/admin/suppliers`, label: t("admin.sidebar.suppliers"), icon: Truck },
+        { href: `/${locale}/admin/import-notes`, label: t("admin.sidebar.importNotes"), icon: FileDown },
+        { href: `/${locale}/admin/stock`, label: t("admin.sidebar.stock"), icon: Warehouse }
       ]
     },
     {
       id: "recipe",
-      title: "Công thức",
+      title: t("admin.sidebar.groups.recipe"),
       items: [
-        { href: `/${locale}/admin/recipes`, label: "Recipes", icon: BookOpen }
+        { href: `/${locale}/admin/recipes`, label: t("admin.sidebar.recipes"), icon: BookOpen }
       ]
     },
     {
       id: "business",
-      title: "Kinh doanh",
+      title: t("admin.sidebar.groups.business"),
       items: [
         { href: `/${locale}/admin/orders`, label: t("common.orders"), icon: Receipt },
         { href: `/${locale}/admin/customers`, label: t("common.customers"), icon: UserCheck },
@@ -91,9 +91,9 @@ export function Sidebar({ locale, isCollapsed, onToggleCollapse, onCloseMobile }
     },
     {
       id: "reports",
-      title: "Báo cáo",
+      title: t("admin.sidebar.groups.reports"),
       items: [
-        { href: `/${locale}/admin/reports`, label: "Báo cáo thống kê", icon: LineChart }
+        { href: `/${locale}/admin/reports`, label: t("admin.sidebar.statisticalReports"), icon: LineChart }
       ]
     }
   ];
@@ -109,29 +109,34 @@ export function Sidebar({ locale, isCollapsed, onToggleCollapse, onCloseMobile }
       <div className="h-16 flex items-center justify-between px-5 border-b border-[#3d2e27] shrink-0">
         <Link
           href={`/${locale}/admin/dashboard`}
-          className="flex items-center space-x-2.5 overflow-hidden hover:opacity-90 transition-opacity"
+          className="flex items-center hover:opacity-90 transition-opacity w-full overflow-hidden"
         >
-          <div className="relative h-9 w-9 rounded-full bg-[#f7f2ed] p-1 flex items-center justify-center shrink-0">
-            <div className="relative w-7 h-7">
+          {isCollapsed ? (
+            <div className="relative h-8 w-8 mx-auto">
               <Image
-                src="/logo/logo.svg"
-                alt="Logo"
+                src="/logo/logo-icon-white.svg"
+                alt="Logo Icon"
                 fill
                 className="object-contain"
                 priority
               />
             </div>
-          </div>
-          {!isCollapsed && (
-            <span className="font-extrabold text-sm tracking-wider uppercase font-outfit text-[#f7f2ed] truncate">
-              Lowlands Admin
-            </span>
+          ) : (
+            <div className="relative h-10 w-40">
+              <Image
+                src="/logo/logo-white.svg"
+                alt="Lowlands Logo"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
           )}
         </Link>
         {onCloseMobile && (
           <button
             onClick={onCloseMobile}
-            className="lg:hidden text-zinc-400 hover:text-white transition-colors"
+            className="lg:hidden text-zinc-400 hover:text-white transition-colors ml-2"
           >
             <X className="h-5 w-5" />
           </button>
@@ -197,11 +202,12 @@ export function Sidebar({ locale, isCollapsed, onToggleCollapse, onCloseMobile }
           ) : (
             <div className="flex items-center space-x-2 text-xs font-bold">
               <ChevronLeft className="h-4 w-4" />
-              <span>Thu gọn menu</span>
+              <span>{t("admin.sidebar.collapseMenu")}</span>
             </div>
           )}
         </button>
       </div>
+
     </aside>
   );
 }

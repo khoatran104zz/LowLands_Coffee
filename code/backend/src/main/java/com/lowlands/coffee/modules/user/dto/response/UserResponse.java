@@ -22,4 +22,7 @@ public class UserResponse {
     private String status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Long branchId;
+    private String branchName;
 }
+

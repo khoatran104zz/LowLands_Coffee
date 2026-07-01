@@ -8,6 +8,7 @@ export interface UserCreateRequest {
   password: string;
   roleId: number;
   status: string;
+  branchId?: number;
 }
 
 export interface UserUpdateRequest {
@@ -16,7 +17,9 @@ export interface UserUpdateRequest {
   phone?: string;
   roleId: number;
   status: string;
+  branchId?: number;
 }
+
 
 interface ApiResponse<T> {
   success: boolean;
