@@ -8,6 +8,17 @@
   "revenueBranchChart": "Revenue by Branch",
   "bestSellersChart": "Best Selling Products",
   "customerGrowthChart": "Customer Growth",
+  "branchesPage": {
+    "title": "Branches",
+    "subtitle": "Manage the active store locations in the Lowlands Coffee chain.",
+    "searchPlaceholder": "Search branch name or address...",
+    "statusFilter": "Status",
+    "colId": "ID",
+    "colName": "Branch Name",
+    "colAddress": "Address",
+    "colPhone": "Phone",
+    "colStatus": "Status"
+  },
   "createBranch": "Create New Branch",
   "editBranch": "Update Branch",
   "deleteBranchConfirm": "Are you sure you want to delete this branch? This action cannot be undone.",

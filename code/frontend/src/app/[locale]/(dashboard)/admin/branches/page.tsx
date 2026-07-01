@@ -59,13 +59,13 @@ export default function AdminBranchesPage() {
   });
 
   const columns: Column<Store>[] = [
-    { key: "id", header: "ID" },
-    { key: "name", header: "Ten chi nhanh" },
-    { key: "address", header: "Dia chi" },
-    { key: "phone", header: "Dien thoai" },
+    { key: "id", header: t("admin.branchesPage.colId") },
+    { key: "name", header: t("admin.branchesPage.colName") },
+    { key: "address", header: t("admin.branchesPage.colAddress") },
+    { key: "phone", header: t("admin.branchesPage.colPhone") },
     {
       key: "status",
-      header: "Trang thai",
+      header: t("admin.branchesPage.colStatus"),
       render: (item) => <StatusBadge status={item.status} />
     }
   ];
@@ -147,7 +147,7 @@ export default function AdminBranchesPage() {
             {t("common.branches")}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold mt-1">
-            Quan ly danh sach chi nhanh hoat dong trong chuoi Lowlands Coffee.
+            {t("admin.branchesPage.subtitle")}
           </p>
         </div>
         <Button
@@ -163,10 +163,10 @@ export default function AdminBranchesPage() {
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Tim ten hoac dia chi chi nhanh..."
+          placeholder={t("admin.branchesPage.searchPlaceholder")}
         />
         <Filter
-          label="Trang thai"
+          label={t("admin.branchesPage.statusFilter")}
           value={statusFilter}
           onChange={setStatusFilter}
           options={[
@@ -178,7 +178,7 @@ export default function AdminBranchesPage() {
 
       {isLoading ? (
         <div className="text-center py-20 text-muted-foreground text-xs font-semibold">
-          Dang tai danh sach chi nhanh tu Backend API...
+          {t("common.loading")}
         </div>
       ) : (
         <DataTable
