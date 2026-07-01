@@ -72,7 +72,7 @@ export interface DashboardState {
   deleteEmployee: (id: number) => Promise<void>;
   
   // Orders
-  addOrder: (order: Omit<OrderExtended, "id" | "orderCode" | "createdAt">) => OrderExtended;
+  addOrder: (order: Omit<OrderExtended, "id" | "orderCode" | "createdAt"> | OrderExtended) => OrderExtended;
   updateOrderStatus: (id: number, status: OrderExtended["status"]) => void;
   
   // Promotions
@@ -387,18 +387,19 @@ export const useDashboardStore = create<DashboardState>()(
       // Orders Operations
       addOrder: (orderInput) => {
         const state = get();
-        const nextId = Math.max(...state.orders.map(o => o.id), 0) + 1;
+        const incoming = orderInput as Partial<OrderExtended>;
+        const nextId = incoming.id ?? Math.max(...state.orders.map(o => o.id), 0) + 1;
         const dateStr = new Date().toISOString().slice(2, 10).replace(/-/g, "");
         const codeNum = String(nextId % 1000).padStart(3, "0");
-        const orderCode = `LL-${dateStr}-${codeNum}`;
+        const orderCode = incoming.orderCode ?? `LL-${dateStr}-${codeNum}`;
         const storeName = state.branches.find(b => b.id === orderInput.storeId)?.name || "Lowlands Coffee";
         const newOrder: OrderExtended = {
           ...orderInput,
           id: nextId,
           orderCode,
-          storeName,
-          status: "pending",
-          createdAt: new Date().toISOString()
+          storeName: incoming.storeName ?? storeName,
+          status: incoming.status ?? "pending",
+          createdAt: incoming.createdAt ?? new Date().toISOString()
         };
 
         // Update statistics for customers

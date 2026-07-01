@@ -13,6 +13,7 @@ export function FeaturedProducts() {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<number | null>(null); // null means All
   const addItem = useCartStore((state) => state.addItem);
+  const formatPrice = (value: number) => value.toLocaleString("vi-VN");
 
   // Filter categories to show only Cà Phê, Trà, Freeze
   const filterCategories = INITIAL_CATEGORIES.filter((c) => [1, 2, 3].includes(c.id));
@@ -183,7 +184,7 @@ export function FeaturedProducts() {
 
                     <div className="mt-4 flex items-center justify-between">
                       <span className="text-sm font-black text-[#C8510A] leading-none">
-                        {displayPrice.toLocaleString()}đ
+                        {formatPrice(displayPrice)}đ
                       </span>
                       
                       {/* Mobile add to cart shortcut button */}

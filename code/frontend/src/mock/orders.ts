@@ -4,7 +4,7 @@ export interface OrderExtended extends Order {
   id: number;
   orderCode: string;
   storeName: string;
-  status: "pending" | "preparing" | "completed" | "cancelled";
+  status: "pending" | "confirmed" | "preparing" | "ready" | "completed" | "cancelled";
   createdAt: string;
 }
 

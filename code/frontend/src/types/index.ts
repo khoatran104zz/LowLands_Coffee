@@ -90,7 +90,7 @@ export interface Order {
   storeId: number;
   addressId?: number;
   orderCode?: string;
-  orderType: "delivery" | "pickup";
+  orderType: "delivery" | "pickup" | "dine_in" | "takeaway";
   status?: string;
   receiverName: string;
   receiverPhone: string;
@@ -100,8 +100,16 @@ export interface Order {
   totalAmount: number;
   note?: string;
   items: OrderItemInput[];
-  paymentMethod: "cod" | "bank_transfer" | "e_wallet";
+  paymentMethod: "cod" | "bank_transfer" | "e_wallet" | "card";
   createdAt?: string;
+}
+
+export interface POSCheckoutDraft extends Order {
+  cashReceived?: number;
+  changeReturned?: number;
+  vat?: number;
+  serviceType?: "dine_in" | "takeaway";
+  tableNumber?: string;
 }
 
 export interface OrderItemInput {

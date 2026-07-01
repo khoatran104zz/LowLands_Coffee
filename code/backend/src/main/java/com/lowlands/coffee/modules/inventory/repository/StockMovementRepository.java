@@ -54,4 +54,10 @@ public interface StockMovementRepository extends JpaRepository<StockMovementEnti
             where sm.store.id = :storeId
             """)
     long countDistinctIngredientsByStoreId(@Param("storeId") Long storeId);
+
+    boolean existsByMovementTypeAndReferenceTypeAndReferenceId(
+            String movementType,
+            String referenceType,
+            Long referenceId
+    );
 }

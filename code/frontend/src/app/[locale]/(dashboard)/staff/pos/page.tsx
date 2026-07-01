@@ -6,12 +6,13 @@ import {
   Coffee, ReceiptText, History, LayoutDashboard, Printer, CheckCircle, 
   CupSoda, Cake, Salad, Ticket, Users, BarChart2, Settings, Grid, List, ArrowUpDown 
 } from "lucide-react";
-import { Product, ProductVariant, Topping, CartItem } from "@/types";
+import { Product, ProductVariant, Topping, CartItem, POSCheckoutDraft } from "@/types";
 import { useDashboardStore } from "@/store/dashboardStore";
 import { ProductCard } from "@/components/pos/ProductCard";
 import { POSCart } from "@/components/pos/POSCart";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/button";
+import { createOrder } from "@/services/order.service";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useConfirm } from "@/hooks/useConfirm";
 import { toast } from "sonner";
@@ -19,6 +20,7 @@ import { useAuthStore } from "@/store/auth.store";
 import { useRouter, useParams } from "next/navigation";
 import { AccountDropdown } from "@/components/account/AccountDropdown";
 import { AccountModal } from "@/components/account/AccountModal";
+import { OrderExtended } from "@/mock/orders";
 
 export default function StaffPOSPage() {
   const { t } = useTranslation();
@@ -212,9 +214,16 @@ export default function StaffPOSPage() {
     setCart([]);
   };
 
-  const handleCheckoutSuccess = (orderInput: any) => {
-    // Add to global Zustand store! It calculates orderCode, storeName, dates
-    const savedOrder = addOrder(orderInput);
+  const handleCheckoutSuccess = async (orderInput: POSCheckoutDraft) => {
+    const backendOrder = await createOrder(orderInput);
+    const savedOrder = addOrder({
+      ...backendOrder,
+      id: backendOrder.id ?? Date.now(),
+      orderCode: backendOrder.orderCode ?? `LL-${Date.now()}`,
+      status: (backendOrder.status as OrderExtended["status"]) ?? "pending",
+      createdAt: backendOrder.createdAt ?? new Date().toISOString(),
+      storeName: "Lowlands Coffee",
+    });
     
     // Attach cash returned values for receipt
     setReceiptData({
@@ -620,7 +629,7 @@ export default function StaffPOSPage() {
       <Modal
         isOpen={isReceiptOpen}
         onClose={() => setIsReceiptOpen(false)}
-        title="Thanh toán thành công!"
+        title="Đã tạo đơn hàng!"
         size="md"
       >
         {receiptData && (

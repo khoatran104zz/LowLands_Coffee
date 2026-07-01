@@ -1,19 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Trash2, Plus, Minus, ReceiptText, Ticket, HelpCircle, Utensils, ShoppingBag } from "lucide-react";
-import { CartItem, Product, ProductVariant, Topping, Promotion, Order } from "@/types";
+import { Trash2, Plus, Minus, ReceiptText, Ticket, Utensils, ShoppingBag } from "lucide-react";
+import { CartItem, POSCheckoutDraft } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/Modal";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useDashboardStore } from "@/store/dashboardStore";
 
 interface POSCartProps {
   items: CartItem[];
   onUpdateQty: (itemId: string, newQty: number) => void;
   onRemoveItem: (itemId: string) => void;
   onClearCart: () => void;
-  onCheckoutSuccess: (order: any) => void;
+  onCheckoutSuccess: (order: POSCheckoutDraft) => Promise<void> | void;
 }
 
 export function POSCart({
@@ -25,7 +24,7 @@ export function POSCart({
 }: POSCartProps) {
   const { t } = useTranslation();
   const [promoCode, setPromoCode] = useState("");
-  const [appliedPromo, setAppliedPromo] = useState<Promotion | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   // Service configuration
   const [serviceType, setServiceType] = useState<"dine_in" | "takeaway">("takeaway");
@@ -41,29 +40,15 @@ export function POSCart({
   const [customerName, setCustomerName] = useState("Khách lẻ");
   const [customerPhone, setCustomerPhone] = useState("");
 
-  const promotions = useDashboardStore((state) => state.promotions);
-
   // Totals calculations
   const subtotal = items.reduce((sum, item) => {
     const toppingsTotal = item.toppings.reduce((s, t) => s + t.topping.price * t.quantity, 0);
     return sum + (item.variant.price + toppingsTotal) * item.quantity;
   }, 0);
 
-  // Calculate discount
-  let discount = 0;
-  if (appliedPromo) {
-    if (subtotal >= appliedPromo.minOrderAmount) {
-      if (appliedPromo.discountType === "percentage") {
-        discount = Math.round((subtotal * appliedPromo.discountValue) / 100);
-      } else {
-        discount = appliedPromo.discountValue;
-      }
-    }
-  }
-
-  // VAT: 10% on discounted amount
-  const vat = Math.round((subtotal - discount) * 0.1);
-  const total = Math.max(0, subtotal - discount + vat);
+  const discount = 0;
+  const vat = 0;
+  const total = subtotal;
   const changeReturned = Math.max(0, cashReceived - total);
 
   // Refs for tracking callback state in useEffect
@@ -79,7 +64,8 @@ export function POSCart({
     discount,
     orderNote,
     serviceType,
-    tableNumber
+    tableNumber,
+    isSubmitting
   });
 
   stateRef.current = {
@@ -94,7 +80,8 @@ export function POSCart({
     discount,
     orderNote,
     serviceType,
-    tableNumber
+    tableNumber,
+    isSubmitting
   };
 
   // Keyboard shortcut listeners
@@ -105,7 +92,7 @@ export function POSCart({
 
     const handleEnterPressed = () => {
       const state = stateRef.current;
-      if (state.items.length === 0) return;
+      if (state.items.length === 0 || state.isSubmitting) return;
 
       if (!state.isCheckoutOpen) {
         // Open checkout modal
@@ -129,18 +116,7 @@ export function POSCart({
   // Apply promo handler
   const handleApplyPromo = () => {
     if (!promoCode.trim()) return;
-    const promo = promotions.find((p) => p.code.toUpperCase() === promoCode.toUpperCase().trim() && p.status === "active");
-    
-    if (promo) {
-      if (subtotal < promo.minOrderAmount) {
-        toast.error(`Đơn hàng chưa đạt tối thiểu ${promo.minOrderAmount.toLocaleString()}đ`);
-      } else {
-        setAppliedPromo(promo);
-        toast.success(`Áp dụng mã giảm giá ${promo.code} thành công!`);
-      }
-    } else {
-      toast.error("Mã giảm giá không hợp lệ hoặc đã hết hạn!");
-    }
+    toast.info("Khuyến mãi sẽ được nối sau khi backend promotion engine sẵn sàng.");
   };
 
   const handleCheckoutClick = () => {
@@ -160,15 +136,17 @@ export function POSCart({
     if (items.length === 0) return;
     onClearCart();
     setPromoCode("");
-    setAppliedPromo(null);
     setOrderNote("");
     setServiceType("takeaway");
     setTableNumber("");
     toast.info("Đã hủy đơn hàng hiện tại");
   };
 
-  const handleConfirmPayment = () => {
+  const handleConfirmPayment = async () => {
     const state = stateRef.current;
+    if (state.isSubmitting) {
+      return;
+    }
     if (state.paymentMethod === "cod" && state.cashReceived < state.total) {
       toast.error("Số tiền khách đưa không đủ!");
       return;
@@ -197,9 +175,9 @@ export function POSCart({
       ? `Tại bàn: ${state.tableNumber}` 
       : "Mang đi (Mua tại quầy)";
 
-    const finalOrder = {
-      storeId: 2, // Default store for simulation
-      orderType: "pickup" as const,
+    const finalOrder: POSCheckoutDraft = {
+      storeId: 1,
+      orderType: state.serviceType,
       receiverName: state.customerName || "Khách lẻ",
       receiverPhone: state.customerPhone || "N/A",
       deliveryAddress: destinationAddress,
@@ -208,29 +186,31 @@ export function POSCart({
       totalAmount: state.total, // contains subtotal - discount + vat
       paymentMethod: state.paymentMethod,
       note: state.orderNote || undefined,
-      items: orderItems
-    };
-
-    // Callback to parent to add to Zustand store and trigger receipt modal
-    onCheckoutSuccess({
-      ...finalOrder,
+      items: orderItems,
       cashReceived: state.paymentMethod === "cod" ? state.cashReceived : state.total,
       changeReturned: state.paymentMethod === "cod" ? (state.cashReceived - state.total) : 0,
       vat,
       serviceType: state.serviceType,
       tableNumber: state.tableNumber
-    });
+    };
 
-    // Reset state
-    setIsCheckoutOpen(false);
-    setPromoCode("");
-    setAppliedPromo(null);
-    setOrderNote("");
-    setCustomerName("Khách lẻ");
-    setCustomerPhone("");
-    setServiceType("takeaway");
-    setTableNumber("");
-    toast.success("Thanh toán đơn hàng thành công!");
+    try {
+      setIsSubmitting(true);
+      await onCheckoutSuccess(finalOrder);
+      setIsCheckoutOpen(false);
+      setPromoCode("");
+      setOrderNote("");
+      setCustomerName("Khách lẻ");
+      setCustomerPhone("");
+      setServiceType("takeaway");
+      setTableNumber("");
+      toast.success("Đã tạo đơn hàng trên backend!");
+    } catch (error) {
+      console.error("Failed to create POS order", error);
+      toast.error(`Không thể tạo đơn hàng: ${getOrderErrorMessage(error)}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleUpdateQtyLocal = (itemId: string, newQty: number) => {
@@ -429,7 +409,7 @@ export function POSCart({
               </div>
             )}
             <div className="flex justify-between">
-              <span>Phí phục vụ (5%):</span>
+              <span>Phí phục vụ:</span>
               <span className="text-foreground">{vat.toLocaleString()}đ</span>
             </div>
             <div className="flex justify-between text-sm font-black text-foreground pt-1.5 border-t border-dashed border-border/40 mt-1">
@@ -601,14 +581,24 @@ export function POSCart({
             </Button>
             <Button
               onClick={handleConfirmPayment}
-              disabled={paymentMethod === "cod" && cashReceived < total}
+              disabled={isSubmitting || (paymentMethod === "cod" && cashReceived < total)}
               className="w-1/2 bg-[#C8510A] hover:bg-[#B04308] text-white rounded-lg h-10 text-xs font-extrabold shadow-sm"
             >
-              Xác nhận &amp; In hóa đơn (Enter)
+              {isSubmitting ? "Đang tạo đơn..." : "Xác nhận & In hóa đơn (Enter)"}
             </Button>
           </div>
         </div>
       </Modal>
     </div>
   );
+}
+
+function getOrderErrorMessage(error: unknown) {
+  if (typeof error === "object" && error !== null && "response" in error) {
+    const response = (error as { response?: { data?: { message?: string } } }).response;
+    if (response?.data?.message) {
+      return response.data.message;
+    }
+  }
+  return "kiểm tra backend, quyền ORDER_CREATE hoặc store được gán.";
 }

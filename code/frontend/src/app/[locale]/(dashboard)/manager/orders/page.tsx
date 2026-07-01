@@ -40,7 +40,9 @@ export default function ManagerOrdersPage() {
 
   const orderStatusOptions = [
     { value: "pending", label: "Chờ pha chế" },
+    { value: "confirmed", label: "Đã xác nhận" },
     { value: "preparing", label: "Đang làm món" },
+    { value: "ready", label: "Sẵn sàng giao" },
     { value: "completed", label: "Đã giao / Hoàn tất" },
     { value: "cancelled", label: "Đã hủy" }
   ];
@@ -62,10 +64,11 @@ export default function ManagerOrdersPage() {
       key: "paymentMethod",
       header: "Thanh toán",
       render: (item) => {
-        const labels = {
+        const labels: Record<OrderExtended["paymentMethod"], string> = {
           cod: "Tiền mặt",
           bank_transfer: "Chuyển khoản",
-          e_wallet: "Ví MoMo"
+          e_wallet: "Ví MoMo",
+          card: "Thẻ"
         };
         return <span>{labels[item.paymentMethod]}</span>;
       }
@@ -74,15 +77,19 @@ export default function ManagerOrdersPage() {
       key: "status",
       header: "Trạng thái",
       render: (item) => {
-        const styles = {
+        const styles: Record<OrderExtended["status"], string> = {
           pending: "bg-blue-500/10 text-blue-700",
+          confirmed: "bg-cyan-500/10 text-cyan-700",
           preparing: "bg-amber-500/10 text-amber-700",
+          ready: "bg-purple-500/10 text-purple-700",
           completed: "bg-emerald-500/10 text-emerald-700",
           cancelled: "bg-rose-500/10 text-rose-700"
         };
-        const labels = {
+        const labels: Record<OrderExtended["status"], string> = {
           pending: "Chờ pha chế",
+          confirmed: "Đã xác nhận",
           preparing: "Đang làm món",
+          ready: "Sẵn sàng giao",
           completed: "Hoàn tất",
           cancelled: "Đã hủy"
         };
