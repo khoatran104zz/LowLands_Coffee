@@ -152,12 +152,20 @@ export function Header({ locale, onOpenMobileSidebar }: HeaderProps) {
           <div className="relative" ref={profileRef}>
             <button
               onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="flex items-center space-x-1.5 hover:opacity-90 transition-opacity p-0.5 rounded-lg cursor-pointer"
+              className="flex items-center space-x-2.5 p-1 pr-3 bg-zinc-50/50 hover:bg-zinc-100/70 border border-zinc-200 dark:border-zinc-800 rounded-full transition-all duration-200 focus:outline-none"
             >
-              <div className="h-7 w-7 rounded-full bg-amber-850 text-white flex items-center justify-center font-bold text-xs font-outfit select-none">
-                {user.fullName ? user.fullName.charAt(0).toUpperCase() : "M"}
+              <div className="h-8 w-8 rounded-full bg-amber-850 text-white flex items-center justify-center font-bold text-xs select-none uppercase shrink-0">
+                {user.fullName ? user.fullName.split(" ").map(n => n[0]).slice(0, 2).join("").toUpperCase() : "M"}
               </div>
-              <ChevronDown className="h-3 w-3 text-zinc-500" />
+              <div className="hidden sm:block text-left select-none">
+                <span className="block text-[11px] font-bold text-zinc-800 dark:text-zinc-100 truncate leading-tight">
+                  {user.fullName}
+                </span>
+                <span className="block text-[9px] text-zinc-400 font-bold uppercase leading-none mt-0.5 tracking-wider">
+                  {getRoleLabel(user.roleName || "")}
+                </span>
+              </div>
+              <ChevronDown className={`h-3 w-3 text-zinc-500 transition-transform duration-205 ${isProfileOpen ? "rotate-180" : ""}`} />
             </button>
 
             {isProfileOpen && (

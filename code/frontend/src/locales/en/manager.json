@@ -184,7 +184,7 @@
     "searchPlaceholder": "Search employee name...",
     "colCode": "Employee Code",
     "colName": "Full Name",
-    "colShift": "Registered Shift",
+    "colShift": "Position",
     "colPhone": "Phone",
     "colEmail": "Internal Email",
     "colPerformance": "Performance",
