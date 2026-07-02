@@ -9,7 +9,7 @@ import { FormModal } from "@/components/admin/FormModal";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Sparkles, Eye, ShieldAlert, CheckCircle, XCircle } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import { useAuthStore } from "@/store/auth.store";
 import { toast } from "sonner";
 
@@ -24,7 +24,6 @@ export default function ManagerStaffPage() {
   
   const currentUser = useAuthStore((state) => state.user);
   
-  // StoreId = 2 Hồ Con Rùa branch employees ONLY (or from auth user)
   const myBranchId = currentUser?.branchId || 2;
   const branchName = currentUser?.branchName || "Hồ Con Rùa";
 
@@ -50,7 +49,7 @@ export default function ManagerStaffPage() {
       render: (item) => <span className="font-mono font-bold text-zinc-650">{item.employeeCode || t("manager.staff.noCode")}</span>
     },
     { key: "fullName", header: t("manager.staff.colName") },
-    { key: "workingShift", header: t("manager.staff.colShift"), render: (item) => item.workingShift || "Chưa chia ca" },
+    { key: "workingShift", header: t("manager.staff.colShift"), render: (item) => item.workingShift || t("manager.staff.colShiftEmpty") },
     { key: "phone", header: t("manager.staff.colPhone") },
     { key: "email", header: t("manager.staff.colEmail") },
     {
@@ -59,7 +58,7 @@ export default function ManagerStaffPage() {
       render: (item) => (
         <span className="inline-flex items-center space-x-1 font-bold text-amber-900 bg-amber-800/10 border border-amber-800/10 px-2.5 py-0.5 rounded-lg text-xs select-none">
           <Sparkles className="h-3 w-3 text-amber-800" />
-          <span>{item.performance || "Khá Tốt"}</span>
+          <span>{item.performance || t("manager.staff.perfGood")}</span>
         </span>
       )
     },
@@ -96,16 +95,17 @@ export default function ManagerStaffPage() {
         ...selectedStaff,
         status: nextStatus
       });
-      toast.success(
-        nextStatus === "active"
-          ? `Đã mở khóa hoạt động cho nhân viên ${selectedStaff.fullName}`
-          : `Đã khóa tạm thời tài khoản của nhân viên ${selectedStaff.fullName}`
-      );
+      
+      const successMsg = nextStatus === "active"
+        ? t("manager.staff.toastUnlockSuccess", { name: selectedStaff.fullName })
+        : t("manager.staff.toastLockSuccess", { name: selectedStaff.fullName });
+      
+      toast.success(successMsg);
       setIsToggleStatusOpen(false);
       setIsDetailOpen(false);
     } catch (error) {
       console.error(error);
-      toast.error("Không thể cập nhật trạng thái nhân viên.");
+      toast.error(t("manager.staff.toastError"));
     } finally {
       setIsActionLoading(false);
     }
@@ -139,22 +139,13 @@ export default function ManagerStaffPage() {
         searchKey="fullName"
         searchQuery={searchQuery}
         onView={handleOpenDetail}
-        extraActions={[
-          {
-            icon: Eye,
-            onClick: handleOpenDetail,
-            color: "text-zinc-600 hover:bg-zinc-50",
-            title: "Xem chi tiết & quản lý",
-            visible: () => true
-          }
-        ]}
       />
 
       {/* Detail Modal */}
       <FormModal
         isOpen={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}
-        title={`Thông tin nhân viên: ${selectedStaff?.fullName || ""}`}
+        title={selectedStaff ? t("manager.staff.modalDetailTitle", { name: selectedStaff.fullName }) : ""}
         size="md"
       >
         {selectedStaff && (
@@ -165,44 +156,49 @@ export default function ManagerStaffPage() {
               </div>
               <div>
                 <h4 className="text-sm font-extrabold text-zinc-800 dark:text-zinc-100">{selectedStaff.fullName}</h4>
-                <div className="text-[10px] text-muted-foreground uppercase font-bold mt-0.5">Mã NV: {selectedStaff.employeeCode || "Chưa cấp"}</div>
+                <div className="text-[10px] text-muted-foreground uppercase font-bold mt-0.5">
+                  {selectedStaff.employeeCode 
+                    ? t("manager.staff.modalEmpCode", { code: selectedStaff.employeeCode })
+                    : t("manager.staff.modalEmpNoCode")
+                  }
+                </div>
               </div>
             </div>
 
             <div className="space-y-3 bg-zinc-50/50 dark:bg-zinc-950/10 p-4 rounded-xl border border-border">
               <div className="flex justify-between border-b border-zinc-200/40 pb-2">
-                <span className="text-zinc-400 font-bold uppercase text-[9px] select-none">Email nội bộ</span>
+                <span className="text-zinc-400 font-bold uppercase text-[9px] select-none">{t("manager.staff.modalLabelEmail")}</span>
                 <span className="text-zinc-800 dark:text-zinc-250 font-bold">{selectedStaff.email}</span>
               </div>
               <div className="flex justify-between border-b border-zinc-200/40 pb-2">
-                <span className="text-zinc-400 font-bold uppercase text-[9px] select-none">Số điện thoại</span>
+                <span className="text-zinc-400 font-bold uppercase text-[9px] select-none">{t("manager.staff.modalLabelPhone")}</span>
                 <span className="text-zinc-800 dark:text-zinc-250 font-bold">{selectedStaff.phone || "N/A"}</span>
               </div>
               <div className="flex justify-between border-b border-zinc-200/40 pb-2">
-                <span className="text-zinc-400 font-bold uppercase text-[9px] select-none">Chi nhánh làm việc</span>
+                <span className="text-zinc-400 font-bold uppercase text-[9px] select-none">{t("manager.staff.modalLabelBranch")}</span>
                 <span className="text-[#c8510a] font-bold">{selectedStaff.branchName}</span>
               </div>
               <div className="flex justify-between border-b border-zinc-200/40 pb-2">
-                <span className="text-zinc-400 font-bold uppercase text-[9px] select-none">Vị trí trực quầy</span>
+                <span className="text-zinc-400 font-bold uppercase text-[9px] select-none">{t("manager.staff.modalLabelRole")}</span>
                 <span className="text-zinc-800 dark:text-zinc-250 uppercase font-bold">
-                  {selectedStaff.role === "manager" ? "Cửa hàng trưởng" : "Barista / Thu ngân"}
+                  {selectedStaff.role === "manager" ? t("manager.staff.modalRoleManager") : t("manager.staff.modalRoleStaff")}
                 </span>
               </div>
               <div className="flex justify-between border-b border-zinc-200/40 pb-2">
-                <span className="text-zinc-400 font-bold uppercase text-[9px] select-none">Lịch làm ca hiện tại</span>
-                <span className="text-zinc-800 dark:text-zinc-250 font-bold">{selectedStaff.workingShift || "Chưa phân lịch"}</span>
+                <span className="text-zinc-400 font-bold uppercase text-[9px] select-none">{t("manager.staff.modalLabelShift")}</span>
+                <span className="text-zinc-800 dark:text-zinc-250 font-bold">{selectedStaff.workingShift || t("manager.staff.modalShiftEmpty")}</span>
               </div>
               <div className="flex justify-between border-b border-zinc-200/40 pb-2">
-                <span className="text-zinc-400 font-bold uppercase text-[9px] select-none">Đánh giá hiệu suất</span>
+                <span className="text-zinc-400 font-bold uppercase text-[9px] select-none">{t("manager.staff.modalLabelPerf")}</span>
                 <span className="font-extrabold text-amber-900 bg-amber-800/10 border border-amber-800/10 px-2 py-0.5 rounded-md text-[10px]">
-                  {selectedStaff.performance || "Khá Tốt (85/100)"}
+                  {selectedStaff.performance || t("manager.staff.modalPerfValue")}
                 </span>
               </div>
               <div className="flex justify-between items-center pt-1">
-                <span className="text-zinc-400 font-bold uppercase text-[9px] select-none">Trạng thái tài khoản</span>
+                <span className="text-zinc-400 font-bold uppercase text-[9px] select-none">{t("manager.staff.modalLabelStatus")}</span>
                 <StatusBadge
                   status={selectedStaff.status}
-                  customLabel={selectedStaff.status === "active" ? "Đang hoạt động" : "Khóa tạm thời"}
+                  customLabel={selectedStaff.status === "active" ? t("manager.staff.modalStatusActive") : t("manager.staff.modalStatusInactive")}
                 />
               </div>
             </div>
@@ -214,7 +210,7 @@ export default function ManagerStaffPage() {
                 onClick={() => setIsDetailOpen(false)}
                 className="h-10 text-xs font-semibold rounded-lg"
               >
-                Đóng
+                {t("manager.staff.modalBtnClose")}
               </Button>
 
               <Button
@@ -225,7 +221,7 @@ export default function ManagerStaffPage() {
                     : "bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg h-10 text-xs font-semibold px-4 cursor-pointer"
                 }
               >
-                {selectedStaff.status === "active" ? "Khóa tài khoản" : "Kích hoạt lại"}
+                {selectedStaff.status === "active" ? t("manager.staff.modalBtnLock") : t("manager.staff.modalBtnUnlock")}
               </Button>
             </div>
           </div>
@@ -237,14 +233,14 @@ export default function ManagerStaffPage() {
         isOpen={isToggleStatusOpen}
         onClose={() => setIsToggleStatusOpen(false)}
         onConfirm={handleConfirmToggleStatus}
-        title={selectedStaff?.status === "active" ? "Khóa tài khoản nhân viên" : "Mở khóa tài khoản nhân viên"}
+        title={selectedStaff?.status === "active" ? t("manager.staff.confirmLockTitle") : t("manager.staff.confirmUnlockTitle")}
         message={
           selectedStaff?.status === "active"
-            ? `Bạn có chắc chắn muốn khóa tạm thời tài khoản của nhân viên ${selectedStaff?.fullName}? Nhân viên này sẽ không thể đăng nhập vào POS.`
-            : `Kích hoạt lại tài khoản cho nhân viên ${selectedStaff?.fullName}?`
+            ? t("manager.staff.confirmLockMsg", { name: selectedStaff?.fullName || "" })
+            : t("manager.staff.confirmUnlockMsg", { name: selectedStaff?.fullName || "" })
         }
-        confirmText="Xác nhận"
-        cancelText="Hủy bỏ"
+        confirmText={t("manager.staff.confirmBtn")}
+        cancelText={t("manager.staff.confirmCancel")}
       />
     </div>
   );

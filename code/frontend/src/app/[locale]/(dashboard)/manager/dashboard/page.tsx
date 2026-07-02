@@ -64,38 +64,38 @@ export default function ManagerDashboardPage() {
           title={t("manager.dashboard.todayOrders")}
           value={summary ? String(summary.todayOrders) : "0"}
           icon={ShoppingBag}
-          description="Tổng số đơn hàng lập hôm nay"
+          description={t("manager.dashboard.todayOrdersDesc")}
         />
         <StatsCard
-          title="Đơn đang pha chế"
+          title={t("manager.dashboard.todayPreparing")}
           value={summary ? String(summary.preparingOrders) : "0"}
           icon={Coffee}
-          description="Số đơn hàng đang chờ phục vụ"
+          description={t("manager.dashboard.todayPreparingDesc")}
         />
         <StatsCard
-          title="Đơn hoàn thành"
+          title={t("manager.dashboard.todayCompleted")}
           value={summary ? String(summary.completedOrders) : "0"}
           icon={CheckCircle}
-          description="Đơn đã bàn giao thành công"
+          description={t("manager.dashboard.todayCompletedDesc")}
         />
         <StatsCard
           title={t("manager.dashboard.inventoryWarning")}
-          value={summary ? `${summary.lowStockItems} mặt hàng` : "0 mặt hàng"}
+          value={summary ? `${summary.lowStockItems} ${t("manager.dashboard.itemLabel")}` : `0 ${t("manager.dashboard.itemLabel")}`}
           icon={AlertTriangle}
           description={t("manager.dashboard.inventoryWarningDesc")}
           trend={summary && summary.lowStockItems > 0 ? { type: "down", value: t("manager.dashboard.needRestock") } : undefined}
         />
         <StatsCard
           title={t("manager.dashboard.activeStaff")}
-          value={summary ? `${summary.activeStaff} Barista` : "0 Barista"}
+          value={summary ? `${summary.activeStaff} ${t("manager.dashboard.baristaLabel")}` : `0 ${t("manager.dashboard.baristaLabel")}`}
           icon={Users}
           description={t("manager.dashboard.activeStaffDesc")}
         />
         <StatsCard
-          title="Phiếu nhập hôm nay"
+          title={t("manager.dashboard.todayGoodsReceipts")}
           value={summary ? String(summary.todayGoodsReceipts) : "0"}
           icon={FileDown}
-          description="Số phiếu nhập từ nhà cung cấp"
+          description={t("manager.dashboard.todayGoodsReceiptsDesc")}
         />
       </div>
 
@@ -103,15 +103,15 @@ export default function ManagerDashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ChartCard title={t("manager.dashboard.chartRevenueGroup")}>
           <div className="flex flex-col items-center justify-center h-[280px] bg-[#FAF7F2] dark:bg-zinc-950 rounded-xl border border-dashed border-zinc-200/50 select-none">
-            <span className="text-xs font-semibold text-zinc-400">Doanh thu Robusta và Matcha chiếm tỷ trọng cao</span>
-            <span className="text-[10px] text-amber-900 mt-1 uppercase font-bold tracking-wider font-outfit">Hệ thống đang thu thập dữ liệu</span>
+            <span className="text-xs font-semibold text-zinc-400">{t("manager.dashboard.chartRevenueGroupSub")}</span>
+            <span className="text-[10px] text-amber-900 mt-1 uppercase font-bold tracking-wider font-outfit">{t("manager.dashboard.chartCollecting")}</span>
           </div>
         </ChartCard>
 
         <ChartCard title={t("manager.dashboard.chartHourlyOrders")}>
           <div className="flex flex-col items-center justify-center h-[280px] bg-[#FAF7F2] dark:bg-zinc-950 rounded-xl border border-dashed border-zinc-200/50 select-none">
-            <span className="text-xs font-semibold text-zinc-400">Cao điểm lúc 08:00 - 10:00 và 14:00 - 16:00</span>
-            <span className="text-[10px] text-amber-900 mt-1 uppercase font-bold tracking-wider font-outfit">Hệ thống đang thu thập dữ liệu</span>
+            <span className="text-xs font-semibold text-zinc-400">{t("manager.dashboard.chartHourlyOrdersSub")}</span>
+            <span className="text-[10px] text-amber-900 mt-1 uppercase font-bold tracking-wider font-outfit">{t("manager.dashboard.chartCollecting")}</span>
           </div>
         </ChartCard>
       </div>

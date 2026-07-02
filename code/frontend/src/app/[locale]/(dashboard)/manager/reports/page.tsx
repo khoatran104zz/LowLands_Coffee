@@ -60,8 +60,8 @@ export default function ManagerReportsPage() {
         <ChartCard title={t("manager.reports.bestEmployeeChart")}>
           <div className="flex flex-col items-center justify-center py-12 text-center bg-zinc-50/50 dark:bg-zinc-950/20 rounded-xl border border-dashed border-zinc-200/50 select-none">
             <Sparkles className="h-8 w-8 text-amber-850 animate-pulse mb-2" />
-            <span className="text-xs font-semibold text-zinc-400">Tất cả barista và cashier đều hoàn thành tốt ca trực</span>
-            <span className="text-[10px] text-amber-900 mt-1 uppercase font-bold tracking-wider font-outfit">Hệ thống đang tích lũy số liệu</span>
+            <span className="text-xs font-semibold text-zinc-400">{t("manager.reports.performanceSub")}</span>
+            <span className="text-[10px] text-amber-900 mt-1 uppercase font-bold tracking-wider font-outfit">{t("manager.reports.reportsSub")}</span>
           </div>
         </ChartCard>
 
@@ -69,7 +69,7 @@ export default function ManagerReportsPage() {
         <ChartCard title={t("manager.reports.dailySummaryChart")}>
           {isLoading ? (
             <div className="text-center py-8 text-xs text-muted-foreground font-semibold">
-              Đang tải dữ liệu vận hành...
+              {t("manager.reports.loading")}
             </div>
           ) : (
             <div className="space-y-3.5 text-xs font-semibold text-zinc-700 dark:text-zinc-300 mt-2">
