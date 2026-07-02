@@ -47,13 +47,8 @@ export default function ManagerRevenuePage() {
     { key: "receiverName", header: t("admin.ordersPage.colCustomer") || "Khách hàng" },
     {
       key: "totalAmount",
-<<<<<<< HEAD
-      header: "Thanh toán",
-      render: (item) => <span className="font-bold text-amber-900">{item.totalAmount.toLocaleString("vi-VN")}đ</span>
-=======
-      header: t("admin.ordersPage.colTotal") || "Thanh toán",
-      render: (item) => <span className="font-extrabold text-[#c8510a]">{item.totalAmount.toLocaleString()}đ</span>
->>>>>>> ad73e0ec1bba26164b072ee16b065260d83343ed
+      header: t("admin.ordersPage.colTotal") || "Thanh toan",
+      render: (item) => <span className="font-extrabold text-[#c8510a]">{item.totalAmount.toLocaleString("vi-VN")}??</span>
     },
     {
       key: "paymentMethod",
@@ -85,75 +80,40 @@ export default function ManagerRevenuePage() {
 
       {/* Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-<<<<<<< HEAD
-        <div className="bg-card border border-border/80 rounded-xl p-5 shadow-xs flex items-center space-x-4 text-left">
-          <div className="p-3 bg-amber-800/10 rounded-lg text-amber-900">
-            <Coins className="h-6 w-6" />
-          </div>
-          <div>
-            <span className="text-[10px] text-muted-foreground font-bold uppercase block tracking-wider">{t("staff.manager.todayRevenue")}</span>
-            <span className="text-lg font-bold text-foreground font-outfit mt-0.5 block">
-              {todayRevenue.toLocaleString("vi-VN")}đ
-            </span>
-          </div>
-        </div>
-
-        <div className="bg-card border border-border/80 rounded-xl p-5 shadow-xs flex items-center space-x-4 text-left">
-          <div className="p-3 bg-amber-800/10 rounded-lg text-amber-900">
-            <TrendingUp className="h-6 w-6" />
-          </div>
-          <div>
-            <span className="text-[10px] text-muted-foreground font-bold uppercase block tracking-wider">{t("staff.manager.weeklyRevenue")}</span>
-            <span className="text-lg font-bold text-foreground font-outfit mt-0.5 block">
-              {weeklyRevenue.toLocaleString("vi-VN")}đ
-            </span>
-          </div>
-        </div>
-
-        <div className="bg-card border border-border/80 rounded-xl p-5 shadow-xs flex items-center space-x-4 text-left">
-          <div className="p-3 bg-amber-800/10 rounded-lg text-amber-900">
-            <Calendar className="h-6 w-6" />
-          </div>
-          <div>
-            <span className="text-[10px] text-muted-foreground font-bold uppercase block tracking-wider">{t("staff.manager.monthlyRevenue")}</span>
-            <span className="text-lg font-bold text-foreground font-outfit mt-0.5 block">
-              {monthlyRevenue.toLocaleString("vi-VN")}đ
-            </span>
-=======
         <StatsCard
-          title={t("staff.manager.todayRevenue") || "Doanh thu hôm nay"}
-          value={`${todayRevenue.toLocaleString()}đ`}
+          title={t("staff.manager.todayRevenue") || "Doanh thu hom nay"}
+          value={`${todayRevenue.toLocaleString("vi-VN")}??`}
           icon={Coins}
-          description="Doanh số thực tế hôm nay"
+          description="Doanh so thuc te hom nay"
         />
         <StatsCard
-          title={t("staff.manager.weeklyRevenue") || "Doanh thu tuần này"}
-          value={`${weeklyRevenue.toLocaleString()}đ`}
+          title={t("staff.manager.weeklyRevenue") || "Doanh thu tuan nay"}
+          value={`${weeklyRevenue.toLocaleString("vi-VN")}??`}
           icon={TrendingUp}
-          description="Tổng doanh số tuần này"
+          description="Tong doanh so tuan nay"
         />
         <StatsCard
-          title={t("staff.manager.monthlyRevenue") || "Doanh thu tháng này"}
-          value={`${monthlyRevenue.toLocaleString()}đ`}
+          title={t("staff.manager.monthlyRevenue") || "Doanh thu thang nay"}
+          value={`${monthlyRevenue.toLocaleString("vi-VN")}??`}
           icon={Calendar}
-          description="Tổng doanh số tháng này"
+          description="Tong doanh so thang nay"
         />
       </div>
 
       {/* Charts & Details Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2">
-          <ChartCard title="Xu hướng doanh thu 5 ngày qua">
+          <ChartCard title="Xu huong doanh thu 5 ngay qua">
             <LineChart data={dailyTrendData} />
           </ChartCard>
         </div>
 
         <div className="bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-xl p-5 shadow-2xs text-left select-none">
-          <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-outfit">Hiệu suất chỉ tiêu</h4>
+          <h4 className="text-xs font-bold text-zinc-400 uppercase tracking-widest font-outfit">Hieu suat chi tieu</h4>
           <div className="mt-4 space-y-4">
             <div>
               <div className="flex justify-between text-xs font-bold mb-1">
-                <span>Chỉ tiêu doanh thu tuần</span>
+                <span>Chi tieu doanh thu tuan</span>
                 <span className="text-[#c8510a]">85%</span>
               </div>
               <div className="w-full bg-zinc-100 rounded-full h-2 overflow-hidden border border-zinc-200/20">
@@ -162,14 +122,13 @@ export default function ManagerRevenuePage() {
             </div>
             <div>
               <div className="flex justify-between text-xs font-bold mb-1">
-                <span>Chỉ tiêu đơn hàng/ngày</span>
+                <span>Chi tieu don hang/ngay</span>
                 <span className="text-[#c8510a]">92%</span>
               </div>
               <div className="w-full bg-zinc-100 rounded-full h-2 overflow-hidden border border-zinc-200/20">
                 <div className="bg-[#c8510a] h-2 rounded-full" style={{ width: "92%" }}></div>
               </div>
             </div>
->>>>>>> ad73e0ec1bba26164b072ee16b065260d83343ed
           </div>
         </div>
       </div>
