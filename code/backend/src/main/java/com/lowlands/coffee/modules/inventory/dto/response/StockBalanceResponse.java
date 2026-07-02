@@ -15,5 +15,6 @@ public class StockBalanceResponse {
     private String ingredientCode;
     private String ingredientName;
     private String unit;
+    private BigDecimal minStock;
     private BigDecimal currentStock;
 }

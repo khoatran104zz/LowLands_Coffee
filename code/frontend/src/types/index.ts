@@ -94,7 +94,7 @@ export interface Order {
   storeId: number;
   addressId?: number;
   orderCode?: string;
-  orderType: "delivery" | "pickup";
+  orderType: "delivery" | "pickup" | "dine_in" | "takeaway";
   status?: string;
   receiverName: string;
   receiverPhone: string;
@@ -106,6 +106,16 @@ export interface Order {
   items: OrderItemInput[];
   paymentMethod: "cod" | "bank_transfer" | "e_wallet";
   createdAt?: string;
+  updatedAt?: string;
+  storeName?: string;
+  payment?: {
+    id: number;
+    paymentMethod: string;
+    paymentStatus: string;
+    amount: number;
+    paidAt?: string | null;
+    createdAt?: string;
+  };
 }
 
 export interface OrderItemInput {

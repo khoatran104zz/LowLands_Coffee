@@ -157,9 +157,9 @@ export default function AdminProductsPage() {
     if (isConfirmed) {
       try {
         await deleteProduct(product.id);
-        toast.success("Xóa sản phẩm thành công!");
+        toast.success(t("admin.productsPage.successDelete"));
       } catch {
-        toast.error("Không thể xóa sản phẩm qua Backend API.");
+        toast.error(t("admin.productsPage.errorDelete"));
       }
     }
   };
@@ -168,7 +168,7 @@ export default function AdminProductsPage() {
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formName.trim() || !formCategoryId) {
-      toast.error("Vui lòng điền đầy đủ thông tin!");
+      toast.error(t("admin.productsPage.errorValidation"));
       return;
     }
 
@@ -220,7 +220,7 @@ export default function AdminProductsPage() {
           variants,
           toppings: editingProduct.toppings
         });
-        toast.success("Cập nhật sản phẩm thành công!");
+        toast.success(t("admin.productsPage.successUpdate"));
       } else {
         await addProduct({
           categoryId: parseInt(formCategoryId),
@@ -231,10 +231,10 @@ export default function AdminProductsPage() {
           variants,
           toppings: []
         });
-        toast.success("Thêm sản phẩm mới thành công!");
+        toast.success(t("admin.productsPage.successCreate"));
       }
     } catch {
-      toast.error("Không thể lưu sản phẩm qua Backend API.");
+      toast.error(t("admin.productsPage.errorSave"));
       return;
     }
     setIsFormOpen(false);
@@ -306,17 +306,17 @@ export default function AdminProductsPage() {
         <form onSubmit={handleSaveProduct} className="space-y-4 text-left">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-muted-foreground uppercase">Tên món *</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.productsPage.labelName")}</label>
               <Input
                 required
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
-                placeholder="Ví dụ: Phin Sữa Đá Xay"
+                placeholder={t("admin.productsPage.placeholderName")}
                 className="h-10 text-xs border-border bg-background"
               />
             </div>
             <div className="space-y-1.5">
-              <label className="text-xs font-bold text-muted-foreground uppercase">Danh mục *</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.productsPage.labelCategory")}</label>
               <select
                 value={formCategoryId}
                 onChange={(e) => setFormCategoryId(e.target.value)}
@@ -332,17 +332,17 @@ export default function AdminProductsPage() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-muted-foreground uppercase font-outfit">Mô tả sản phẩm</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase font-outfit">{t("admin.productsPage.labelDesc")}</label>
             <textarea
               value={formDesc}
               onChange={(e) => setFormDesc(e.target.value)}
-              placeholder="Cà phê phin hòa quyện sữa tươi đá xay mát lạnh..."
+              placeholder={t("admin.productsPage.placeholderDesc")}
               className="w-full p-3 border border-border bg-background text-foreground text-xs font-medium rounded-lg h-16 focus:outline-none focus:ring-1 focus:ring-amber-800 resize-none transition-colors"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-muted-foreground uppercase">Đường dẫn hình ảnh (URL)</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.productsPage.labelImageUrl")}</label>
             <Input
               value={formImageUrl}
               onChange={(e) => setFormImageUrl(e.target.value)}
@@ -354,7 +354,7 @@ export default function AdminProductsPage() {
           {/* Pricing settings */}
           <div className="bg-muted/30 border border-border/40 rounded-lg p-3 space-y-2">
             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
-              Thiết lập giá theo Size (để 0 nếu không bán size đó):
+              {t("admin.productsPage.pricingLabel")}
             </span>
             <div className="grid grid-cols-3 gap-2">
               <div className="space-y-1 text-left">
@@ -388,7 +388,7 @@ export default function AdminProductsPage() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-muted-foreground uppercase">Trạng thái món</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.productsPage.labelStatus")}</label>
             <select
               value={formStatus}
               onChange={(e) => setFormStatus(e.target.value)}

@@ -190,6 +190,7 @@ public class InventoryServiceImpl implements InventoryService {
         response.setIngredientCode(ingredient.getCode());
         response.setIngredientName(ingredient.getName());
         response.setUnit(ingredient.getUnit());
+        response.setMinStock(ingredient.getMinStock());
         response.setCurrentStock(stockMovementRepository.calculateCurrentStock(storeId, ingredientId));
         return response;
     }

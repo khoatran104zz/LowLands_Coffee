@@ -98,6 +98,21 @@
     "joinNow": "Register Membership",
     "viewBenefits": "View Member Benefits"
   },
+  "app": {
+    "title": "Download Lowlands App\nOrder faster",
+    "desc": "Order ahead, earn member points, and receive personalized offers right on your phone.",
+    "downloadOn": "Download on the",
+    "downloadOnGoogle": "Get it on",
+    "hello": "Hello, Nam!",
+    "promoToday": "Today offer",
+    "promoFreeDrink": "Free size M drink",
+    "promoMinOrder": "For orders from 99,000đ",
+    "recommendedMenu": "Recommended for you",
+    "navHome": "Home",
+    "navMenu": "Menu",
+    "navWallet": "Wallet",
+    "navSettings": "Settings"
+  },
   "promo1": {
     "title": "HAPPY HOUR 14:00 – 17:00",
     "subtitle": "20% OFF ALL DRINKS",

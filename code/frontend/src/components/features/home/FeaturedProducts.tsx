@@ -25,8 +25,7 @@ export function FeaturedProducts() {
         ]);
         setProducts(productList);
         setCategories(categoryList);
-      } catch (error) {
-        console.error("Failed to load featured catalog from Backend API", error);
+      } catch {
         setProducts([]);
         setCategories([]);
       }

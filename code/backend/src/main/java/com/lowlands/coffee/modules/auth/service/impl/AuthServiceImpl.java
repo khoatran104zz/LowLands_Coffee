@@ -10,6 +10,7 @@ import com.lowlands.coffee.modules.auth.dto.response.AuthResponse;
 import com.lowlands.coffee.modules.auth.service.AuthService;
 import com.lowlands.coffee.modules.role.entity.RoleEntity;
 import com.lowlands.coffee.modules.role.repository.RoleRepository;
+import com.lowlands.coffee.modules.store.repository.StoreUserRepository;
 import com.lowlands.coffee.modules.user.dto.response.UserResponse;
 import com.lowlands.coffee.modules.user.entity.UserEntity;
 import com.lowlands.coffee.modules.user.mapper.UserMapper;
@@ -32,6 +33,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final UserMapper userMapper;
+    private final StoreUserRepository storeUserRepository;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
 
@@ -41,6 +43,7 @@ public class AuthServiceImpl implements AuthService {
             UserRepository userRepository,
             RoleRepository roleRepository,
             UserMapper userMapper,
+            StoreUserRepository storeUserRepository,
             JwtService jwtService,
             PasswordEncoder passwordEncoder
     ) {
@@ -49,6 +52,7 @@ public class AuthServiceImpl implements AuthService {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
         this.userMapper = userMapper;
+        this.storeUserRepository = storeUserRepository;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
     }
@@ -98,7 +102,7 @@ public class AuthServiceImpl implements AuthService {
     @Override
     public UserResponse getProfile(String email) {
         UserEntity user = getUserByEmail(email);
-        return userMapper.toResponse(user);
+        return buildUserResponse(user);
     }
 
     @Override
@@ -107,7 +111,7 @@ public class AuthServiceImpl implements AuthService {
         UserEntity user = getUserByEmail(email);
         user.setFullName(request.getFullName());
         user.setPhone(request.getPhone());
-        return userMapper.toResponse(userRepository.save(user));
+        return buildUserResponse(userRepository.save(user));
     }
 
     private AuthResponse buildAuthResponse(String email) {
@@ -117,8 +121,20 @@ public class AuthServiceImpl implements AuthService {
                 .accessToken(jwtService.generateAccessToken(userDetails))
                 .refreshToken(jwtService.generateRefreshToken(userDetails))
                 .tokenType("Bearer")
-                .user(userMapper.toResponse(user))
+                .user(buildUserResponse(user))
                 .build();
+    }
+
+    private UserResponse buildUserResponse(UserEntity user) {
+        UserResponse response = userMapper.toResponse(user);
+        storeUserRepository.findByUserId(user.getId()).stream()
+                .filter(storeUser -> "active".equalsIgnoreCase(storeUser.getStatus()))
+                .findFirst()
+                .ifPresent(storeUser -> {
+                    response.setBranchId(storeUser.getStore().getId());
+                    response.setBranchName(storeUser.getStore().getName());
+                });
+        return response;
     }
 
     private UserEntity getUserByEmail(String email) {

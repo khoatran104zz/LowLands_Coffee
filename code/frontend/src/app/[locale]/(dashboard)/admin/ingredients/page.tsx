@@ -45,6 +45,8 @@ export default function AdminIngredientsPage() {
   const [formCode, setFormCode] = useState("");
   const [formName, setFormName] = useState("");
   const [formUnit, setFormUnit] = useState("");
+  const [formMinStock, setFormMinStock] = useState("0");
+  const [formDescription, setFormDescription] = useState("");
   const [formStatus, setFormStatus] = useState("active");
 
   const loadData = async () => {
@@ -58,7 +60,7 @@ export default function AdminIngredientsPage() {
       setCategories(catList);
     } catch (error) {
       console.error("Failed to load ingredients data", error);
-      toast.error("Không thể tải danh sách nguyên liệu từ máy chủ.");
+      toast.error(t("admin.ingredientsPage.errorLoad"));
     } finally {
       setIsLoading(false);
     }
@@ -76,7 +78,9 @@ export default function AdminIngredientsPage() {
     const matchesCategory = !categoryFilter || String(item.categoryId) === categoryFilter;
     const matchesSearch = !searchQuery ||
       item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      item.code.toLowerCase().includes(searchQuery.toLowerCase());
+      item.code.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.categoryName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.description?.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesCategory && matchesSearch;
   });
 
@@ -86,6 +90,15 @@ export default function AdminIngredientsPage() {
     { key: "name", header: t("admin.ingredientsPage.colName") },
     { key: "categoryName", header: t("admin.ingredientsPage.colCategory"), render: (item) => item.categoryName || `Mã DM: ${item.categoryId}` },
     { key: "unit", header: t("admin.ingredientsPage.colUnit") },
+    {
+      key: "minStock",
+      header: t("admin.ingredientsPage.colMinStock"),
+      render: (item) => (
+        <span className="font-bold text-zinc-700 dark:text-zinc-200">
+          {item.minStock} {item.unit}
+        </span>
+      )
+    },
     {
       key: "status",
       header: t("admin.ingredientsPage.colStatus"),
@@ -99,6 +112,8 @@ export default function AdminIngredientsPage() {
     setFormCode("");
     setFormName("");
     setFormUnit("");
+    setFormMinStock("0");
+    setFormDescription("");
     setFormStatus("active");
     setIsFormOpen(true);
   };
@@ -109,6 +124,8 @@ export default function AdminIngredientsPage() {
     setFormCode(item.code);
     setFormName(item.name);
     setFormUnit(item.unit);
+    setFormMinStock(String(item.minStock ?? 0));
+    setFormDescription(item.description || "");
     setFormStatus(item.status);
     setIsFormOpen(true);
   };
@@ -121,7 +138,13 @@ export default function AdminIngredientsPage() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formCategoryId || !formCode.trim() || !formName.trim() || !formUnit.trim()) {
-      toast.error("Vui lòng điền đầy đủ các trường thông tin!");
+      toast.error(t("admin.ingredientsPage.errorValidation"));
+      return;
+    }
+
+    const minStock = parseFloat(formMinStock);
+    if (isNaN(minStock) || minStock < 0) {
+      toast.error(t("admin.ingredientsPage.errorMinStock"));
       return;
     }
 
@@ -132,21 +155,23 @@ export default function AdminIngredientsPage() {
         code: formCode.trim(),
         name: formName.trim(),
         unit: formUnit.trim(),
+        minStock,
+        description: formDescription.trim(),
         status: formStatus
       };
 
       if (editingItem) {
         await updateIngredient(editingItem.id, payload);
-        toast.success("Cập nhật nguyên liệu thành công!");
+        toast.success(t("admin.ingredientsPage.successUpdate"));
       } else {
         await createIngredient(payload);
-        toast.success("Thêm nguyên liệu mới thành công!");
+        toast.success(t("admin.ingredientsPage.successCreate"));
       }
       setIsFormOpen(false);
       loadData();
     } catch (error) {
       console.error("Failed to save ingredient", error);
-      toast.error("Thao tác thất bại. Vui lòng kiểm tra lại dữ liệu.");
+      toast.error(t("admin.ingredientsPage.errorSave"));
     } finally {
       setIsSaving(false);
     }
@@ -157,12 +182,12 @@ export default function AdminIngredientsPage() {
     setIsSaving(true);
     try {
       await deleteIngredient(itemToDelete.id);
-      toast.success("Xóa nguyên liệu thành công!");
+      toast.success(t("admin.ingredientsPage.successDelete"));
       setIsDeleteOpen(false);
       loadData();
     } catch (error) {
       console.error("Failed to delete ingredient", error);
-      toast.error("Không thể xóa nguyên liệu. Vui lòng kiểm tra lại ràng buộc dữ liệu.");
+      toast.error(t("admin.ingredientsPage.errorDelete"));
     } finally {
       setIsSaving(false);
     }
@@ -230,17 +255,17 @@ export default function AdminIngredientsPage() {
       >
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase">Mã nguyên liệu *</label>
+            <label className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase">{t("admin.ingredientsPage.labelCode")}</label>
             <Input
               required
               value={formCode}
               onChange={(e) => setFormCode(e.target.value)}
-              placeholder="Ví dụ: NL-CAF-ROB"
+              placeholder={t("admin.ingredientsPage.placeholderCode")}
               className="h-10 text-xs border-border bg-background"
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-[#c8510a] uppercase">Danh mục nguyên liệu *</label>
+            <label className="text-[10px] font-bold text-[#c8510a] uppercase">{t("admin.ingredientsPage.labelCategory")}</label>
             <select
               value={formCategoryId}
               onChange={(e) => setFormCategoryId(e.target.value)}
@@ -256,38 +281,61 @@ export default function AdminIngredientsPage() {
         </div>
 
         <div className="space-y-1.5">
-          <label className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase">Tên nguyên liệu *</label>
+          <label className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase">{t("admin.ingredientsPage.labelName")}</label>
           <Input
             required
             value={formName}
             onChange={(e) => setFormName(e.target.value)}
-            placeholder="Ví dụ: Cà phê Robusta Đắk Lắk"
+            placeholder={t("admin.ingredientsPage.placeholderName")}
             className="h-10 text-xs border-border bg-background"
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase">Đơn vị tính *</label>
+            <label className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase">{t("admin.ingredientsPage.labelUnit")}</label>
             <Input
               required
               value={formUnit}
               onChange={(e) => setFormUnit(e.target.value)}
-              placeholder="Ví dụ: kg, ml, lon, hộp"
+              placeholder={t("admin.ingredientsPage.placeholderUnit")}
               className="h-10 text-xs border-border bg-background"
             />
           </div>
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-[#c8510a] uppercase">Trạng thái hoạt động</label>
+            <label className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase">{t("admin.ingredientsPage.labelMinStock")}</label>
+            <Input
+              required
+              type="number"
+              step="any"
+              min="0"
+              value={formMinStock}
+              onChange={(e) => setFormMinStock(e.target.value)}
+              placeholder={t("admin.ingredientsPage.placeholderMinStock")}
+              className="h-10 text-xs border-border bg-background"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <label className="text-[10px] font-bold text-[#c8510a] uppercase">{t("admin.ingredientsPage.labelStatus")}</label>
             <select
               value={formStatus}
               onChange={(e) => setFormStatus(e.target.value)}
               className="w-full h-10 px-3 bg-background border border-border text-foreground hover:bg-muted/10 rounded-lg text-xs font-medium focus:outline-none"
             >
-              <option value="active">Đang sử dụng (Active)</option>
-              <option value="inactive">Tạm ngưng (Inactive)</option>
+              <option value="active">{t("common.active")}</option>
+              <option value="inactive">{t("common.inactive")}</option>
             </select>
           </div>
+        </div>
+
+        <div className="space-y-1.5">
+          <label className="text-[10px] font-bold text-zinc-400 dark:text-zinc-500 uppercase">{t("admin.ingredientsPage.labelDescription")}</label>
+          <Input
+            value={formDescription}
+            onChange={(e) => setFormDescription(e.target.value)}
+            placeholder={t("admin.ingredientsPage.placeholderDescription")}
+            className="h-10 text-xs border-border bg-background"
+          />
         </div>
 
         <div className="flex justify-end space-x-2 border-t border-zinc-100 pt-4 mt-2">
@@ -298,14 +346,14 @@ export default function AdminIngredientsPage() {
             disabled={isSaving}
             className="h-10 text-xs font-semibold rounded-lg"
           >
-            Hủy
+            {t("common.cancel")}
           </Button>
           <Button
             type="submit"
             disabled={isSaving}
             className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg h-10 text-xs font-semibold px-4 cursor-pointer"
           >
-            {isSaving ? "Đang lưu..." : "Lưu lại"}
+            {isSaving ? t("common.saving") : t("common.save")}
           </Button>
         </div>
       </FormModal>
@@ -315,10 +363,10 @@ export default function AdminIngredientsPage() {
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
         onConfirm={handleDelete}
-        title="Xác nhận xóa nguyên liệu"
-        message={`Bạn có chắc chắn muốn xóa nguyên liệu "${itemToDelete?.name}"? Thao tác này không thể phục hồi và có thể ảnh hưởng tới các công thức liên quan.`}
-        confirmText="Xác nhận xóa"
-        cancelText="Hủy"
+        title={t("admin.ingredientsPage.deleteTitle")}
+        message={`${t("admin.ingredientsPage.deleteMessage")} "${itemToDelete?.name}"?`}
+        confirmText={t("admin.ingredientsPage.deleteConfirm")}
+        cancelText={t("common.cancel")}
         variant="danger"
         isLoading={isSaving}
       />

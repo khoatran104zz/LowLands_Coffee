@@ -14,8 +14,7 @@ import {
   FileDown,
   History,
   Clock,
-  Coins,
-  Smartphone
+  Coins
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useTranslation } from "@/hooks/useTranslation";
@@ -39,39 +38,39 @@ export function Sidebar({ locale, isCollapsed, onToggleCollapse, onCloseMobile }
       id: "main",
       title: "",
       items: [
-        { href: `/${locale}/manager/dashboard`, label: t("sidebar.dashboard"), icon: LayoutDashboard }
+        { href: `/${locale}/manager/dashboard`, label: t("common.sidebar.dashboard"), icon: LayoutDashboard }
       ]
     },
     {
       id: "business",
-      title: t("sidebar.groups.business"),
+      title: t("common.sidebar.groups.business"),
       items: [
-        { href: `/${locale}/manager/orders`, label: t("sidebar.orders"), icon: Receipt }
+        { href: `/${locale}/manager/orders`, label: t("common.sidebar.orders"), icon: Receipt }
       ]
     },
     {
       id: "inventory",
-      title: t("sidebar.groups.inventory"),
+      title: t("common.sidebar.groups.inventory"),
       items: [
-        { href: `/${locale}/manager/inventory`, label: t("sidebar.stockBalance"), icon: Warehouse },
-        { href: `/${locale}/manager/inventory/import-notes`, label: t("sidebar.importNotes"), icon: FileDown },
-        { href: `/${locale}/manager/inventory/history`, label: t("sidebar.stockHistory"), icon: History }
+        { href: `/${locale}/manager/inventory`, label: t("common.sidebar.stockBalance"), icon: Warehouse },
+        { href: `/${locale}/manager/inventory/import-notes`, label: t("common.sidebar.importNotes"), icon: FileDown },
+        { href: `/${locale}/manager/inventory/history`, label: t("common.sidebar.stockHistory"), icon: History }
       ]
     },
     {
       id: "staff",
-      title: t("sidebar.groups.staff"),
+      title: t("common.sidebar.groups.staff"),
       items: [
-        { href: `/${locale}/manager/staff`, label: t("sidebar.employees"), icon: Users2 },
-        { href: `/${locale}/manager/shifts`, label: t("sidebar.shifts"), icon: Clock }
+        { href: `/${locale}/manager/staff`, label: t("common.sidebar.employees"), icon: Users2 },
+        { href: `/${locale}/manager/shifts`, label: t("common.sidebar.shifts"), icon: Clock }
       ]
     },
     {
       id: "reports",
-      title: t("sidebar.groups.reports"),
+      title: t("common.sidebar.groups.reports"),
       items: [
-        { href: `/${locale}/manager/revenue`, label: t("sidebar.revenue"), icon: Coins },
-        { href: `/${locale}/manager/reports`, label: t("sidebar.statisticalReports"), icon: LineChart }
+        { href: `/${locale}/manager/revenue`, label: t("common.sidebar.revenue"), icon: Coins },
+        { href: `/${locale}/manager/reports`, label: t("common.sidebar.statisticalReports"), icon: LineChart }
       ]
     }
   ];
@@ -124,7 +123,7 @@ export function Sidebar({ locale, isCollapsed, onToggleCollapse, onCloseMobile }
       {/* Rùa Store Name info header */}
       {!isCollapsed && (
         <div className="px-5 py-3 border-b border-[#3d2e27]/50 bg-[#1f1612]/35 flex flex-col text-left shrink-0">
-          <span className="text-[10px] uppercase font-bold text-[#948175]">{t("common.branchManagement")}</span>
+          <span className="text-[10px] uppercase font-bold text-[#948175]">{t("manager.sidebar.branchManagement")}</span>
           <span className="text-xs font-bold text-[#c8510a] truncate mt-0.5" title={branchName}>
             {branchName}
           </span>
@@ -179,24 +178,11 @@ export function Sidebar({ locale, isCollapsed, onToggleCollapse, onCloseMobile }
         ))}
       </div>
 
-      {/* Quick shortcuts to POS */}
-      {!isCollapsed && (
-        <div className="p-4 border-t border-[#3d2e27] bg-[#1f1612] space-y-2 shrink-0">
-          <Link
-            href={`/${locale}/staff/pos`}
-            className="flex items-center justify-center space-x-2 px-3 py-2 rounded-lg text-[10px] font-bold text-white bg-[#c8510a] hover:bg-[#b04507] transition-all w-full shadow-sm hover:scale-[1.02]"
-          >
-            <Smartphone className="h-3.5 w-3.5" />
-            <span className="uppercase tracking-wider">{t("common.goToPOS")}</span>
-          </Link>
-        </div>
-      )}
-
       {/* Floating Toggle Button on Right Border (Desktop only) */}
       <button
         onClick={onToggleCollapse}
         className="absolute top-1/2 -right-3 -translate-y-1/2 bg-[#c8510a] hover:bg-[#b04507] text-[#f7f2ed] rounded-full p-1 shadow-md border border-[#3d2e27] hidden lg:flex items-center justify-center cursor-pointer h-6 w-6 z-50 transition-all hover:scale-105"
-        title={isCollapsed ? t("sidebar.expandMenu") : t("sidebar.collapseMenu")}
+        title={isCollapsed ? t("common.sidebar.expandMenu") : t("common.sidebar.collapseMenu")}
       >
         {isCollapsed ? (
           <ChevronRight className="h-3.5 w-3.5" />

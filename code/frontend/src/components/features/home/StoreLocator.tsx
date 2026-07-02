@@ -22,8 +22,7 @@ export function StoreLocator() {
       try {
         const data = await getStores();
         setStores(data || []);
-      } catch (loadError) {
-        console.error("Failed to load stores from Backend API", loadError);
+      } catch {
         setStores([]);
         setError("api_not_connected");
       } finally {

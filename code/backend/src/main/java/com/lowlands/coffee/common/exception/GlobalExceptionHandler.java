@@ -25,6 +25,11 @@ public class GlobalExceptionHandler {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error(exception.getMessage()));
     }
 
+    @ExceptionHandler(ConflictException.class)
+    public ResponseEntity<ApiResponse<Void>> handleConflict(ConflictException exception) {
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error(exception.getMessage()));
+    }
+
     @ExceptionHandler({BadRequestException.class, ConstraintViolationException.class})
     public ResponseEntity<ApiResponse<Void>> handleBadRequest(RuntimeException exception) {
         return ResponseEntity.badRequest().body(ApiResponse.error(exception.getMessage()));

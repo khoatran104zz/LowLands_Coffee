@@ -4,12 +4,14 @@ export interface IngredientCategory {
   id: number;
   name: string;
   code: string;
+  description?: string;
   status: string;
 }
 
 export interface IngredientCategoryRequest {
   name: string;
   code: string;
+  description?: string;
   status?: string;
 }
 
@@ -20,6 +22,8 @@ export interface Ingredient {
   code: string;
   name: string;
   unit: string;
+  minStock: number;
+  description?: string;
   status: string;
   createdAt?: string;
   updatedAt?: string;
@@ -30,6 +34,8 @@ export interface IngredientRequest {
   code: string;
   name: string;
   unit: string;
+  minStock?: number;
+  description?: string;
   status?: string;
 }
 

@@ -181,37 +181,37 @@ public class DataBootstrap {
                 categoryRepository
         );
         IngredientCategoryEntity dairyCategory = ensureIngredientCategory(
-                "DAIRY",
-                "Dairy",
+                "MILK_DAIRY",
+                "Milk & Dairy",
                 "Milk and cream ingredients",
-                categoryRepository
-        );
-        IngredientCategoryEntity teaCategory = ensureIngredientCategory(
-                "TEA",
-                "Tea",
-                "Tea leaves and fruit tea ingredients",
                 categoryRepository
         );
 
         IngredientEntity robusta = ensureIngredient(
-                "ROBUSTA_BEAN",
-                "Robusta Coffee Bean",
-                "gram",
+                "ING000004",
+                "Robusta Beans",
+                "g",
+                "5000",
+                "Vietnamese robusta beans for phin coffee.",
                 coffeeCategory,
                 ingredientRepository
         );
         IngredientEntity condensedMilk = ensureIngredient(
-                "CONDENSED_MILK",
+                "ING000011",
                 "Condensed Milk",
                 "ml",
+                "5000",
+                "Sweetened condensed milk for Vietnamese coffee.",
                 dairyCategory,
                 ingredientRepository
         );
         IngredientEntity oolongTea = ensureIngredient(
-                "OOLONG_TEA",
+                "ING000007",
                 "Oolong Tea",
-                "gram",
-                teaCategory,
+                "g",
+                "2000",
+                "Oolong tea leaves for tea recipes.",
+                coffeeCategory,
                 ingredientRepository
         );
 
@@ -222,9 +222,9 @@ public class DataBootstrap {
         receipt.setReceiptCode("GR-DEMO-001");
         receipt.setStatus("COMPLETED");
         receipt.setNote("Bootstrap demo inventory");
-        addReceiptItem(receipt, robusta, "gram", "6000", "180");
+        addReceiptItem(receipt, robusta, "g", "6000", "180");
         addReceiptItem(receipt, condensedMilk, "ml", "12000", "45");
-        addReceiptItem(receipt, oolongTea, "gram", "2500", "120");
+        addReceiptItem(receipt, oolongTea, "g", "2500", "120");
         receipt.setTotalAmount(receipt.getItems().stream()
                 .map(GoodsReceiptItemEntity::getTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add));
@@ -272,6 +272,8 @@ public class DataBootstrap {
             String code,
             String name,
             String unit,
+            String minStock,
+            String description,
             IngredientCategoryEntity category,
             IngredientRepository ingredientRepository
     ) {
@@ -281,6 +283,8 @@ public class DataBootstrap {
                     ingredient.setCode(code);
                     ingredient.setName(name);
                     ingredient.setUnit(unit);
+                    ingredient.setMinStock(new BigDecimal(minStock));
+                    ingredient.setDescription(description);
                     ingredient.setCategory(category);
                     ingredient.setStatus("active");
                     return ingredientRepository.save(ingredient);

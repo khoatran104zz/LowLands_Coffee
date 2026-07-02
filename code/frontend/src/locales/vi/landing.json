@@ -98,6 +98,21 @@
     "joinNow": "Đăng ký thành viên",
     "viewBenefits": "Xem quyền lợi hội viên"
   },
+  "app": {
+    "title": "Tải App Lowlands\nĐặt món nhanh hơn",
+    "desc": "Đặt món trước, tích điểm hội viên và nhận ưu đãi cá nhân hóa ngay trên điện thoại.",
+    "downloadOn": "Tải về trên",
+    "downloadOnGoogle": "Có sẵn trên",
+    "hello": "Xin chào, Nam!",
+    "promoToday": "Ưu đãi hôm nay",
+    "promoFreeDrink": "Tặng 1 ly size M",
+    "promoMinOrder": "Cho đơn từ 99.000đ",
+    "recommendedMenu": "Gợi ý cho bạn",
+    "navHome": "Trang chủ",
+    "navMenu": "Menu",
+    "navWallet": "Ví",
+    "navSettings": "Cài đặt"
+  },
   "promo1": {
     "title": "HAPPY HOUR 14:00 – 17:00",
     "subtitle": "GIẢM 20% TOÀN BỘ ĐỒ UỐNG",

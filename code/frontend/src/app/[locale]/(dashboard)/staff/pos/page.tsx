@@ -3,10 +3,10 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
-  Coffee, ReceiptText, History, LayoutDashboard, Printer, CheckCircle, 
+  Coffee, History, LayoutDashboard, Printer, CheckCircle,
   CupSoda, Cake, Salad, Ticket, Users, BarChart2, Settings, Grid, List, ArrowUpDown 
 } from "lucide-react";
-import { Product, ProductVariant, Topping, CartItem } from "@/types";
+import { Product, ProductVariant, Topping, CartItem, Order } from "@/types";
 import { useDashboardStore } from "@/store/dashboardStore";
 import { ProductCard } from "@/components/pos/ProductCard";
 import { POSCart } from "@/components/pos/POSCart";
@@ -16,9 +16,21 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useConfirm } from "@/hooks/useConfirm";
 import { toast } from "sonner";
 import { useAuthStore } from "@/store/auth.store";
+import { getProfile } from "@/services/auth.service";
 import { useRouter, useParams } from "next/navigation";
 import { AccountDropdown } from "@/components/account/AccountDropdown";
 import { AccountModal } from "@/components/account/AccountModal";
+
+interface ReceiptData extends Order {
+  cashReceived?: number;
+  changeReturned?: number;
+  vat?: number;
+  serviceType?: "dine_in" | "takeaway";
+  tableNumber?: string;
+}
+
+type ReceiptItem = Order["items"][number];
+type ReceiptTopping = ReceiptItem["toppings"][number];
 
 export default function StaffPOSPage() {
   const { t } = useTranslation();
@@ -37,6 +49,7 @@ export default function StaffPOSPage() {
   const hasHydrated = useAuthStore((state) => state.hasHydrated);
   const hydrateFromStorage = useAuthStore((state) => state.hydrateFromStorage);
   const logout = useAuthStore((state) => state.logout);
+  const updateUser = useAuthStore((state) => state.updateUser);
 
   const handleOpenAccountSettings = (tab: string = "profile") => {
     setDefaultAccountTab(tab);
@@ -60,7 +73,6 @@ export default function StaffPOSPage() {
   const products = useDashboardStore((state) => state.products);
   const categories = useDashboardStore((state) => state.categories);
   const orders = useDashboardStore((state) => state.orders);
-  const addOrder = useDashboardStore((state) => state.addOrder);
   const hydrateProductCatalog = useDashboardStore((state) => state.hydrateProductCatalog);
 
   // Local state
@@ -71,15 +83,16 @@ export default function StaffPOSPage() {
   
   // Checkout success modal
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
-  const [receiptData, setReceiptData] = useState<any>(null);
+  const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
 
   useEffect(() => {
     hydrateFromStorage();
     if (!useDashboardStore.persist.hasHydrated()) {
       void useDashboardStore.persist.rehydrate();
     }
-    setIsMounted(true);
+    const mountedTimer = window.setTimeout(() => setIsMounted(true), 0);
     void hydrateProductCatalog("public");
+    return () => window.clearTimeout(mountedTimer);
   }, [hydrateFromStorage, hydrateProductCatalog]);
 
   useEffect(() => {
@@ -99,8 +112,23 @@ export default function StaffPOSPage() {
   }, [isMounted, hasHydrated, isAuthenticated, user, router, locale]);
 
   useEffect(() => {
+    if (!isMounted || !hasHydrated || !isAuthenticated) {
+      return;
+    }
+
+    void getProfile()
+      .then((profile) => {
+        updateUser(profile);
+      })
+      .catch((error) => {
+        console.warn("Failed to refresh POS user profile", error);
+      });
+  }, [isMounted, hasHydrated, isAuthenticated, updateUser]);
+
+  useEffect(() => {
     if (categories.length > 0 && selectedCategoryId === null) {
-      setSelectedCategoryId(categories[0].id);
+      const categoryTimer = window.setTimeout(() => setSelectedCategoryId(categories[0].id), 0);
+      return () => window.clearTimeout(categoryTimer);
     }
   }, [categories, selectedCategoryId]);
 
@@ -222,22 +250,10 @@ export default function StaffPOSPage() {
     setCart([]);
   };
 
-  const handleCheckoutSuccess = (orderInput: any) => {
-    // Add to global Zustand store! It calculates orderCode, storeName, dates
-    const savedOrder = addOrder(orderInput);
-    
-    // Attach cash returned values for receipt
-    setReceiptData({
-      ...savedOrder,
-      cashReceived: orderInput.cashReceived,
-      changeReturned: orderInput.changeReturned,
-      vat: orderInput.vat,
-      serviceType: orderInput.serviceType,
-      tableNumber: orderInput.tableNumber
-    });
-
+  const handleCheckoutSuccess = (savedOrder: ReceiptData) => {
+    setReceiptData(savedOrder);
     setIsReceiptOpen(true);
-    setCart([]); // Clear cart
+    setCart([]);
   };
 
   const activeCategoryName = categories.find((c) => c.id === selectedCategoryId)?.name || "Thực đơn";
@@ -618,6 +634,7 @@ export default function StaffPOSPage() {
         <div className="w-full lg:w-80 shrink-0">
           <POSCart
             items={cart}
+            storeId={user?.branchId ?? null}
             onUpdateQty={handleUpdateQty}
             onRemoveItem={handleRemoveItem}
             onClearCart={handleClearCart}
@@ -653,7 +670,7 @@ export default function StaffPOSPage() {
               </div>
 
               <div className="space-y-0.5 text-zinc-700">
-                <div>Ngày lập: <span className="font-bold">{new Date(receiptData.createdAt).toLocaleString("vi-VN")}</span></div>
+                <div>Ngày lập: <span className="font-bold">{receiptData.createdAt ? new Date(receiptData.createdAt).toLocaleString("vi-VN") : ""}</span></div>
                 <div>Khách hàng: <span className="font-bold">{receiptData.receiverName}</span></div>
                 {receiptData.receiverPhone !== "N/A" && (
                   <div>SĐT thành viên: <span className="font-bold">{receiptData.receiverPhone}</span></div>
@@ -670,7 +687,7 @@ export default function StaffPOSPage() {
 
               {/* Items List */}
               <div className="space-y-2">
-                {receiptData.items.map((item: any, idx: number) => (
+                {receiptData.items.map((item: ReceiptItem, idx: number) => (
                   <div key={idx} className="space-y-0.5">
                     <div className="flex justify-between font-bold text-zinc-950">
                       <span>{item.productName} (Size {item.size})</span>
@@ -681,10 +698,10 @@ export default function StaffPOSPage() {
                     </div>
                     
                     {/* Toppings list */}
-                    {item.toppings && item.toppings.map((top: any, tIdx: number) => (
+                    {item.toppings && item.toppings.map((top: ReceiptTopping, tIdx: number) => (
                       <div key={tIdx} className="flex justify-between text-[9px] text-zinc-600 pl-4 italic">
                         <span>+ {top.toppingName} (x{top.quantity})</span>
-                        <span>{((top.unitPrice * top.quantity) * item.quantity).toLocaleString("vi-VN")}đ</span>
+                        <span>{(top.totalPrice ?? top.unitPrice * top.quantity).toLocaleString("vi-VN")}đ</span>
                       </div>
                     ))}
                     
@@ -720,10 +737,10 @@ export default function StaffPOSPage() {
                     <span>-{receiptData.discountAmount.toLocaleString("vi-VN")}đ</span>
                   </div>
                 )}
-                {receiptData.vat > 0 && (
+                {(receiptData.vat ?? 0) > 0 && (
                   <div className="flex justify-between">
                     <span>Thuế VAT (10%):</span>
-                    <span>{receiptData.vat.toLocaleString("vi-VN")}đ</span>
+                    <span>{(receiptData.vat ?? 0).toLocaleString("vi-VN")}đ</span>
                   </div>
                 )}
                 <div className="flex justify-between font-black text-sm text-zinc-950 pt-1.5 border-t border-dashed border-zinc-350 mt-1">
@@ -735,11 +752,11 @@ export default function StaffPOSPage() {
                   <>
                     <div className="flex justify-between text-[9px] pt-1 text-zinc-600">
                       <span>Tiền mặt nhận:</span>
-                      <span>{receiptData.cashReceived.toLocaleString("vi-VN")}đ</span>
+                      <span>{(receiptData.cashReceived ?? receiptData.totalAmount).toLocaleString("vi-VN")}đ</span>
                     </div>
                     <div className="flex justify-between text-[9px] text-zinc-600">
                       <span>Tiền thối lại:</span>
-                      <span>{receiptData.changeReturned.toLocaleString("vi-VN")}đ</span>
+                      <span>{(receiptData.changeReturned ?? 0).toLocaleString("vi-VN")}đ</span>
                     </div>
                   </>
                 ) : (

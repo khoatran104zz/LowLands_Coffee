@@ -14,6 +14,7 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Getter
@@ -38,6 +39,12 @@ public class IngredientEntity {
 
     @Column(nullable = false, length = 20)
     private String unit;
+
+    @Column(name = "min_stock", nullable = false, precision = 12, scale = 2)
+    private BigDecimal minStock;
+
+    @Column(columnDefinition = "TEXT")
+    private String description;
 
     @Column(nullable = false, length = 20)
     private String status;

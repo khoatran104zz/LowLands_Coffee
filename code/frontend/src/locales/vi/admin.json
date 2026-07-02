@@ -33,7 +33,21 @@
     "colName": "Tên chi nhánh",
     "colAddress": "Địa chỉ",
     "colPhone": "Điện thoại",
-    "colStatus": "Trạng thái"
+    "colStatus": "Trạng thái",
+    "labelName": "Tên chi nhánh *",
+    "placeholderName": "Ví dụ: Lowlands Coffee - Hồ Con Rùa",
+    "labelAddress": "Địa chỉ *",
+    "placeholderAddress": "Ví dụ: 42 Phạm Ngọc Thạch, Quận 3, TP. HCM",
+    "labelPhone": "Điện thoại",
+    "placeholderPhone": "Ví dụ: 028.3822.4466",
+    "labelStatus": "Trạng thái *",
+    "errorLoad": "Không thể tải danh sách chi nhánh từ Backend API.",
+    "errorValidation": "Vui lòng nhập tên và địa chỉ chi nhánh.",
+    "successCreate": "Thêm chi nhánh mới thành công!",
+    "successUpdate": "Cập nhật chi nhánh thành công!",
+    "successDelete": "Xóa chi nhánh thành công!",
+    "errorSave": "Không thể lưu chi nhánh qua Backend API.",
+    "errorDelete": "Không thể xóa chi nhánh qua Backend API."
   },
   "categoriesPage": {
     "subtitle": "Thiết lập danh sách phân nhóm sản phẩm (Cà phê, Trà, Bánh ngọt, v.v.).",
@@ -48,7 +62,13 @@
     "placeholderDesc": "Mô tả tóm tắt...",
     "labelStatus": "Trạng thái hiển thị",
     "statusActive": "Hiển thị",
-    "statusInactive": "Ẩn"
+    "statusInactive": "Ẩn",
+    "errorValidation": "Vui lòng điền tên danh mục!",
+    "successCreate": "Thêm danh mục mới thành công!",
+    "successUpdate": "Cập nhật danh mục thành công!",
+    "successDelete": "Xóa danh mục thành công!",
+    "errorSave": "Không thể lưu danh mục qua Backend API.",
+    "errorDelete": "Không thể xóa danh mục qua Backend API."
   },
   "productsPage": {
     "subtitle": "Thiết lập menu đồ uống, bánh ngọt và thông số giá cho toàn bộ cửa hàng.",
@@ -61,7 +81,21 @@
     "colCategory": "Danh mục",
     "colPrice": "Giá bán",
     "colStatus": "Trạng thái",
-    "otherCategory": "Khác"
+    "otherCategory": "Khác",
+    "labelName": "Tên món *",
+    "placeholderName": "Ví dụ: Phin Sữa Đá Xay",
+    "labelCategory": "Danh mục *",
+    "labelDesc": "Mô tả sản phẩm",
+    "placeholderDesc": "Cà phê phin hòa quyện sữa tươi đá xay mát lạnh...",
+    "labelImageUrl": "Đường dẫn hình ảnh (URL)",
+    "pricingLabel": "Thiết lập giá theo Size (để 0 nếu không bán size đó):",
+    "labelStatus": "Trạng thái món",
+    "errorValidation": "Vui lòng điền đầy đủ thông tin!",
+    "successCreate": "Thêm sản phẩm mới thành công!",
+    "successUpdate": "Cập nhật sản phẩm thành công!",
+    "successDelete": "Xóa sản phẩm thành công!",
+    "errorSave": "Không thể lưu sản phẩm qua Backend API.",
+    "errorDelete": "Không thể xóa sản phẩm qua Backend API."
   },
   "toppingsPage": {
     "subtitle": "Thiết lập danh mục các loại thạch, trân châu, kem béo đi kèm cho thức uống.",
@@ -107,8 +141,32 @@
     "colName": "Tên nguyên liệu",
     "colCategory": "Danh mục",
     "colUnit": "Đơn vị tính",
+    "colMinStock": "Tồn tối thiểu",
     "colStatus": "Trạng thái",
-    "loading": "Đang tải dữ liệu nguyên liệu từ máy chủ..."
+    "loading": "Đang tải dữ liệu nguyên liệu từ máy chủ...",
+    "labelCode": "Mã nguyên liệu *",
+    "placeholderCode": "Ví dụ: NL-CAF-ROB",
+    "labelCategory": "Danh mục nguyên liệu *",
+    "labelName": "Tên nguyên liệu *",
+    "placeholderName": "Ví dụ: Cà phê Robusta Đắk Lắk",
+    "labelUnit": "Đơn vị tính *",
+    "placeholderUnit": "Ví dụ: kg, ml, lon, hộp",
+    "labelMinStock": "Tồn tối thiểu *",
+    "placeholderMinStock": "Ví dụ: 5000",
+    "labelStatus": "Trạng thái hoạt động",
+    "labelDescription": "Mô tả / Ghi chú",
+    "placeholderDescription": "Ví dụ: Vinamilk Fresh Milk, ly lạnh size M, hoặc nhà cung cấp ưu tiên",
+    "deleteTitle": "Xác nhận xóa nguyên liệu",
+    "deleteMessage": "Bạn có chắc chắn muốn xóa nguyên liệu",
+    "deleteConfirm": "Xác nhận xóa",
+    "errorLoad": "Không thể tải danh sách nguyên liệu từ máy chủ.",
+    "errorValidation": "Vui lòng điền đầy đủ các trường thông tin!",
+    "errorMinStock": "Mức tồn tối thiểu phải là số không âm!",
+    "successCreate": "Thêm nguyên liệu mới thành công!",
+    "successUpdate": "Cập nhật nguyên liệu thành công!",
+    "successDelete": "Xóa nguyên liệu thành công!",
+    "errorSave": "Thao tác thất bại. Vui lòng kiểm tra lại dữ liệu.",
+    "errorDelete": "Không thể xóa nguyên liệu. Vui lòng kiểm tra lại ràng buộc dữ liệu."
   },
   "recipesPage": {
     "title": "Quản lý Công thức",
@@ -123,7 +181,15 @@
     "loading": "Đang tải danh sách công thức pha chế từ máy chủ..."
   },
   "ordersPage": {
+    "title": "Quản lý đơn hàng",
     "subtitle": "Quản lý đơn hàng sẽ được kích hoạt khi Order backend được triển khai.",
+    "searchPlaceholder": "Tìm theo mã hóa đơn, tên khách...",
+    "statusFilter": "Trạng thái",
+    "colCode": "Mã đơn hàng",
+    "colCustomer": "Khách hàng",
+    "colTotal": "Thành tiền",
+    "colPayment": "Thanh toán",
+    "colStatus": "Trạng thái",
     "placeholderTitle": "Order backend chưa triển khai",
     "placeholderDesc": "Trang này không còn dùng dữ liệu giả hoặc local state. Khi backend Order/Payment sẵn sàng, danh sách, chi tiết và cập nhật trạng thái đơn hàng sẽ được kết nối API thật."
   },
@@ -175,9 +241,12 @@
     "alertOutOfStock": "Hết hàng hoàn toàn",
     "anyAlert": "Mọi trạng thái",
     "loading": "Đang tải dữ liệu số dư tồn kho từ máy chủ...",
+    "loadingError": "Không thể tải tồn kho từ Backend API.",
+    "colId": "ID",
     "colBranchName": "Cửa hàng / Chi nhánh",
     "colCode": "Mã nguyên liệu",
     "colName": "Tên nguyên liệu",
+    "colMinStock": "Tồn tối thiểu",
     "colStock": "Tồn kho thực tế",
     "colUnit": "Đơn vị",
     "colAlert": "Cảnh báo tồn",
@@ -270,6 +339,8 @@
     "createBtn": "Tạo nhân viên",
     "searchPlaceholder": "Tìm tên nhân viên, số điện thoại, email...",
     "colId": "Mã NV",
+    "colCode": "Mã NV",
+    "noCode": "Chưa có mã",
     "colName": "Họ và tên",
     "colRole": "Chức vụ",
     "colBranch": "Chi nhánh",
@@ -298,5 +369,3 @@
     "errorSave": "Không thể lưu tài khoản nhân viên qua API."
   }
 }
-
-

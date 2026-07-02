@@ -14,6 +14,7 @@ import com.lowlands.coffee.modules.ingredient.service.IngredientService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Service
@@ -22,6 +23,7 @@ public class IngredientServiceImpl implements IngredientService {
 
     private static final String ACTIVE = "active";
     private static final String INACTIVE = "inactive";
+    private static final BigDecimal ZERO_STOCK = BigDecimal.ZERO;
 
     private final IngredientRepository ingredientRepository;
     private final IngredientCategoryRepository categoryRepository;
@@ -62,6 +64,8 @@ public class IngredientServiceImpl implements IngredientService {
         ingredient.setCode(code);
         ingredient.setName(request.getName().trim());
         ingredient.setUnit(request.getUnit().trim());
+        ingredient.setMinStock(request.getMinStock() == null ? ZERO_STOCK : request.getMinStock());
+        ingredient.setDescription(clean(request.getDescription()));
         ingredient.setStatus(request.getStatus() == null ? ACTIVE : request.getStatus());
         return ingredientMapper.toResponse(ingredientRepository.save(ingredient));
     }
@@ -77,6 +81,8 @@ public class IngredientServiceImpl implements IngredientService {
         ingredient.setCode(code);
         ingredient.setName(request.getName().trim());
         ingredient.setUnit(request.getUnit().trim());
+        ingredient.setMinStock(request.getMinStock() == null ? ZERO_STOCK : request.getMinStock());
+        ingredient.setDescription(clean(request.getDescription()));
         ingredient.setStatus(request.getStatus());
         return ingredientMapper.toResponse(ingredientRepository.save(ingredient));
     }
@@ -96,5 +102,9 @@ public class IngredientServiceImpl implements IngredientService {
     private IngredientCategoryEntity getCategory(Long id) {
         return categoryRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Ingredient category not found"));
+    }
+
+    private String clean(String value) {
+        return value == null ? null : value.trim();
     }
 }
