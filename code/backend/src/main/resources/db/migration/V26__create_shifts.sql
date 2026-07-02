@@ -16,12 +16,15 @@ CREATE INDEX IF NOT EXISTS idx_shifts_user_id ON shifts (user_id);
 CREATE INDEX IF NOT EXISTS idx_shifts_date ON shifts (shift_date);
 
 INSERT INTO permissions (code, name)
-VALUES 
+SELECT code, name
+FROM (VALUES
     ('SHIFT_VIEW', 'View shift schedules'),
     ('SHIFT_MANAGE', 'Manage shift assignments')
-ON CONFLICT (code) DO NOTHING;
+) AS seed(code, name)
+WHERE NOT EXISTS (
+    SELECT 1 FROM permissions p WHERE p.code = seed.code
+);
 
--- Grant to ADMIN and MANAGER roles
 INSERT INTO role_permissions (role_id, permission_id)
 SELECT r.id, p.id
 FROM roles r
