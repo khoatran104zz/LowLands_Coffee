@@ -183,6 +183,21 @@ export const confirmOrder = async (id: number): Promise<Order> => {
   return toFrontendOrder(response.data.data);
 };
 
+export const prepareOrder = async (id: number): Promise<Order> => {
+  const response = await axiosInstance.post<ApiResponse<BackendOrderResponse>>(`/orders/${id}/prepare`);
+  return toFrontendOrder(response.data.data);
+};
+
+export const readyOrder = async (id: number): Promise<Order> => {
+  const response = await axiosInstance.post<ApiResponse<BackendOrderResponse>>(`/orders/${id}/ready`);
+  return toFrontendOrder(response.data.data);
+};
+
+export const completeOrder = async (id: number): Promise<Order> => {
+  const response = await axiosInstance.post<ApiResponse<BackendOrderResponse>>(`/orders/${id}/complete`);
+  return toFrontendOrder(response.data.data);
+};
+
 export const cancelOrder = async (id: number, reason?: string): Promise<Order> => {
   const response = await axiosInstance.post<ApiResponse<BackendOrderResponse>>(`/orders/${id}/cancel`, reason ? { reason } : {});
   return toFrontendOrder(response.data.data);

@@ -70,14 +70,14 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
     <>
       <div 
         onClick={isOutOfStock ? undefined : handleOpenConfig}
-        className={`group bg-card rounded-xl border border-border/80 p-2 shadow-xs transition-all duration-300 flex flex-col select-none ${
+        className={`group bg-card rounded-xl border border-border/80 p-2 shadow-2xs transition-all duration-200 ease-out flex flex-col select-none ${
           isOutOfStock 
             ? "opacity-60 cursor-not-allowed" 
-            : "cursor-pointer hover:bg-muted/10 hover:shadow-md"
+            : "cursor-pointer hover:bg-muted/10 hover:shadow-md hover:border-zinc-300 hover:-translate-y-0.5 active:scale-[0.98]"
         }`}
       >
-        {/* Image - Ratio 4:3 */}
-        <div className="w-full aspect-[4/3] rounded-lg overflow-hidden bg-muted/40 relative shrink-0">
+        {/* Image - Ratio 16:11 */}
+        <div className="w-full aspect-[16/11] rounded-lg overflow-hidden bg-muted/40 relative shrink-0">
           {product.imageUrl ? (
             <img
               src={product.imageUrl}
@@ -97,29 +97,50 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
             <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
           )}
 
+          {/* Floating Badges */}
+          {!isOutOfStock && (
+            <div className="absolute top-1.5 left-1.5 flex flex-col gap-1 z-10 pointer-events-none">
+              {product.id % 6 === 0 && (
+                <span className="bg-amber-500 text-amber-950 text-[9px] font-black uppercase px-1.5 py-0.5 rounded shadow-sm tracking-wider leading-none">
+                  {t("pos.bestSeller") || "Best Seller"}
+                </span>
+              )}
+              {product.id % 8 === 0 && (
+                <span className="bg-emerald-600 text-white text-[9px] font-black uppercase px-1.5 py-0.5 rounded shadow-sm tracking-wider leading-none">
+                  {t("pos.new") || "Mới"}
+                </span>
+              )}
+              {product.id % 9 === 0 && (
+                <span className="bg-indigo-600 text-white text-[9px] font-black uppercase px-1.5 py-0.5 rounded shadow-sm tracking-wider leading-none">
+                  {t("pos.limited") || "Giới hạn"}
+                </span>
+              )}
+            </div>
+          )}
+
           {/* Badge Hết hàng */}
           {isOutOfStock && (
             <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center">
               <span className="bg-rose-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded shadow-md tracking-wider">
-                Hết hàng
+                {t("pos.outOfStock")}
               </span>
             </div>
           )}
         </div>
 
         {/* Text Area - Compact, no empty space */}
-        <div className="mt-2 text-left flex justify-between items-end flex-grow">
+        <div className="mt-1.5 text-left flex justify-between items-end flex-grow">
           <div className="flex flex-col min-w-0 pr-1">
-            <h4 className="text-xs font-bold text-foreground line-clamp-1 group-hover:text-[#C8510A] transition-colors leading-tight" title={product.name}>
+            <h4 className="text-xs font-semibold text-zinc-900 line-clamp-1 group-hover:text-[#C8510A] transition-colors leading-tight" title={product.name}>
               {product.name}
             </h4>
-            <span className="text-xs font-extrabold text-[#C8510A] mt-1.5 block leading-none">
+            <span className="text-[13px] font-extrabold text-[#C8510A] mt-1 block leading-none">
               {displayPrice.toLocaleString("vi-VN")}đ
             </span>
           </div>
           {!isOutOfStock && (
-            <div className="rounded-full h-6 w-6 bg-[#C8510A] text-white flex items-center justify-center shadow-md group-hover:bg-[#B04308] group-hover:scale-105 transition-all duration-300 shrink-0">
-              <Plus className="h-3.5 w-3.5" />
+            <div className="rounded-full h-7 w-7 bg-[#C8510A] text-white flex items-center justify-center shadow-xs group-hover:bg-[#B04308] group-hover:scale-105 transition-all duration-300 shrink-0">
+              <Plus className="h-4 w-4" />
             </div>
           )}
         </div>
@@ -137,7 +158,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           {product.variants && product.variants.length > 0 && (
             <div className="space-y-2">
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block text-left">
-                Kích cỡ:
+                {t("pos.size")}
               </label>
               <div className="grid grid-cols-3 gap-2">
                 {product.variants.map((v) => {
@@ -157,7 +178,7 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
                       }`}
                     >
                       Size {v.size} ({v.price.toLocaleString("vi-VN")}đ)
-                      {!isVariantActive && " - Hết"}
+                      {!isVariantActive && ` - ${t("pos.outOfStock")}`}
                     </button>
                   );
                 })}
@@ -169,16 +190,16 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           {hasToppings && (
             <div className="space-y-2">
               <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block text-left">
-                Topping thêm:
+                {t("pos.toppings")}
               </label>
               <div className="grid grid-cols-2 gap-2">
-                {product.toppings!.map((t) => {
-                  const isToppingActive = t.status === "active";
-                  const isChecked = selectedToppings.some((top) => top.id === t.id);
+                {product.toppings!.map((topItem) => {
+                  const isToppingActive = topItem.status === "active";
+                  const isChecked = selectedToppings.some((top) => top.id === topItem.id);
                   return (
                     <div
-                      key={t.id}
-                      onClick={isToppingActive ? () => handleToggleTopping(t) : undefined}
+                      key={topItem.id}
+                      onClick={isToppingActive ? () => handleToggleTopping(topItem) : undefined}
                       className={`flex items-center justify-between p-3 border rounded-lg text-xs font-semibold transition-all ${
                         !isToppingActive
                           ? "opacity-40 cursor-not-allowed border-dashed bg-muted/20 text-muted-foreground"
@@ -194,10 +215,10 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
                           disabled={!isToppingActive}
                           className={`pointer-events-none data-[state=checked]:bg-[#C8510A] data-[state=checked]:border-[#C8510A]`} 
                         />
-                        <span>{t.name}</span>
+                        <span>{topItem.name}</span>
                       </div>
                       <span className="text-[10px] text-muted-foreground">
-                        {isToppingActive ? `+${t.price.toLocaleString("vi-VN")}đ` : "Hết hàng"}
+                        {isToppingActive ? `+${topItem.price.toLocaleString("vi-VN")}đ` : t("pos.outOfStock")}
                       </span>
                     </div>
                   );
@@ -209,12 +230,12 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           {/* Special notes */}
           <div className="space-y-2">
             <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider block text-left">
-              {t("staff.pos.addNote")}
+              {t("pos.note")}
             </label>
             <textarea
               value={note}
               onChange={(e) => setNote(e.target.value)}
-              placeholder={t("staff.pos.notePlaceholder")}
+              placeholder={t("pos.notePlaceholder")}
               className="w-full p-3 border border-border bg-background text-foreground text-xs font-medium rounded-lg h-16 focus:outline-none focus:ring-1 focus:ring-[#C8510A] focus:border-[#C8510A] resize-none transition-colors"
             />
           </div>
@@ -222,20 +243,20 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
           {/* Actions */}
           <div className="flex items-center justify-between border-t border-border/60 pt-4 mt-2">
             <div className="text-left">
-              <span className="text-xs text-muted-foreground block font-medium">{t("common.total")}:</span>
+              <span className="text-xs text-muted-foreground block font-medium">{t("pos.total")}:</span>
               <span className="text-base font-black text-[#C8510A] font-outfit">
                 {currentTotal.toLocaleString("vi-VN")}đ
               </span>
             </div>
             <div className="flex space-x-2">
               <Button variant="outline" onClick={() => setIsConfigOpen(false)} className="rounded-lg h-9 text-xs font-semibold">
-                {t("common.cancel")}
+                {t("pos.posBack")}
               </Button>
               <Button 
                 onClick={handleConfirmAdd} 
                 className="bg-[#C8510A] hover:bg-[#B04308] text-white rounded-lg h-9 text-xs font-semibold px-5"
               >
-                {t("staff.pos.addToOrder")}
+                {t("pos.addToOrder")}
               </Button>
             </div>
           </div>

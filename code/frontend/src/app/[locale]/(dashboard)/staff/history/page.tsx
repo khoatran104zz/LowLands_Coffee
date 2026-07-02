@@ -3,42 +3,66 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { ChevronLeft, History } from "lucide-react";
-import { OrderExtended } from "@/mock/orders";
-import { useDashboardStore } from "@/store/dashboardStore";
+import { Order } from "@/types";
+import { useAuthStore } from "@/store/auth.store";
 import { DataTable, Column } from "@/components/tables/DataTable";
 import { SearchBar } from "@/components/tables/SearchBar";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/button";
 import { useTranslation } from "@/hooks/useTranslation";
+import { getOrders } from "@/services/order.service";
 
 export default function StaffHistoryPage() {
   const { t } = useTranslation();
+  const user = useAuthStore((state) => state.user);
   const [isMounted, setIsMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-
-  const orders = useDashboardStore((state) => state.orders);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<OrderExtended | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  const loadHistory = async () => {
+    if (!user?.branchId) {
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
+    setApiError(null);
+    try {
+      const fetched = await getOrders({ storeId: user.branchId, page: 0, size: 100 });
+      setOrders(fetched);
+    } catch (error) {
+      console.error("Failed to load historical orders from API", error);
+      setApiError("Không thể kết nối đến backend API. Đang đợi kết nối...");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    if (user?.branchId) {
+      loadHistory();
+    }
+  }, [user?.branchId]);
 
   if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
 
-  const MY_BRANCH_ID = 2; // Hồ Con Rùa
   // Completed or Cancelled branch orders
-  const branchHistory = orders
-    .filter((o) => o.storeId === MY_BRANCH_ID && (o.status === "completed" || o.status === "cancelled"));
+  const branchHistory = orders.filter(
+    (o) => o.status === "completed" || o.status === "cancelled"
+  );
 
-  const columns: Column<OrderExtended>[] = [
+  const columns: Column<Order>[] = [
     { key: "orderCode", header: "Mã hóa đơn" },
     { key: "receiverName", header: "Khách hàng" },
     {
       key: "createdAt",
       header: "Thời gian",
-      render: (item) => <span>{new Date(item.createdAt).toLocaleString("vi-VN")}</span>
+      render: (item) => <span>{item.createdAt ? new Date(item.createdAt).toLocaleString("vi-VN") : ""}</span>
     },
     {
       key: "totalAmount",
@@ -65,7 +89,7 @@ export default function StaffHistoryPage() {
     }
   ];
 
-  const handleOpenDetail = (order: OrderExtended) => {
+  const handleOpenDetail = (order: Order) => {
     setSelectedOrder(order);
     setIsDetailOpen(true);
   };
@@ -76,7 +100,7 @@ export default function StaffHistoryPage() {
         <div className="space-y-1">
           <h1 className="text-xl font-bold text-amber-900 font-outfit uppercase tracking-wide flex items-center gap-2">
             <History className="h-5 w-5" />
-            Lịch sử giao dịch quầy - Hồ Con Rùa
+            Lịch sử giao dịch quầy - {user?.branchName || "Chi nhánh"}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold">
             Danh sách hóa đơn bán lẻ đã thanh toán hoặc đã hủy tại chi nhánh.
@@ -99,13 +123,31 @@ export default function StaffHistoryPage() {
         />
       </div>
 
-      <DataTable
-        data={branchHistory}
-        columns={columns}
-        searchKey="orderCode"
-        searchQuery={searchQuery}
-        onView={handleOpenDetail}
-      />
+      {apiError ? (
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-6 text-center select-none">
+          <p className="text-sm font-bold text-amber-900">{apiError}</p>
+          <Button onClick={loadHistory} variant="outline" className="mt-3 text-xs font-bold border-amber-600/20 text-[#C8510A] hover:bg-[#C8510A]/5">
+            Thử lại
+          </Button>
+        </div>
+      ) : isLoading ? (
+        <div className="text-center py-20 text-muted-foreground select-none font-semibold text-xs">
+          {t("common.loading")}...
+        </div>
+      ) : branchHistory.length === 0 ? (
+        <div className="border border-dashed border-border/85 rounded-xl p-12 text-center select-none text-muted-foreground/60 bg-white">
+          <History className="h-10 w-10 mx-auto mb-2 text-muted-foreground/45 stroke-[1.2]" />
+          <p className="text-xs font-bold">Chưa có dữ liệu lịch sử đơn hàng tại chi nhánh.</p>
+        </div>
+      ) : (
+        <DataTable
+          data={branchHistory}
+          columns={columns as any}
+          searchKey="orderCode"
+          searchQuery={searchQuery}
+          onView={handleOpenDetail as any}
+        />
+      )}
 
       {/* Detail Dialog */}
       <Modal
