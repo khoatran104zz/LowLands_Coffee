@@ -57,7 +57,7 @@ export function POSCart({
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [cashReceived, setCashReceived] = useState<number>(0);
-  const [customerName, setCustomerName] = useState("Khách lẻ");
+  const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const promotions: Promotion[] = [];
 
@@ -192,7 +192,7 @@ export function POSCart({
     const finalOrder: Order = {
       storeId,
       orderType: state.serviceType,
-      receiverName: state.customerName || "Khách lẻ",
+      receiverName: state.customerName || t("pos.guest") || "Khách lẻ",
       receiverPhone: state.customerPhone || "N/A",
       deliveryAddress: destinationAddress,
       subtotal: state.subtotal,
@@ -220,17 +220,17 @@ export function POSCart({
       setPromoCode("");
       setAppliedPromo(null);
       setOrderNote("");
-      setCustomerName("Khách lẻ");
+      setCustomerName("");
       setCustomerPhone("");
       setServiceType("takeaway");
       setTableNumber("");
-      toast.success("Tạo đơn hàng thành công!");
+      toast.success(t("pos.orderCreatedSuccess") || "Tạo đơn hàng thành công!");
     } catch (error: unknown) {
       toast.error(getOrderErrorMessage(error));
     } finally {
       setIsSubmitting(false);
     }
-  }, [isSubmitting, onCheckoutSuccess, storeId]);
+  }, [isSubmitting, onCheckoutSuccess, storeId, t]);
 
   // Keyboard shortcut listeners
   useEffect(() => {
@@ -262,13 +262,13 @@ export function POSCart({
   const handleUpdateQtyLocal = (itemId: string, newQty: number) => {
     onUpdateQty(itemId, newQty);
     if (newQty <= 0) {
-      toast.info("Đã xóa sản phẩm khỏi đơn");
+      toast.info(t("pos.itemRemovedInfo"));
     }
   };
 
   const handleRemoveItemLocal = (itemId: string) => {
     onRemoveItem(itemId);
-    toast.info("Đã xóa sản phẩm khỏi đơn");
+    toast.info(t("pos.itemRemovedInfo"));
   };
 
   return (
@@ -276,13 +276,13 @@ export function POSCart({
       {/* Panel Title */}
       <div className="px-4 py-3 border-b border-border/60 flex items-center justify-between bg-background">
         <h3 className="text-xs font-black text-foreground font-outfit uppercase tracking-wider">
-          ĐƠN HÀNG {items.length > 0 && <span className="text-[#C8510A] ml-1">({items.length} món)</span>}
+          {t("pos.posTitle")} {items.length > 0 && <span className="text-[#C8510A] ml-1">{t("pos.posItemsCount", { count: items.length })}</span>}
         </h3>
         {items.length > 0 && (
           <button 
             onClick={onClearCart} 
             className="text-muted-foreground hover:text-rose-600 transition-colors p-1 hover:bg-muted/40 rounded-md"
-            title="Xóa giỏ hàng"
+            title={t("pos.posClearCart") || "Xóa giỏ hàng"}
           >
             <Trash2 className="h-4 w-4" />
           </button>
@@ -290,46 +290,46 @@ export function POSCart({
       </div>
 
       {/* Service Type Selection (At the top of the panel) */}
-      <div className="p-3 bg-muted/10 border-b border-border/40 space-y-2">
-        <div className="grid grid-cols-2 gap-2">
+      <div className="p-2.5 bg-zinc-50 dark:bg-zinc-900 border-b border-border/40 space-y-2 shrink-0">
+        <div className="bg-zinc-100 dark:bg-zinc-950 p-0.5 rounded-lg grid grid-cols-2 gap-0.5 border border-border/50">
           <button
             type="button"
             onClick={() => { setServiceType("takeaway"); setTableNumber(""); }}
-            className={`py-2 px-3 rounded-lg text-xs font-bold border flex items-center justify-center gap-1.5 transition-all ${
+            className={`py-1.5 rounded-md text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all duration-200 ${
               serviceType === "takeaway"
-                ? "bg-[#C8510A] border-[#C8510A] text-white shadow-xs"
-                : "bg-background border-border text-foreground hover:bg-muted/10"
+                ? "bg-white dark:bg-zinc-800 text-[#C8510A] shadow-2xs font-extrabold"
+                : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
             }`}
           >
             <ShoppingBag className="h-3.5 w-3.5" />
-            Mang về
+            {t("pos.takeaway")}
           </button>
           <button
             type="button"
             onClick={() => { setServiceType("dine_in"); }}
-            className={`py-2 px-3 rounded-lg text-xs font-bold border flex items-center justify-center gap-1.5 transition-all ${
+            className={`py-1.5 rounded-md text-[11px] font-bold flex items-center justify-center gap-1.5 transition-all duration-200 ${
               serviceType === "dine_in"
-                ? "bg-[#C8510A] border-[#C8510A] text-white shadow-xs"
-                : "bg-background border-border text-foreground hover:bg-muted/10"
+                ? "bg-white dark:bg-zinc-800 text-[#C8510A] shadow-2xs font-extrabold"
+                : "text-zinc-500 hover:text-zinc-800 dark:text-zinc-400 dark:hover:text-zinc-200"
             }`}
           >
             <Utensils className="h-3.5 w-3.5" />
-            Ăn tại bàn
+            {t("pos.dineIn") || "Ăn tại bàn"}
           </button>
         </div>
         
         {/* Table Selector */}
         {serviceType === "dine_in" && (
           <div className="flex items-center space-x-2 text-left pt-1">
-            <span className="text-[11px] font-bold text-muted-foreground whitespace-nowrap">Chọn số bàn:</span>
+            <span className="text-[11px] font-bold text-muted-foreground whitespace-nowrap">{t("pos.posSelectTableLabel") || "Chọn số bàn:"}</span>
             <select
               value={tableNumber}
               onChange={(e) => setTableNumber(e.target.value)}
               className="text-xs font-semibold border border-border rounded-lg bg-background p-1.5 flex-grow focus:ring-1 focus:ring-[#C8510A] focus:outline-none"
             >
-              <option value="">-- Chọn bàn --</option>
-              {Array.from({ length: 20 }, (_, i) => `Bàn ${i + 1}`).map((table) => (
-                <option key={table} value={table}>{table}</option>
+              <option value="">{t("pos.posSelectTable")}</option>
+              {Array.from({ length: 20 }, (_, i) => `${i + 1}`).map((num) => (
+                <option key={num} value={num}>{t("pos.posTableNum", { num })}</option>
               ))}
             </select>
           </div>
@@ -337,11 +337,14 @@ export function POSCart({
       </div>
 
       {/* Cart Items List */}
-      <div className="flex-grow overflow-y-auto p-3 space-y-2 max-h-[300px]">
+      <div className="flex-grow overflow-y-auto p-2.5 space-y-2 min-h-0">
         {items.length === 0 ? (
-          <div className="h-full flex flex-col items-center justify-center text-muted-foreground/60 py-16">
-            <ReceiptText className="h-10 w-10 mb-2 stroke-[1.2] text-muted-foreground/45" />
-            <span className="text-xs font-bold">{t("staff.pos.emptyCart")}</span>
+          <div className="h-full flex flex-col items-center justify-center text-center p-8 py-20 bg-zinc-50/20 border-2 border-dashed border-zinc-200/50 rounded-xl m-2.5">
+            <div className="p-3 bg-zinc-100 rounded-full mb-3 text-zinc-400">
+              <ReceiptText className="h-6 w-6 stroke-[1.5]" />
+            </div>
+            <span className="text-xs font-bold text-zinc-500 leading-snug">{t("pos.cartEmptyWarning")}</span>
+            <span className="text-[10px] text-zinc-400 mt-1 leading-normal max-w-[160px] mx-auto">{t("pos.emptyCartDesc") || "Chọn đồ uống từ thực đơn để thêm vào đơn hàng"}</span>
           </div>
         ) : (
           items.map((item) => (
@@ -418,7 +421,7 @@ export function POSCart({
               <Ticket className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
               <Input
                 type="text"
-                placeholder="Nhập mã giảm giá..."
+                placeholder={t("pos.posEnterPromo") || "Nhập mã giảm giá..."}
                 value={promoCode}
                 onChange={(e) => setPromoCode(e.target.value)}
                 className="pl-8 text-xs h-8 border-border bg-background focus-visible:ring-1 focus-visible:ring-[#C8510A]"
@@ -428,7 +431,7 @@ export function POSCart({
               onClick={handleApplyPromo}
               className="h-8 text-xs font-bold px-3 bg-[#C8510A] hover:bg-[#B04308] text-white rounded-lg"
             >
-              Áp dụng
+              {t("pos.posApply")}
             </Button>
           </div>
 
@@ -437,7 +440,7 @@ export function POSCart({
             <textarea
               value={orderNote}
               onChange={(e) => setOrderNote(e.target.value)}
-              placeholder="Ghi chú đơn hàng..."
+              placeholder={t("pos.notePlaceholder")}
               className="w-full text-xs p-2 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-1 focus:ring-[#C8510A] focus:border-[#C8510A] h-10 resize-none leading-snug transition-all"
             />
           </div>
@@ -445,17 +448,17 @@ export function POSCart({
           {/* Pricing labels */}
           <div className="space-y-1.5 text-xs text-muted-foreground font-semibold border-b border-border/40 pb-2.5">
             <div className="flex justify-between">
-              <span>Tạm tính:</span>
+              <span>{t("pos.subtotal")}</span>
               <span className="text-foreground">{subtotal.toLocaleString("vi-VN")}đ</span>
             </div>
             {discount > 0 && (
               <div className="flex justify-between text-emerald-700 font-bold">
-                <span>Giảm giá:</span>
+                <span>{t("pos.discount")}</span>
                 <span>-{discount.toLocaleString("vi-VN")}đ</span>
               </div>
             )}
             <div className="flex justify-between text-sm font-black text-foreground pt-1.5 border-t border-dashed border-border/40 mt-1">
-              <span>Tổng cộng:</span>
+              <span>{t("pos.total")}</span>
               <span className="text-[#C8510A] font-outfit text-base leading-none">{total.toLocaleString("vi-VN")}đ</span>
             </div>
           </div>
@@ -463,7 +466,7 @@ export function POSCart({
           {/* Payment Method Selector */}
           <div className="space-y-1.5">
             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block text-left">
-              Hình thức thanh toán:
+              {t("pos.posPaymentMethod")}
             </span>
             <div className="grid grid-cols-3 gap-1">
               <button
@@ -475,7 +478,7 @@ export function POSCart({
                     : "border-border bg-background hover:bg-muted/10 text-foreground"
                 }`}
               >
-                Tiền mặt
+                {t("pos.cash")}
               </button>
               <button
                 type="button"
@@ -486,7 +489,7 @@ export function POSCart({
                     : "border-border bg-background hover:bg-muted/10 text-foreground"
                 }`}
               >
-                Chuyển khoản
+                {t("pos.bankTransfer")}
               </button>
               <button
                 type="button"
@@ -497,7 +500,7 @@ export function POSCart({
                     : "border-border bg-background hover:bg-muted/10 text-foreground"
                 }`}
               >
-                Quẹt thẻ
+                {t("pos.card")}
               </button>
             </div>
           </div>
@@ -506,11 +509,11 @@ export function POSCart({
           <div className="grid grid-cols-3 gap-2 pt-1 border-t border-border/40">
             <Button
               type="button"
-              onClick={() => toast.success("Đã lưu đơn hàng vào danh sách đơn tạm!")}
+              onClick={() => toast.success(t("pos.orderSavedTemporary"))}
               className="bg-background hover:bg-muted/10 text-foreground border border-border text-xs font-bold h-10 rounded-xl transition-all shadow-2xs shrink-0 flex items-center justify-center gap-1.5"
             >
               <ReceiptText className="h-3.5 w-3.5 text-muted-foreground" />
-              Lưu đơn tạm
+              {t("pos.posSaveTemporary") || "Lưu đơn tạm"}
             </Button>
             <Button
               type="button"
@@ -518,7 +521,7 @@ export function POSCart({
               className="col-span-2 bg-[#C8510A] hover:bg-[#B04308] text-white text-xs font-extrabold h-10 rounded-xl transition-all shadow-md hover:shadow-lg flex items-center justify-center shrink-0 gap-1.5"
             >
               <ShoppingBag className="h-3.5 w-3.5" />
-              Thanh toán
+              {t("pos.posCheckout")}
             </Button>
           </div>
         </div>
@@ -528,68 +531,68 @@ export function POSCart({
       <Modal
         isOpen={isCheckoutOpen}
         onClose={() => setIsCheckoutOpen(false)}
-        title="Chi tiết thanh toán đơn hàng"
+        title={t("pos.posCheckoutDetail")}
         size="md"
       >
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-1.5 text-left">
-              <label className="text-xs font-bold text-muted-foreground uppercase">Họ tên khách hàng:</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase">{t("pos.posCustomerName")}</label>
               <Input
                 value={customerName}
                 onChange={(e) => setCustomerName(e.target.value)}
                 className="h-9 text-xs border-border bg-background focus-visible:ring-1 focus-visible:ring-[#C8510A]"
-                placeholder="Nhập tên khách hàng"
+                placeholder={t("pos.posEnterCustomerName")}
               />
             </div>
             <div className="space-y-1.5 text-left">
-              <label className="text-xs font-bold text-muted-foreground uppercase">Số điện thoại:</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase">{t("pos.posPhone")}</label>
               <Input
                 value={customerPhone}
                 onChange={(e) => setCustomerPhone(e.target.value)}
                 className="h-9 text-xs border-border bg-background focus-visible:ring-1 focus-visible:ring-[#C8510A]"
-                placeholder="Số điện thoại thành viên"
+                placeholder={t("pos.posEnterPhone")}
               />
             </div>
           </div>
 
           <div className="bg-[#FAF8F5] p-3 rounded-lg border border-border/50 text-left space-y-1">
-            <div className="text-xs font-black text-muted-foreground mb-1 select-none">Tóm tắt thanh toán:</div>
+            <div className="text-xs font-black text-muted-foreground mb-1 select-none">{t("pos.posPaymentSummary")}</div>
             <div className="flex justify-between text-xs font-semibold text-foreground/80">
-              <span>Hình thức phục vụ:</span>
-              <span className="font-bold">{serviceType === "dine_in" ? `Ăn tại bàn (${tableNumber})` : "Mang về"}</span>
+              <span>{t("pos.serviceType")}</span>
+              <span className="font-bold">{serviceType === "dine_in" ? t("pos.dineInTable", { table: tableNumber }) : t("pos.takeaway")}</span>
             </div>
             <div className="flex justify-between text-xs font-semibold text-foreground/80">
-              <span>Tổng cộng (gồm VAT):</span>
+              <span>{t("pos.posTotalVat")}</span>
               <span className="font-extrabold text-[#C8510A]">{total.toLocaleString("vi-VN")}đ</span>
             </div>
             <div className="flex justify-between text-xs font-semibold text-foreground/80">
-              <span>Phương thức thanh toán:</span>
+              <span>{t("pos.posPaymentMethod")}</span>
               <span className="font-bold">
-                {paymentMethod === "cod" && "Tiền mặt"}
-                {paymentMethod === "bank_transfer" && "Chuyển khoản"}
-                {paymentMethod === "e_wallet" && "Quẹt thẻ"}
+                {paymentMethod === "cod" && t("pos.cash")}
+                {paymentMethod === "bank_transfer" && t("pos.bankTransfer")}
+                {paymentMethod === "e_wallet" && t("pos.card")}
               </span>
             </div>
           </div>
 
           {paymentMethod === "cod" && (
             <div className="space-y-2 text-left bg-muted/10 p-3 border border-border/40 rounded-lg">
-              <label className="text-xs font-black text-[#C8510A] uppercase">Tiền mặt nhận của khách:</label>
+              <label className="text-xs font-black text-[#C8510A] uppercase">{t("pos.posEnterCashReceived")}</label>
               <div className="flex space-x-2">
                 <Input
                   type="number"
                   value={cashReceived || ""}
                   onChange={(e) => setCashReceived(parseFloat(e.target.value) || 0)}
                   className="h-10 text-sm border-border bg-background font-bold text-[#C8510A]"
-                  placeholder="Nhập số tiền mặt nhận..."
+                  placeholder={t("pos.posEnterCashReceived")}
                 />
                 <button
                   type="button"
                   onClick={() => setCashReceived(total)}
                   className="px-3 border border-[#C8510A] text-[#C8510A] hover:bg-[#C8510A] hover:text-white transition-colors rounded-lg text-xs font-bold h-10 shrink-0"
                 >
-                  Chẵn tiền
+                  {t("pos.posExactCash")}
                 </button>
               </div>
               
@@ -609,7 +612,7 @@ export function POSCart({
               </div>
 
               <div className="flex justify-between items-center text-xs font-black pt-2.5 border-t border-dashed border-border/50 mt-2">
-                <span className="text-muted-foreground">Tiền thối lại:</span>
+                <span className="text-muted-foreground">{t("pos.changeReturned")}</span>
                 <span className={changeReturned > 0 ? "text-emerald-700 text-sm font-black" : "text-foreground text-sm font-black"}>
                   {changeReturned.toLocaleString("vi-VN")}đ
                 </span>
@@ -619,14 +622,14 @@ export function POSCart({
 
           <div className="flex space-x-2 border-t border-border/40 pt-4 mt-2">
             <Button variant="outline" onClick={() => setIsCheckoutOpen(false)} className="w-1/2 rounded-lg h-10 text-xs font-semibold">
-              Quay lại (Esc)
+              {t("pos.posBack")}
             </Button>
             <Button
               onClick={handleConfirmPayment}
               disabled={isSubmitting || (paymentMethod === "cod" && cashReceived < total)}
               className="w-1/2 bg-[#C8510A] hover:bg-[#B04308] text-white rounded-lg h-10 text-xs font-extrabold shadow-sm"
             >
-              {isSubmitting ? "Đang tạo đơn..." : "Xác nhận & In hóa đơn (Enter)"}
+              {isSubmitting ? t("pos.posSubmittingOrder") : t("pos.posConfirmPayment")}
             </Button>
           </div>
         </div>

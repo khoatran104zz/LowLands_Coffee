@@ -60,9 +60,9 @@ export function Sidebar({ role, locale, onCloseMobile }: SidebarProps) {
   const links = role === "admin" ? adminLinks : managerLinks;
 
   return (
-    <aside className="w-64 bg-zinc-950 text-zinc-200 border-r border-zinc-900 flex flex-col h-full shrink-0 select-none">
+    <aside className="w-56 bg-zinc-950 text-zinc-200 border-r border-zinc-900 flex flex-col h-full shrink-0 select-none">
       {/* Brand Header */}
-      <div className="h-16 flex items-center justify-between px-6 border-b border-zinc-900">
+      <div className="h-16 flex items-center justify-between px-4 border-b border-zinc-900">
         <Link 
           href={`/${locale}`}
           className="flex items-center py-2 shrink-0 hover:opacity-90 transition-opacity"
@@ -85,8 +85,8 @@ export function Sidebar({ role, locale, onCloseMobile }: SidebarProps) {
       </div>
 
       {/* Role Tag */}
-      <div className="px-6 py-4">
-        <div className="bg-zinc-900 border border-zinc-800 rounded-lg py-2 px-3 flex items-center justify-center">
+      <div className="px-4 py-2">
+        <div className="bg-zinc-900 border border-zinc-800 rounded-lg py-1.5 px-3 flex items-center justify-center">
           <span className="text-[10px] uppercase font-bold tracking-wider text-amber-500 font-outfit">
             {role === "admin" ? t("common.adminSystem") : t("common.branchManagement")}
           </span>
@@ -94,7 +94,7 @@ export function Sidebar({ role, locale, onCloseMobile }: SidebarProps) {
       </div>
 
       {/* Navigation Links */}
-      <nav className="flex-grow px-4 py-2 space-y-1 overflow-y-auto">
+      <nav className="flex-grow px-3 py-1 space-y-0.5 overflow-y-auto">
         {links.map((link) => {
           const Icon = link.icon;
           // Exact active check or prefix check for child pages
@@ -106,9 +106,9 @@ export function Sidebar({ role, locale, onCloseMobile }: SidebarProps) {
               href={link.href}
               onClick={onCloseMobile}
               className={cn(
-                "flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-semibold tracking-wide transition-all group",
+                "flex items-center space-x-2.5 px-3 py-1.5 rounded-lg text-xs font-semibold tracking-wide transition-all group",
                 isActive
-                  ? "bg-amber-800 text-white font-bold shadow-md"
+                  ? "bg-amber-800 text-white font-bold shadow-sm"
                   : "text-zinc-400 hover:text-white hover:bg-zinc-900"
               )}
             >
@@ -123,7 +123,7 @@ export function Sidebar({ role, locale, onCloseMobile }: SidebarProps) {
       </nav>
 
       {/* Quick shortcuts to POS & Customer portals */}
-      <div className="p-4 border-t border-zinc-900 bg-zinc-950 space-y-2">
+      <div className="p-3 border-t border-zinc-900 bg-zinc-950 space-y-1.5">
         <Link
           href={`/${locale}/staff/pos`}
           className="flex items-center space-x-2.5 px-3 py-2 rounded-lg text-[11px] font-bold text-amber-500 border border-amber-850 hover:bg-amber-800/10 transition-colors w-full"

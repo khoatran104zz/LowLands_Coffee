@@ -1,46 +1,68 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { OrderExtended } from "@/mock/orders";
-import { useDashboardStore } from "@/store/dashboardStore";
+import { Order } from "@/types";
+import { useAuthStore } from "@/store/auth.store";
 import { DataTable, Column } from "@/components/tables/DataTable";
-import { SearchBar } from "@/components/tables/SearchBar";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useTranslation";
 import Link from "next/link";
 import { ChevronLeft, Coffee } from "lucide-react";
+import { getOrders, prepareOrder, completeOrder } from "@/services/order.service";
 
 export default function StaffOrdersPage() {
   const { t } = useTranslation();
+  const user = useAuthStore((state) => state.user);
   const [isMounted, setIsMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
-
-  const orders = useDashboardStore((state) => state.orders);
-  const updateOrderStatus = useDashboardStore((state) => state.updateOrderStatus);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const [isDetailOpen, setIsDetailOpen] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState<OrderExtended | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  const loadOrders = async () => {
+    if (!user?.branchId) {
+      setIsLoading(false);
+      return;
+    }
+    setIsLoading(true);
+    setApiError(null);
+    try {
+      const fetched = await getOrders({ storeId: user.branchId, page: 0, size: 100 });
+      setOrders(fetched);
+    } catch (error) {
+      console.error("Failed to load orders from backend API", error);
+      setApiError("Không thể kết nối đến backend API. Đang đợi kết nối...");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
     setIsMounted(true);
-  }, []);
+    if (user?.branchId) {
+      loadOrders();
+    }
+  }, [user?.branchId]);
 
   if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
 
-  const MY_BRANCH_ID = 2; // Hồ Con Rùa
   // Active preparation orders: pending or preparing
-  const activeOrders = orders
-    .filter((o) => o.storeId === MY_BRANCH_ID && (o.status === "pending" || o.status === "preparing"));
+  const activeOrders = orders.filter(
+    (o) => o.status === "pending" || o.status === "preparing"
+  );
 
-  const columns: Column<OrderExtended>[] = [
+  const columns: Column<Order>[] = [
     { key: "orderCode", header: "Mã hóa đơn" },
     { key: "receiverName", header: "Khách hàng" },
     {
       key: "createdAt",
       header: "Thời gian",
-      render: (item) => <span>{new Date(item.createdAt).toLocaleTimeString("vi-VN")}</span>
+      render: (item) => <span>{item.createdAt ? new Date(item.createdAt).toLocaleTimeString("vi-VN") : ""}</span>
     },
     {
       key: "items",
@@ -66,18 +88,28 @@ export default function StaffOrdersPage() {
     }
   ];
 
-  const handleOpenDetail = (order: OrderExtended) => {
+  const handleOpenDetail = (order: Order) => {
     setSelectedOrder(order);
     setIsDetailOpen(true);
   };
 
-  const handleUpdateStatus = (status: OrderExtended["status"]) => {
-    if (!selectedOrder) return;
-    updateOrderStatus(selectedOrder.id, status);
-    setSelectedOrder((prev) => (prev ? { ...prev, status } : null));
-    toast.success("Cập nhật tiến độ pha chế thành công!");
-    if (status === "completed" || status === "cancelled") {
-      setIsDetailOpen(false);
+  const handleUpdateStatus = async (status: Order["status"]) => {
+    if (!selectedOrder || !selectedOrder.id) return;
+    try {
+      if (status === "preparing") {
+        const updated = await prepareOrder(selectedOrder.id);
+        setSelectedOrder(updated);
+        toast.success("Đã nhận pha chế món thành công!");
+      } else if (status === "completed") {
+        const updated = await completeOrder(selectedOrder.id);
+        setSelectedOrder(null);
+        setIsDetailOpen(false);
+        toast.success("Pha chế hoàn tất!");
+      }
+      loadOrders();
+    } catch (err) {
+      console.error("Failed to update status", err);
+      toast.error("Không thể cập nhật trạng thái đơn hàng.");
     }
   };
 
@@ -87,7 +119,7 @@ export default function StaffOrdersPage() {
         <div className="space-y-1">
           <h1 className="text-xl font-bold text-amber-900 font-outfit uppercase tracking-wide flex items-center gap-2">
             <Coffee className="h-5 w-5" />
-            Đơn hàng cần pha chế - Hồ Con Rùa
+            Đơn hàng cần pha chế - {user?.branchName || "Chi nhánh"}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold">
             Danh sách đồ uống đang chờ thu ngân / pha chế chuẩn bị phục vụ khách hàng.
@@ -102,13 +134,31 @@ export default function StaffOrdersPage() {
         </Link>
       </div>
 
-      <DataTable
-        data={activeOrders}
-        columns={columns}
-        searchKey="orderCode"
-        searchQuery={searchQuery}
-        onView={handleOpenDetail}
-      />
+      {apiError ? (
+        <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-6 text-center select-none">
+          <p className="text-sm font-bold text-amber-900">{apiError}</p>
+          <Button onClick={loadOrders} variant="outline" className="mt-3 text-xs font-bold border-amber-600/20 text-[#C8510A] hover:bg-[#C8510A]/5">
+            Thử lại
+          </Button>
+        </div>
+      ) : isLoading ? (
+        <div className="text-center py-20 text-muted-foreground select-none font-semibold text-xs">
+          {t("common.loading")}...
+        </div>
+      ) : activeOrders.length === 0 ? (
+        <div className="border border-dashed border-border/85 rounded-xl p-12 text-center select-none text-muted-foreground/60 bg-white">
+          <Coffee className="h-10 w-10 mx-auto mb-2 text-muted-foreground/45 stroke-[1.2]" />
+          <p className="text-xs font-bold">Chưa có dữ liệu đơn hàng cần pha chế tại chi nhánh.</p>
+        </div>
+      ) : (
+        <DataTable
+          data={activeOrders}
+          columns={columns as any}
+          searchKey="orderCode"
+          searchQuery={searchQuery}
+          onView={handleOpenDetail as any}
+        />
+      )}
 
       {/* Detail dialog */}
       <Modal

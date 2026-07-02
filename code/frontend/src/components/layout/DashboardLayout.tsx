@@ -144,7 +144,7 @@ export function DashboardLayout({ children, role }: DashboardLayoutProps) {
       {/* Mobile Sidebar Overlay Drawer */}
       {isMobileSidebarOpen && (
         <div className="fixed inset-0 z-50 flex lg:hidden bg-zinc-950/80 backdrop-blur-xs">
-          <div className="w-64 h-full animate-slide-in-left">
+          <div className="w-56 h-full animate-slide-in-left">
             <Sidebar 
               role={role} 
               locale={locale} 
