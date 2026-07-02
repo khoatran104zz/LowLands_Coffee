@@ -42,12 +42,8 @@ export default function ManagerOrdersPage() {
   const loadOrders = async () => {
     setIsLoading(true);
     try {
-<<<<<<< HEAD
       const list = await getManagerOrders();
       setBranchName(list[0]?.storeName || "");
-=======
-      const list = await getOrders({ storeId: myBranchId });
->>>>>>> 54a6bd0c9437303967cbdf41710e49c89c345a1a
       setOrders(list);
     } catch (error) {
       console.error("Failed to load store orders", error);
@@ -143,13 +139,8 @@ export default function ManagerOrdersPage() {
     if (!selectedOrder?.id) return;
     setIsActionLoading(true);
     try {
-<<<<<<< HEAD
       await confirmManagerOrder(selectedOrder.id);
-      toast.success(`Đã xác nhận đơn hàng ${selectedOrder.orderCode}`);
-=======
-      await confirmOrder(selectedOrder.id);
       toast.success(t("manager.orders.toastConfirmSuccess", { code: selectedOrder.orderCode || "" }));
->>>>>>> 54a6bd0c9437303967cbdf41710e49c89c345a1a
       setIsConfirmOpen(false);
       setIsDetailOpen(false);
       loadOrders();
@@ -174,13 +165,8 @@ export default function ManagerOrdersPage() {
     }
     setIsActionLoading(true);
     try {
-<<<<<<< HEAD
       await cancelManagerOrder(selectedOrder.id, cancelReason);
-      toast.success(`Đã hủy đơn hàng ${selectedOrder.orderCode}`);
-=======
-      await cancelOrder(selectedOrder.id, cancelReason);
       toast.success(t("manager.orders.toastCancelSuccess", { code: selectedOrder.orderCode || "" }));
->>>>>>> 54a6bd0c9437303967cbdf41710e49c89c345a1a
       setIsCancelOpen(false);
       setIsDetailOpen(false);
       loadOrders();

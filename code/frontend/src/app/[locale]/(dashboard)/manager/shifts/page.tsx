@@ -1,13 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-<<<<<<< HEAD
 import { Clock, Plus, Trash2, Calendar, Coffee, Check, AlertTriangle } from "lucide-react";
-=======
-import { Clock, Plus, Trash2, Calendar, Coffee } from "lucide-react";
-import { useAuthStore } from "@/store/auth.store";
-import { useDashboardStore } from "@/store/dashboardStore";
->>>>>>> 54a6bd0c9437303967cbdf41710e49c89c345a1a
 import { useTranslation } from "@/hooks/useTranslation";
 import { Shift } from "@/services/shift.service";
 import { getManagerShifts, assignManagerShift, deleteManagerShift } from "@/services/manager-shift.service";
@@ -114,13 +108,8 @@ export default function ManagerShiftsPage() {
     if (!shiftToDelete) return;
     setIsActionLoading(true);
     try {
-<<<<<<< HEAD
       await deleteManagerShift(shiftToDelete.id);
-      toast.success(`Đã xóa ca của ${shiftToDelete.userFullName}`);
-=======
-      await deleteShift(shiftToDelete.id);
       toast.success(t("manager.shifts.toastDeleteSuccess", { name: shiftToDelete.userFullName }));
->>>>>>> 54a6bd0c9437303967cbdf41710e49c89c345a1a
       setIsDeleteOpen(false);
       loadShifts();
     } catch (error) {
