@@ -336,7 +336,7 @@
   "employeesPage": {
     "title": "Employee Management",
     "subtitle": "Manage employee accounts and store assignments.",
-    "createBtn": "Create Employee",
+    "createBtn": "Add Employee",
     "searchPlaceholder": "Search employee name, phone, email...",
     "colId": "Emp ID",
     "colCode": "Emp Code",

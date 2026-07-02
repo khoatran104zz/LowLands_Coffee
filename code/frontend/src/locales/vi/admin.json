@@ -336,7 +336,7 @@
   "employeesPage": {
     "title": "Quản lý nhân viên",
     "subtitle": "Quản lý tài khoản nhân viên và phân công cửa hàng.",
-    "createBtn": "Tạo nhân viên",
+    "createBtn": "Thêm nhân viên",
     "searchPlaceholder": "Tìm tên nhân viên, số điện thoại, email...",
     "colId": "Mã NV",
     "colCode": "Mã NV",

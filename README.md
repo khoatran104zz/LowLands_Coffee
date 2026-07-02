@@ -1,227 +1,228 @@
-# Lowlands Coffee - Hệ thống Thương mại Điện tử Bán Cà phê
+# Lowlands Coffee ☕
 
-Chào mừng đến với dự án **Lowlands Coffee** - một nền tảng website thương mại điện tử chuyên nghiệp bán cà phê trực tuyến. Dự án được lấy cảm hứng từ các chuỗi cà phê hàng đầu, kết hợp giữa nét truyền thống pha phin Việt Nam và phong cách phục vụ hiện đại, tối giản.
+Hệ thống quản lý chuỗi cà phê — tích hợp đặt hàng trực tuyến, quản lý kho, ca làm việc và báo cáo doanh thu theo chi nhánh.
 
-Dự án được thiết kế theo kiến trúc tách biệt hoàn chỉnh giữa **Frontend (Next.js)** và **Backend (Spring Boot)**.
+Kiến trúc tách biệt hoàn toàn giữa **Frontend (Next.js)** và **Backend (Spring Boot)**, kết nối database **Neon PostgreSQL** trên cloud.
 
 ---
 
-## 1. Cấu trúc Thư mục Tổng quan (Workspace Structure)
+## Mục lục
 
-Dự án được tổ chức theo cấu trúc chuẩn:
+1. [Yêu cầu hệ thống](#1-yêu-cầu-hệ-thống)
+2. [Cấu trúc dự án](#2-cấu-trúc-dự-án)
+3. [Công nghệ sử dụng](#3-công-nghệ-sử-dụng)
+4. [Cấu hình môi trường](#4-cấu-hình-môi-trường)
+5. [Hướng dẫn chạy dự án](#5-hướng-dẫn-chạy-dự-án)
+6. [Các lệnh hữu ích](#6-các-lệnh-hữu-ích)
+7. [Địa chỉ truy cập](#7-địa-chỉ-truy-cập)
+8. [Tài liệu tham khảo](#8-tài-liệu-tham-khảo)
 
-```text
-root/
-├── docs/                      # Tài liệu nghiệp vụ & Thiết kế
-│   ├── srs.md                 # Đặc tả yêu cầu phần mềm (Software Requirements Specification)
-│   ├── convention.md          # Quy chuẩn viết mã nguồn (Coding Conventions)
-│   ├── UI-UX style guideline/ # Hướng dẫn thiết kế giao diện & màu sắc chủ đạo
-│   └── DB-erd/                # Sơ đồ quan hệ thực thể & script khởi tạo database
-├── code/                      # Mã nguồn hệ thống
-│   ├── frontend/              # Frontend Next.js App Router (TypeScript)
-│   └── backend/               # Backend Spring Boot (Java, Maven)
-├── test/                      # Thư mục kiểm thử (Mô phỏng Jest)
-└── README.md                  # Hướng dẫn khởi chạy tổng quan (File này)
+---
+
+## 1. Yêu cầu hệ thống
+
+| Công cụ | Phiên bản tối thiểu |
+|---|---|
+| **Node.js** | 18+ |
+| **Java JDK** | 21+ |
+| **Maven** | 3.9+ (hoặc dùng `mvnw` đi kèm) |
+| **Git** | bất kỳ |
+
+> **Lưu ý:** Dự án dùng **Neon PostgreSQL** trên cloud — không cần cài PostgreSQL local.
+
+---
+
+## 2. Cấu trúc dự án
+
+```
+LowLands_Coffee/
+├── code/
+│   ├── frontend/          # Next.js 16 + TypeScript (App Router)
+│   └── backend/           # Spring Boot 4 + Java 21 (Maven)
+├── docs/                  # Tài liệu nghiệp vụ & thiết kế
+│   ├── srs.md             # Đặc tả yêu cầu phần mềm
+│   ├── convention.md      # Quy chuẩn viết code
+│   ├── api-contract/      # Hợp đồng API giữa FE và BE
+│   ├── DB-erd/            # Sơ đồ ERD & script database
+│   └── UI-UX style guideline/
+├── scripts/               # Script tiện ích
+│   ├── run-backend-neon.js   # Chạy backend (load .env)
+│   ├── run-dev.js            # Chạy cả frontend + backend
+│   └── run-backend-neon.ps1  # Phiên bản PowerShell
+├── .env.example           # Mẫu biến môi trường
+├── package.json           # Root scripts (npm run dev/backend/frontend)
+└── README.md
 ```
 
 ---
 
-## 2. Công nghệ Sử dụng (Technology Stack)
+## 3. Công nghệ sử dụng
 
 ### Frontend (`code/frontend/`)
-- **Framework**: Next.js 15+ (App Router) & TypeScript
-- **Styling**: Tailwind CSS & shadcn/ui
-- **State Management**: Zustand
-- **Form & Validation**: React Hook Form & Zod Resolver
-- **HTTP Client**: Axios
-- **Đa ngôn ngữ (i18n)**: next-intl (Tiếng Việt làm mặc định & Tiếng Anh)
-- **Kiểm thử**: Jest & React Testing Library (RTL)
+
+| Thư viện | Mục đích |
+|---|---|
+| Next.js 16 (App Router) | Framework chính |
+| React 19 + TypeScript | UI & type safety |
+| Tailwind CSS v4 + shadcn/ui | Styling & component |
+| Zustand | State management |
+| React Hook Form + Zod | Form & validation |
+| Axios | HTTP client |
+| next-intl | Đa ngôn ngữ (VI / EN) |
+| Framer Motion | Animation |
+| Jest + React Testing Library | Unit test |
 
 ### Backend (`code/backend/`)
-- **Framework**: Spring Boot (Java 17+, Maven)
-- **Database**: SQL Schema chuẩn (bao gồm quản lý Users, Cửa hàng, Sản phẩm, Giỏ hàng, Đơn hàng, Khuyến mãi, và Kho nguyên liệu).
+
+| Thư viện | Mục đích |
+|---|---|
+| Spring Boot 4 (Java 21) | Framework chính |
+| Spring Security + JWT (JJWT) | Xác thực & phân quyền |
+| Spring Data JPA + Flyway | ORM & migration DB |
+| Neon PostgreSQL | Database cloud |
+| MapStruct + Lombok | Code generation |
+| SpringDoc OpenAPI | Swagger UI |
 
 ---
 
-## 3. Hướng dẫn Khởi chạy Nhanh (Getting Started)
+## 4. Cấu hình môi trường
 
-### Backend Neon PostgreSQL Environment
-
-Backend runtime reads database and JWT settings from environment variables. Do not hardcode Neon credentials in source code.
-
-Create a local `.env` file from the sample:
+### Bước 1 — Tạo file `.env` từ mẫu
 
 ```powershell
+# Chạy từ thư mục gốc (LowLands_Coffee/)
 Copy-Item .env.example .env
 ```
 
-Fill these values:
+### Bước 2 — Điền thông tin vào `.env`
 
 ```env
+# Neon PostgreSQL (lấy từ Neon dashboard > Connection string)
 DB_URL=jdbc:postgresql://<host>/<database>?sslmode=require
 DB_USERNAME=<username>
 DB_PASSWORD=<password>
-JWT_SECRET=<your-jwt-secret>
+
+# JWT Secret (chuỗi bất kỳ, đủ dài)
+JWT_SECRET=<your-jwt-secret-key>
+
+# URL API backend (không thay đổi nếu chạy local)
 NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
 ```
 
-Notes:
+> ⚠️ **Không commit file `.env`** — chỉ `.env.example` được track bởi Git.
 
-- Use the Neon PostgreSQL host/database from your Neon connection string.
-- Keep `sslmode=require` in `DB_URL`.
-- Never commit `.env`; only `.env.example` is tracked.
-- Spring Boot does not load `.env` automatically, so use the helper script below.
+### Frontend environment
 
-Run backend with Neon:
-
-```powershell
-.\scripts\run-backend-neon.ps1
-```
-
-The script loads `.env` into the current backend process, moves into `code/backend`, and runs:
-
-```powershell
-mvn spring-boot:run
-```
-
-Frontend environment must point to the Spring Boot API, not to Neon directly:
+File `code/frontend/.env.local` cũng cần có:
 
 ```env
 NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
 ```
 
-This value is currently stored in `code/frontend/.env.local`.
+*(File này thường đã có sẵn, không cần tạo lại.)*
 
-## Development Commands
+---
 
-Run these commands from the repository root.
+## 5. Hướng dẫn chạy dự án
+
+### Cách 1 — Chạy cả hai cùng lúc (khuyến nghị)
+
+```powershell
+# Từ thư mục gốc
+npm install
+npm run dev
+```
+
+Lệnh này khởi động backend và frontend song song.
+
+---
+
+### Cách 2 — Chạy riêng từng phần
+
+**Terminal 1 — Backend:**
 
 ```powershell
 npm run backend
 ```
 
-Starts only the Spring Boot backend. This command loads `.env`, validates the Neon PostgreSQL environment variables, moves into `code/backend`, and runs `mvn spring-boot:run`.
+Script tự động load `.env`, di chuyển vào `code/backend/` và chạy:
+```
+mvn spring-boot:run
+```
+Backend lắng nghe tại: `http://localhost:8080`
+
+---
+
+**Terminal 2 — Frontend:**
 
 ```powershell
 npm run frontend
 ```
 
-Starts only the Next.js frontend in `code/frontend`.
+Script chạy `next dev` trong `code/frontend/`.  
+Frontend lắng nghe tại: `http://localhost:3000`
+
+---
+
+### Cách 3 — Chạy script PowerShell trực tiếp
 
 ```powershell
-npm run dev
-```
-
-Starts backend and frontend together. The backend uses Neon PostgreSQL through environment variables. Local PostgreSQL is not required for the normal development workflow.
-
-Compatibility aliases:
-
-- `npm run dev:backend` calls `npm run backend`.
-- `npm run dev:frontend` calls `npm run frontend`.
-- `npm run start` calls `npm run dev`.
-
-### Khởi tạo database local
-
-Legacy local database helper. Do not use this for the Neon-backed development workflow.
-
-
-```powershell
-.\scripts\setup-local-db.ps1
-npm install
-npm run dev
-```
-
-### Bước 1: Khởi động API Backend
-Để ứng dụng frontend có thể tải dữ liệu thực tế (thực đơn, toppings, đơn hàng), bạn cần khởi động Backend Server trước:
-1. Di chuyển vào thư mục backend:
-   ```bash
-   npm run backend
-   ```
-2. Khởi chạy dự án Spring Boot:
-   ```bash
-   npm run backend
-   ```
-   *Mặc định API Server sẽ lắng nghe tại cổng: `http://localhost:8080/api/v1`*
-
-For Neon-backed development, prefer:
-
-```powershell
+# Backend
 .\scripts\run-backend-neon.ps1
-```
 
-### Bước 2: Khởi động Frontend
-1. Di chuyển vào thư mục frontend:
-   ```bash
-   cd code/frontend
-   ```
-2. Cài đặt các thư viện phụ thuộc:
-   ```bash
-   npm install
-   ```
-3. Chạy server phát triển (Development):
-   ```bash
-   npm run frontend
-   ```
-   *Mở trình duyệt truy cập: `http://localhost:3000`*
-
-### Chạy full project với Neon
-
-Terminal 1:
-
-```powershell
-.\scripts\run-backend-neon.ps1
-```
-
-Terminal 2:
-
-```powershell
+# Frontend (terminal mới)
 cd code/frontend
 npm run dev
 ```
 
-Open:
+---
 
-- Frontend: `http://localhost:3000`
-- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
-- Public menu API: `http://localhost:8080/api/v1/menu`
+## 6. Các lệnh hữu ích
+
+Tất cả lệnh dưới đây chạy từ **thư mục gốc** trừ khi có ghi chú khác.
+
+### Root scripts
+
+| Lệnh | Mô tả |
+|---|---|
+| `npm run dev` | Chạy cả backend + frontend |
+| `npm run backend` | Chỉ chạy backend |
+| `npm run frontend` | Chỉ chạy frontend |
+| `npm run start` | Alias của `npm run dev` |
+| `npm run dev:backend` | Alias của `npm run backend` |
+| `npm run dev:frontend` | Alias của `npm run frontend` |
+
+### Frontend scripts (chạy trong `code/frontend/`)
+
+| Lệnh | Mô tả |
+|---|---|
+| `npm run lint` | Kiểm tra lỗi ESLint |
+| `npm run type-check` | Kiểm tra kiểu TypeScript |
+| `npm run test` | Chạy unit test với Jest |
+| `npm run build` | Build production |
 
 ---
 
-## 4. Kiểm tra Chất lượng & Đóng gói (Code Quality & Build)
+## 7. Địa chỉ truy cập
 
-Các lệnh sau được thực thi trong thư mục `code/frontend/`:
-
-### Lỗi cú pháp & Linter
-Đảm bảo mã nguồn sạch lỗi, không sử dụng kiểu `any`, không hardcode text/màu sắc:
-```bash
-npm run lint
-```
-
-### Kiểm tra Kiểu dữ liệu
-Kiểm tra biên dịch tĩnh TypeScript:
-```bash
-npm run type-check
-```
-
-### Chạy Unit Test
-Chạy bộ Jest test kiểm thử các base components, card hiển thị và logic Zustand Cart Store:
-```bash
-npm run test
-```
-
-### Đóng gói Docker
-Hệ thống hỗ trợ chạy bằng Docker để dễ dàng deploy lên Staging/Production:
-1. Khởi động dịch vụ qua Docker Compose:
-   ```bash
-   docker-compose up --build
-   ```
-   *Frontend sẽ chạy trên cổng `3000` sử dụng Next.js Standalone Build siêu nhẹ.*
+| Địa chỉ | Mô tả |
+|---|---|
+| `http://localhost:3000` | Giao diện web (Frontend) |
+| `http://localhost:3000/vi` | Trang chủ tiếng Việt |
+| `http://localhost:3000/vi/admin/dashboard` | Dashboard Admin |
+| `http://localhost:3000/vi/manager/dashboard` | Dashboard Manager |
+| `http://localhost:8080/api/v1` | REST API Backend |
+| `http://localhost:8080/swagger-ui/index.html` | Swagger API Docs |
 
 ---
 
-## 5. Các Tài liệu Quan trọng (Must-read Documents)
+## 8. Tài liệu tham khảo
 
-Trước khi thực hiện chỉnh sửa hoặc tích hợp API, vui lòng đọc kỹ các tài liệu trong thư mục `docs/`:
-1. [docs/srs.md](file:///c:/Users/rosek/OneDrive/Documents/Lowlands_G10/LowLands_Coffee/docs/srs.md) để nắm rõ luồng thanh toán và chọn size/topping.
-2. [docs/convention.md](file:///c:/Users/rosek/OneDrive/Documents/Lowlands_G10/LowLands_Coffee/docs/convention.md) để tuân thủ quy tắc viết code (kebab-case, PascalCase, quy tắc đa ngôn ngữ i18n).
-3. [docs/UI-UX style guideline/style-guide.md](file:///c:/Users/rosek/OneDrive/Documents/Lowlands_G10/LowLands_Coffee/docs/UI-UX%20style%20guideline/style-guide.md) để xem thông tin bảng màu đất bazan và các tokens.
+| Tài liệu | Mô tả |
+|---|---|
+| [docs/srs.md](docs/srs.md) | Đặc tả yêu cầu phần mềm |
+| [docs/convention.md](docs/convention.md) | Quy chuẩn viết code (naming, i18n, ...) |
+| [docs/api-contract/](docs/api-contract/) | Hợp đồng API FE ↔ BE |
+| [docs/DB-erd/](docs/DB-erd/) | Sơ đồ ERD & migration scripts |
+| [docs/UI-UX style guideline/](docs/UI-UX%20style%20guideline/) | Design tokens & bảng màu |
+| [docs/system-permission-matrix.md](docs/system-permission-matrix.md) | Ma trận phân quyền theo vai trò |
