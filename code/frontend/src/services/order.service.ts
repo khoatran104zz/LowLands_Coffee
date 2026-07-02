@@ -165,3 +165,26 @@ const toFrontendPaymentMethod = (paymentMethod?: BackendPaymentResponse["payment
   if (paymentMethod === "MOMO" || paymentMethod === "CARD") return "e_wallet";
   return "cod";
 };
+
+export const getOrders = async (params?: {
+  storeId?: number;
+  status?: string;
+  orderType?: string;
+  search?: string;
+  page?: number;
+  size?: number;
+}): Promise<Order[]> => {
+  const response = await axiosInstance.get<ApiResponse<{ content: BackendOrderResponse[] }>>("/orders", { params });
+  return response.data.data.content.map(toFrontendOrder);
+};
+
+export const confirmOrder = async (id: number): Promise<Order> => {
+  const response = await axiosInstance.post<ApiResponse<BackendOrderResponse>>(`/orders/${id}/confirm`);
+  return toFrontendOrder(response.data.data);
+};
+
+export const cancelOrder = async (id: number, reason?: string): Promise<Order> => {
+  const response = await axiosInstance.post<ApiResponse<BackendOrderResponse>>(`/orders/${id}/cancel`, reason ? { reason } : {});
+  return toFrontendOrder(response.data.data);
+};
+

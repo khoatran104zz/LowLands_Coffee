@@ -15,4 +15,17 @@ public class ManagerDashboardSummaryResponse {
     private final long lowStockItems;
     private final long totalOrders;
     private final BigDecimal totalRevenue;
+
+    // Added fields for real stats
+    private final long todayOrders;
+    private final BigDecimal todayRevenue;
+    private final long preparingOrders;
+    private final long completedOrders;
+    private final long activeStaff;
+    private final long todayGoodsReceipts;
+
+    // Added fields for reports/revenue page
+    private final BigDecimal yesterdayRevenue;
+    private final BigDecimal thisWeekRevenue;
+    private final BigDecimal thisMonthRevenue;
 }

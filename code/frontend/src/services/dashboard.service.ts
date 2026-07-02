@@ -21,6 +21,15 @@ export interface ManagerDashboardSummary {
   lowStockItems: number;
   totalOrders: number;
   totalRevenue: number;
+  todayOrders: number;
+  todayRevenue: number;
+  preparingOrders: number;
+  completedOrders: number;
+  activeStaff: number;
+  todayGoodsReceipts: number;
+  yesterdayRevenue: number;
+  thisWeekRevenue: number;
+  thisMonthRevenue: number;
 }
 
 export const getAdminDashboardSummary = async (): Promise<AdminDashboardSummary> => {

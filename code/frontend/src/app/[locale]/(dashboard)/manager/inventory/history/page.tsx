@@ -70,7 +70,7 @@ export default function ManagerInventoryHistoryPage() {
         const type = item.movementType?.toLowerCase();
         let badgeStatus = "active";
         let label = t("manager.inventory.history.typeImport") || "Nhập kho";
-        if (type === "export" || type === "deduct") {
+        if (type === "out" || type === "export" || type === "deduct") {
           badgeStatus = "inactive";
           label = t("manager.inventory.history.typeExport") || "Xuất kho / Bán hàng";
         } else if (type === "adjustment" || type === "adjust") {
@@ -85,7 +85,8 @@ export default function ManagerInventoryHistoryPage() {
       header: t("manager.inventory.history.colQtyChange") || "Lượng thay đổi",
       render: (item) => {
         const qty = item.quantity;
-        const isDeduct = item.movementType?.toLowerCase() === "export" || item.movementType?.toLowerCase() === "deduct";
+        const type = item.movementType?.toLowerCase();
+        const isDeduct = type === "out" || type === "export" || type === "deduct";
         const sign = isDeduct ? "-" : "+";
         const color = isDeduct ? "text-rose-600 font-extrabold" : "text-emerald-600 font-extrabold";
         return <span className={color}>{sign}{qty} {item.unit}</span>;
@@ -131,9 +132,9 @@ export default function ManagerInventoryHistoryPage() {
           value={typeFilter}
           onChange={setTypeFilter}
           options={[
-            { value: "import", label: t("manager.inventory.history.filterImport") || "Nhập kho (Goods Receipt)" },
-            { value: "export", label: t("manager.inventory.history.filterExport") || "Xuất kho (Sales)" },
-            { value: "adjustment", label: t("manager.inventory.history.filterAdjust") || "Điều chỉnh kho" }
+            { value: "IN", label: t("manager.inventory.history.filterImport") || "Nhập kho (Goods Receipt)" },
+            { value: "OUT", label: t("manager.inventory.history.filterExport") || "Xuất kho (Sales)" },
+            { value: "ADJUSTMENT", label: t("manager.inventory.history.filterAdjust") || "Điều chỉnh kho" }
           ]}
           placeholder={t("manager.inventory.history.filterAll") || "Tất cả biến động"}
         />
