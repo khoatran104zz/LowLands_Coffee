@@ -142,7 +142,12 @@ export function Sidebar({ locale, isCollapsed, onToggleCollapse, onCloseMobile }
             <div className="space-y-0.5">
               {group.items.map((item) => {
                 const Icon = item.icon;
-                const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
+                // For inventory root, only exact match (avoid matching /import-notes, /history siblings)
+                const inventoryRootHref = `/${locale}/manager/inventory`;
+                const isActive =
+                  item.href === inventoryRootHref
+                    ? pathname === inventoryRootHref
+                    : pathname === item.href || pathname.startsWith(item.href + "/");
 
                 return (
                   <Link
