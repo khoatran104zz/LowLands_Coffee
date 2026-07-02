@@ -5,15 +5,15 @@ import { Plus, Eye, CheckCircle, X, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
-import { useAuthStore } from "@/store/auth.store";
 import { getSuppliers, Supplier } from "@/services/supplier.service";
 import { getIngredients, Ingredient } from "@/services/ingredient.service";
 import {
-  getGoodsReceipts,
-  getGoodsReceiptById,
-  createGoodsReceipt,
-  completeGoodsReceipt,
-  deleteGoodsReceipt,
+  getManagerGoodsReceipts,
+  getManagerGoodsReceiptById,
+  createManagerGoodsReceipt,
+  completeManagerGoodsReceipt,
+} from "@/services/manager-goods-receipt.service";
+import {
   GoodsReceipt,
   GoodsReceiptItem
 } from "@/services/goods-receipt.service";
@@ -39,11 +39,7 @@ export default function ManagerImportNotesPage() {
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
-
-  // States from Auth store
-  const currentUser = useAuthStore((state) => state.user);
-  const myBranchId = currentUser?.branchId || 2;
-  const branchName = currentUser?.branchName || "Hồ Con Rùa";
+  const [branchName, setBranchName] = useState("");
 
   // Search & Filters
   const [searchQuery, setSearchQuery] = useState("");
@@ -70,11 +66,12 @@ export default function ManagerImportNotesPage() {
     setIsLoading(true);
     try {
       const [recList, supList, ingList] = await Promise.all([
-        getGoodsReceipts(),
+        getManagerGoodsReceipts(),
         getSuppliers(),
         getIngredients()
       ]);
       setReceipts(recList);
+      setBranchName(recList[0]?.storeName || "");
       setSuppliers(supList);
       setIngredients(ingList);
     } catch (error) {
@@ -94,13 +91,12 @@ export default function ManagerImportNotesPage() {
 
   // Filters logic - Filter by manager's storeId ONLY
   const filteredData = receipts.filter((item) => {
-    const matchesBranch = item.storeId === myBranchId;
     const matchesSupplier = !supplierFilter || String(item.supplierId) === supplierFilter;
     const matchesSearch = !searchQuery ||
       item.receiptCode.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (item.supplierName && item.supplierName.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (item.createdByName && item.createdByName.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesBranch && matchesSupplier && matchesSearch;
+    return matchesSupplier && matchesSearch;
   });
 
   const columns: Column<GoodsReceipt>[] = [
@@ -132,10 +128,6 @@ export default function ManagerImportNotesPage() {
     }
     if (ingredients.length === 0) {
       toast.error(t("manager.inventory.importNotes.toastNoIngredients"));
-      return;
-    }
-    if (!currentUser?.id) {
-      toast.error(t("manager.inventory.importNotes.toastNoLogin"));
       return;
     }
 
@@ -207,12 +199,10 @@ export default function ManagerImportNotesPage() {
 
     setIsSaving(true);
     try {
-      await createGoodsReceipt({
+      await createManagerGoodsReceipt({
         receiptCode: formReceiptCode,
         supplierId: Number(formSupplierId),
-        storeId: myBranchId, // Always preset to manager's branch
         note: formNote,
-        createdById: currentUser!.id,
         items: formItems.map(i => ({
           ingredientId: i.ingredientId,
           quantity: i.quantity,
@@ -232,7 +222,7 @@ export default function ManagerImportNotesPage() {
 
   const handleViewDetails = async (receipt: GoodsReceipt) => {
     try {
-      const detail = await getGoodsReceiptById(receipt.id);
+      const detail = await getManagerGoodsReceiptById(receipt.id);
       setViewingReceipt(detail);
       setIsDetailOpen(true);
     } catch {
@@ -248,7 +238,7 @@ export default function ManagerImportNotesPage() {
   const handleConfirmComplete = async () => {
     if (!receiptToComplete) return;
     try {
-      await completeGoodsReceipt(receiptToComplete.id);
+      await completeManagerGoodsReceipt(receiptToComplete.id);
       toast.success(t("manager.inventory.importNotes.toastCompleteSuccess", { code: receiptToComplete.receiptCode }));
       setIsCompleteOpen(false);
       loadData();
@@ -265,10 +255,8 @@ export default function ManagerImportNotesPage() {
   const handleConfirmDelete = async () => {
     if (!receiptToDelete) return;
     try {
-      await deleteGoodsReceipt(receiptToDelete.id);
-      toast.success(t("manager.inventory.importNotes.toastDeleteSuccess", { code: receiptToDelete.receiptCode }));
+      toast.error(t("manager.inventory.importNotes.toastDeleteError"));
       setIsDeleteOpen(false);
-      loadData();
     } catch {
       toast.error(t("manager.inventory.importNotes.toastDeleteError"));
     }
@@ -326,7 +314,7 @@ export default function ManagerImportNotesPage() {
           searchQuery={searchQuery}
           onView={handleViewDetails}
           onEdit={viewingReceipt?.status === "draft" ? handleViewDetails : undefined}
-          onDelete={currentUser?.roleName === "admin" ? handleOpenDelete : undefined}
+          onDelete={undefined}
           extraActions={[
             {
               icon: CheckCircle,
@@ -592,3 +580,6 @@ export default function ManagerImportNotesPage() {
     </div>
   );
 }
+
+
+

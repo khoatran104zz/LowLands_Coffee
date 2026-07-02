@@ -14,5 +14,7 @@ public interface ShiftService {
 
     ShiftResponse assignShift(Long storeId, ShiftCreateRequest request, String actorEmail);
 
+    ShiftResponse updateShift(Long id, Long storeId, ShiftCreateRequest request, String actorEmail);
+
     void removeShift(Long id, String actorEmail);
 }

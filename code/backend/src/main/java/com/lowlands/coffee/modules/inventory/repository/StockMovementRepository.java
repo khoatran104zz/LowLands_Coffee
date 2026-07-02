@@ -21,6 +21,16 @@ public interface StockMovementRepository extends JpaRepository<StockMovementEnti
     @EntityGraph(attributePaths = {"store", "ingredient", "createdBy"})
     List<StockMovementEntity> findAll();
 
+    @EntityGraph(attributePaths = {"store", "ingredient", "createdBy"})
+    List<StockMovementEntity> findByStoreIdOrderByCreatedAtDesc(Long storeId);
+
+    long countByStoreIdAndMovementTypeAndCreatedAtBetween(
+            Long storeId,
+            String movementType,
+            java.time.LocalDateTime start,
+            java.time.LocalDateTime end
+    );
+
     @Query("""
             select coalesce(sum(
                 case
@@ -54,6 +64,25 @@ public interface StockMovementRepository extends JpaRepository<StockMovementEnti
             order by sm.store.id, sm.ingredient.id
             """)
     List<Object[]> calculateAllStockBalances();
+
+    @Query("""
+            select sm.store.id, sm.store.name, sm.ingredient.id, sm.ingredient.code,
+                   sm.ingredient.name, sm.ingredient.unit, sm.ingredient.minStock,
+                   coalesce(sum(
+                       case
+                           when sm.movementType = 'IN' then sm.quantity
+                           when sm.movementType = 'OUT' then -sm.quantity
+                           else sm.quantity
+                       end
+                   ), 0)
+            from StockMovementEntity sm
+            where sm.store.id = :storeId
+            group by sm.store.id, sm.store.name, sm.ingredient.id,
+                     sm.ingredient.code, sm.ingredient.name, sm.ingredient.unit,
+                     sm.ingredient.minStock
+            order by sm.ingredient.id
+            """)
+    List<Object[]> calculateStockBalancesByStoreId(@Param("storeId") Long storeId);
 
     @Query("""
             select count(distinct sm.ingredient.id)

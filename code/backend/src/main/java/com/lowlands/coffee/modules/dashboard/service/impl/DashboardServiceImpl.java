@@ -9,6 +9,7 @@ import com.lowlands.coffee.modules.inventory.repository.StockMovementRepository;
 import com.lowlands.coffee.modules.order.repository.OrderRepository;
 import com.lowlands.coffee.modules.product.repository.ProductRepository;
 import com.lowlands.coffee.modules.store.entity.StoreUserEntity;
+import com.lowlands.coffee.modules.store.entity.StoreEntity;
 import com.lowlands.coffee.modules.store.repository.StoreRepository;
 import com.lowlands.coffee.modules.store.repository.StoreUserRepository;
 import com.lowlands.coffee.modules.user.entity.UserEntity;
@@ -74,6 +75,8 @@ public class DashboardServiceImpl implements DashboardService {
                 .map(store -> store.getId())
                 .findFirst()
                 .orElseThrow(() -> new ResourceNotFoundException("Manager store assignment not found"));
+        StoreEntity store = storeRepository.findById(storeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Manager store not found"));
 
         long inventoryItems = stockMovementRepository.countDistinctIngredientsByStoreId(storeId);
         long lowStockItems = stockMovementRepository.calculateAllStockBalances().stream()
@@ -110,6 +113,12 @@ public class DashboardServiceImpl implements DashboardService {
                 .count();
 
         long todayGoodsReceipts = goodsReceiptRepository.countByStoreIdAndCreatedAtBetween(storeId, todayStart, todayEnd);
+        long todayStockAdjustments = stockMovementRepository.countByStoreIdAndMovementTypeAndCreatedAtBetween(
+                storeId,
+                "ADJUSTMENT",
+                todayStart,
+                todayEnd
+        );
 
         BigDecimal yesterdayRevenue = orderRepository.sumRevenueByStoreAndStatusAndCreatedAtBetween(storeId, "COMPLETED", yesterdayStart, yesterdayEnd);
         BigDecimal thisWeekRevenue = orderRepository.sumRevenueByStoreAndStatusAndCreatedAtBetween(storeId, "COMPLETED", thisWeekStart, todayEnd);
@@ -117,9 +126,12 @@ public class DashboardServiceImpl implements DashboardService {
 
         return ManagerDashboardSummaryResponse.builder()
                 .storeId(storeId)
+                .storeName(store.getName())
                 .totalProducts(productRepository.count())
                 .inventoryItems(inventoryItems)
                 .lowStockItems(lowStockItems)
+                .lowStockCount(lowStockItems)
+                .inventoryAlerts(lowStockItems)
                 .totalOrders(orderRepository.countByStoreId(storeId))
                 .totalRevenue(orderRepository.sumRevenueByStoreAndStatus(storeId, "COMPLETED"))
                 .todayOrders(todayOrders)
@@ -127,7 +139,9 @@ public class DashboardServiceImpl implements DashboardService {
                 .preparingOrders(preparingOrders)
                 .completedOrders(completedOrders)
                 .activeStaff(activeStaff)
+                .staffCount(activeStaff)
                 .todayGoodsReceipts(todayGoodsReceipts)
+                .todayStockAdjustments(todayStockAdjustments)
                 .yesterdayRevenue(yesterdayRevenue)
                 .thisWeekRevenue(thisWeekRevenue)
                 .thisMonthRevenue(thisMonthRevenue)

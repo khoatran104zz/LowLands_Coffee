@@ -16,9 +16,12 @@ export interface AdminDashboardSummary {
 
 export interface ManagerDashboardSummary {
   storeId: number;
+  storeName?: string;
   totalProducts: number;
   inventoryItems: number;
   lowStockItems: number;
+  lowStockCount?: number;
+  inventoryAlerts?: number;
   totalOrders: number;
   totalRevenue: number;
   todayOrders: number;
@@ -26,7 +29,9 @@ export interface ManagerDashboardSummary {
   preparingOrders: number;
   completedOrders: number;
   activeStaff: number;
+  staffCount?: number;
   todayGoodsReceipts: number;
+  todayStockAdjustments?: number;
   yesterdayRevenue: number;
   thisWeekRevenue: number;
   thisMonthRevenue: number;

@@ -22,5 +22,8 @@ public interface GoodsReceiptRepository extends JpaRepository<GoodsReceiptEntity
     @EntityGraph(attributePaths = {"supplier", "store", "createdBy", "items", "items.ingredient"})
     Optional<GoodsReceiptEntity> findById(Long id);
 
+    @EntityGraph(attributePaths = {"supplier", "store", "createdBy", "items", "items.ingredient"})
+    List<GoodsReceiptEntity> findByStoreId(Long storeId);
+
     long countByStoreIdAndCreatedAtBetween(Long storeId, LocalDateTime start, LocalDateTime end);
 }

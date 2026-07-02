@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { History, AlertCircle } from "lucide-react";
-import { getStockMovements, StockMovement } from "@/services/inventory.service";
-import { useAuthStore } from "@/store/auth.store";
+import { StockMovement } from "@/services/inventory.service";
+import { getManagerStockMovements } from "@/services/manager-inventory.service";
 import { DataTable, Column } from "@/components/admin/DataTable";
 import { SearchBar } from "@/components/admin/SearchBar";
 import { Filter } from "@/components/admin/Filter";
@@ -22,17 +22,13 @@ export default function ManagerInventoryHistoryPage() {
   const [isMounted, setIsMounted] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
-
-  const currentUser = useAuthStore((state) => state.user);
-  const myBranchId = currentUser?.branchId || 2;
-  const branchName = currentUser?.branchName || "Hồ Con Rùa";
+  const [branchName, setBranchName] = useState("");
 
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const allMovements = await getStockMovements();
-      // Filter by manager's storeId only
-      const myMovements = allMovements.filter((m) => m.storeId === myBranchId);
+      const myMovements = await getManagerStockMovements();
+      setBranchName(myMovements[0]?.storeName || "");
       setMovements(myMovements);
     } catch (error) {
       console.error("Failed to load inventory movements history", error);
@@ -156,3 +152,4 @@ export default function ManagerInventoryHistoryPage() {
     </div>
   );
 }
+

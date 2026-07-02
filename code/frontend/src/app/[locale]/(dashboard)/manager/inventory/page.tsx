@@ -3,8 +3,8 @@
 import React, { useEffect, useState } from "react";
 import { AlertCircle } from "lucide-react";
 import { Ingredient } from "@/store/dashboardStore";
-import { useAuthStore } from "@/store/auth.store";
-import { createStockAdjustment, getStockBalances, StockBalance } from "@/services/inventory.service";
+import { StockBalance } from "@/services/inventory.service";
+import { createManagerStockAdjustment, getManagerStockBalances } from "@/services/manager-inventory.service";
 import { DataTable, Column } from "@/components/admin/DataTable";
 import { SearchBar } from "@/components/admin/SearchBar";
 import { FormModal } from "@/components/admin/FormModal";
@@ -34,8 +34,7 @@ export default function ManagerInventoryPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [inventoryError, setInventoryError] = useState<string | null>(null);
-  const user = useAuthStore((state) => state.user);
-  const branchName = user?.branchName || "Hồ Con Rùa";
+  const [branchName, setBranchName] = useState("");
 
   const [isRestockOpen, setIsRestockOpen] = useState(false);
   const [selectedIngId, setSelectedIngId] = useState<number | null>(null);
@@ -43,10 +42,9 @@ export default function ManagerInventoryPage() {
 
   const loadInventory = async () => {
     try {
-      const balances = await getStockBalances();
-      const myBranchId = user?.branchId || 2;
-      const myBalances = balances.filter((b) => b.storeId === myBranchId);
-      setIngredients(myBalances.map(toInventoryRow));
+      const balances = await getManagerStockBalances();
+      setBranchName(balances[0]?.storeName || "");
+      setIngredients(balances.map(toInventoryRow));
       setInventoryError(null);
     } catch (error) {
       console.error("Failed to load stock balances from backend", error);
@@ -58,7 +56,7 @@ export default function ManagerInventoryPage() {
   useEffect(() => {
     setIsMounted(true);
     void loadInventory();
-  }, [user]);
+  }, []);
 
   if (!isMounted) {
     return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
@@ -107,25 +105,18 @@ export default function ManagerInventoryPage() {
       toast.error(t("manager.inventory.balance.toastValidQty"));
       return;
     }
-    if (!user?.id) {
-      toast.error(t("manager.inventory.balance.toastNoLogin"));
-      return;
-    }
-
     const selectedIngredient = ingredients.find((ingredient) => ingredient.id === selectedIngId);
-    if (!selectedIngredient?.storeId) {
-      toast.error(t("manager.inventory.balance.toastNoStore"));
+    if (!selectedIngredient) {
+      toast.error(t("manager.inventory.balance.toastValidQty"));
       return;
     }
 
     try {
-      await createStockAdjustment({
-        storeId: selectedIngredient.storeId,
+      await createManagerStockAdjustment({
         ingredientId: selectedIngredient.id,
         quantity: restockQty,
         unit: selectedIngredient.unit,
         note: "Manager inventory restock adjustment",
-        createdById: user.id,
       });
       await loadInventory();
       toast.success(t("manager.inventory.balance.toastRestockSuccess", { qty: restockQty, name: selectedIngredient.name }));
@@ -234,3 +225,4 @@ export default function ManagerInventoryPage() {
     </div>
   );
 }
+

@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from "react";
 import { Clock, Plus, Trash2, Calendar, Coffee, Check, AlertTriangle } from "lucide-react";
-import { useAuthStore } from "@/store/auth.store";
-import { useDashboardStore } from "@/store/dashboardStore";
 import { useTranslation } from "@/hooks/useTranslation";
-import { getShifts, assignShift, deleteShift, Shift } from "@/services/shift.service";
+import { Shift } from "@/services/shift.service";
+import { getManagerShifts, assignManagerShift, deleteManagerShift } from "@/services/manager-shift.service";
+import { getManagerStaff, ManagerStaff } from "@/services/manager-staff.service";
 import { FormModal } from "@/components/admin/FormModal";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { Button } from "@/components/ui/button";
@@ -33,23 +33,15 @@ export default function ManagerShiftsPage() {
   const [formUserId, setFormUserId] = useState<string>("");
   const [formShiftName, setFormShiftName] = useState<string>("MORNING");
 
-  // Stores
-  const currentUser = useAuthStore((state) => state.user);
-  const employees = useDashboardStore((state) => state.employees);
-  const hydrateUsers = useDashboardStore((state) => state.hydrateUsers);
+  const [staff, setStaff] = useState<ManagerStaff[]>([]);
+  const branchName = staff[0]?.storeName || "";
 
-  const myBranchId = currentUser?.branchId || 2;
-  const branchName = currentUser?.branchName || "Hồ Con Rùa";
-
-  // Filter active staff at our store
-  const activeStoreStaff = employees.filter(
-    (e) => e.branchId === myBranchId && e.status === "active"
-  );
+  const activeStoreStaff = staff.filter((employee) => employee.status === "active");
 
   const loadShifts = async () => {
     setIsLoading(true);
     try {
-      const data = await getShifts(myBranchId, { date: selectedDate });
+      const data = await getManagerShifts({ date: selectedDate });
       setShifts(data);
     } catch (error) {
       console.error("Failed to load shifts", error);
@@ -61,8 +53,8 @@ export default function ManagerShiftsPage() {
 
   useEffect(() => {
     setIsMounted(true);
-    void hydrateUsers();
-  }, [hydrateUsers]);
+    void getManagerStaff().then(setStaff);
+  }, []);
 
   useEffect(() => {
     if (isMounted) {
@@ -77,7 +69,7 @@ export default function ManagerShiftsPage() {
       toast.error("Vui lòng kích hoạt/thêm nhân viên cho chi nhánh trước.");
       return;
     }
-    setFormUserId(String(activeStoreStaff[0].id));
+    setFormUserId(String(activeStoreStaff[0].userId));
     setFormShiftName("MORNING");
     setIsAssignOpen(true);
   };
@@ -90,7 +82,7 @@ export default function ManagerShiftsPage() {
     }
     setIsActionLoading(true);
     try {
-      await assignShift(myBranchId, {
+      await assignManagerShift({
         userId: Number(formUserId),
         shiftName: formShiftName,
         shiftDate: selectedDate,
@@ -116,7 +108,7 @@ export default function ManagerShiftsPage() {
     if (!shiftToDelete) return;
     setIsActionLoading(true);
     try {
-      await deleteShift(shiftToDelete.id);
+      await deleteManagerShift(shiftToDelete.id);
       toast.success(`Đã xóa ca của ${shiftToDelete.userFullName}`);
       setIsDeleteOpen(false);
       loadShifts();
@@ -292,7 +284,7 @@ export default function ManagerShiftsPage() {
               className="w-full h-10 px-3 bg-background border border-border text-foreground hover:bg-muted/10 rounded-lg text-xs font-medium focus:outline-none"
             >
               {activeStoreStaff.map((e) => (
-                <option key={e.id} value={e.id}>
+                <option key={e.userId} value={e.userId}>
                   {e.fullName} ({e.employeeCode || "Nhân viên"})
                 </option>
               ))}
@@ -356,3 +348,4 @@ export default function ManagerShiftsPage() {
     </div>
   );
 }
+

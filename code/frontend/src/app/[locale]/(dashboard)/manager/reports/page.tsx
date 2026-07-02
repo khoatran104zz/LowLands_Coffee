@@ -2,29 +2,30 @@
 
 import React, { useState, useEffect } from "react";
 import { Sparkles, FileBarChart2 } from "lucide-react";
-import { getManagerDashboardSummary, ManagerDashboardSummary } from "@/services/dashboard.service";
-import { useDashboardStore } from "@/store/dashboardStore";
+import { ManagerDashboardSummary } from "@/services/dashboard.service";
+import { getManagerDashboardSummary } from "@/services/manager-dashboard.service";
+import { getManagerStaff, ManagerStaff } from "@/services/manager-staff.service";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useAuthStore } from "@/store/auth.store";
 import { ChartCard } from "@/components/admin/ChartCard";
 
 export default function ManagerReportsPage() {
   const { t } = useTranslation();
   const [isMounted, setIsMounted] = useState(false);
   const [summary, setSummary] = useState<ManagerDashboardSummary | null>(null);
+  const [staff, setStaff] = useState<ManagerStaff[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  const currentUser = useAuthStore((state) => state.user);
-  const myBranchId = currentUser?.branchId || 2;
-  const branchName = currentUser?.branchName || "Hồ Con Rùa";
-
-  const employees = useDashboardStore((state) => state.employees);
+  const branchName = summary?.storeName || "";
 
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const data = await getManagerDashboardSummary();
+      const [data, staffData] = await Promise.all([
+        getManagerDashboardSummary(),
+        getManagerStaff()
+      ]);
       setSummary(data);
+      setStaff(staffData);
     } catch (error) {
       console.error("Failed to load reports dashboard summary", error);
     } finally {
@@ -39,7 +40,7 @@ export default function ManagerReportsPage() {
 
   if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
 
-  const myBranchStaff = employees.filter((e) => e.branchId === myBranchId);
+  const myBranchStaff = staff;
 
   return (
     <div className="space-y-6">

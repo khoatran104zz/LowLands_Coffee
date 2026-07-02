@@ -103,6 +103,41 @@ public class ShiftServiceImpl implements ShiftService {
     }
 
     @Override
+    public ShiftResponse updateShift(Long id, Long storeId, ShiftCreateRequest request, String actorEmail) {
+        UserEntity actor = getActor(actorEmail);
+        ensureStoreScope(actor, storeId);
+        ShiftEntity shift = shiftRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Shift assignment not found"));
+        ensureStoreScope(actor, shift.getStore().getId());
+        if (!shift.getStore().getId().equals(storeId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Shift store access denied");
+        }
+        UserEntity employee = userRepository.findById(request.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("Employee user not found"));
+        boolean assignedToStore = storeUserRepository.findByUserId(employee.getId()).stream()
+                .filter(su -> "active".equalsIgnoreCase(su.getStatus()))
+                .anyMatch(su -> su.getStore().getId().equals(storeId));
+        if (!assignedToStore && !isAdmin(actor)) {
+            throw new BadRequestException("Employee is not assigned to this store");
+        }
+        String normalizedShiftName = request.getShiftName().trim().toUpperCase();
+        if (!List.of("MORNING", "AFTERNOON", "NIGHT").contains(normalizedShiftName)) {
+            throw new BadRequestException("Shift name must be MORNING, AFTERNOON, or NIGHT");
+        }
+        if (shiftRepository.existsByStoreIdAndUserIdAndShiftDateAndShiftName(
+                storeId, employee.getId(), request.getShiftDate(), normalizedShiftName)
+                && !(shift.getUser().getId().equals(employee.getId())
+                && shift.getShiftDate().equals(request.getShiftDate())
+                && shift.getShiftName().equals(normalizedShiftName))) {
+            throw new ConflictException("Employee is already assigned to this shift on the selected date");
+        }
+        shift.setUser(employee);
+        shift.setShiftName(normalizedShiftName);
+        shift.setShiftDate(request.getShiftDate());
+        return mapToResponse(shiftRepository.save(shift));
+    }
+
+    @Override
     public void removeShift(Long id, String actorEmail) {
         UserEntity actor = getActor(actorEmail);
         ShiftEntity shift = shiftRepository.findById(id)

@@ -3,8 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Receipt, Search, Filter as FilterIcon, X, Check, AlertTriangle, Eye } from "lucide-react";
 import { Order, OrderItemInput } from "@/types";
-import { getOrders, confirmOrder, cancelOrder } from "@/services/order.service";
-import { useAuthStore } from "@/store/auth.store";
+import { getManagerOrders, confirmManagerOrder, cancelManagerOrder } from "@/services/manager-order.service";
 import { DataTable, Column } from "@/components/admin/DataTable";
 import { SearchBar } from "@/components/admin/SearchBar";
 import { Filter } from "@/components/admin/Filter";
@@ -38,16 +37,13 @@ export default function ManagerOrdersPage() {
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
   const [cancelReason, setCancelReason] = useState("");
   const [isActionLoading, setIsActionLoading] = useState(false);
-
-  const currentUser = useAuthStore((state) => state.user);
-  const branchName = currentUser?.branchName || "Hồ Con Rùa";
-  const myBranchId = currentUser?.branchId || 2;
+  const [branchName, setBranchName] = useState("");
 
   const loadOrders = async () => {
     setIsLoading(true);
     try {
-      // By calling getOrders, the backend automatically scopes to manager's assigned branch
-      const list = await getOrders({ storeId: myBranchId });
+      const list = await getManagerOrders();
+      setBranchName(list[0]?.storeName || "");
       setOrders(list);
     } catch (error) {
       console.error("Failed to load store orders", error);
@@ -120,7 +116,7 @@ export default function ManagerOrdersPage() {
     if (!selectedOrder?.id) return;
     setIsActionLoading(true);
     try {
-      await confirmOrder(selectedOrder.id);
+      await confirmManagerOrder(selectedOrder.id);
       toast.success(`Đã xác nhận đơn hàng ${selectedOrder.orderCode}`);
       setIsConfirmOpen(false);
       setIsDetailOpen(false);
@@ -146,7 +142,7 @@ export default function ManagerOrdersPage() {
     }
     setIsActionLoading(true);
     try {
-      await cancelOrder(selectedOrder.id, cancelReason);
+      await cancelManagerOrder(selectedOrder.id, cancelReason);
       toast.success(`Đã hủy đơn hàng ${selectedOrder.orderCode}`);
       setIsCancelOpen(false);
       setIsDetailOpen(false);
@@ -396,3 +392,4 @@ export default function ManagerOrdersPage() {
     </div>
   );
 }
+

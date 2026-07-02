@@ -3,6 +3,7 @@ package com.lowlands.coffee.modules.dashboard.controller;
 import com.lowlands.coffee.common.ApiResponse;
 import com.lowlands.coffee.modules.dashboard.dto.response.ManagerDashboardSummaryResponse;
 import com.lowlands.coffee.modules.dashboard.service.DashboardService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,6 +20,7 @@ public class ManagerDashboardController {
     }
 
     @GetMapping("/summary")
+    @PreAuthorize("hasAuthority('REPORT_VIEW')")
     public ApiResponse<ManagerDashboardSummaryResponse> getSummary(Authentication authentication) {
         return ApiResponse.success(dashboardService.getManagerSummary(authentication.getName()));
     }

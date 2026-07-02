@@ -8,6 +8,9 @@ import com.lowlands.coffee.modules.ingredient.repository.IngredientRepository;
 import com.lowlands.coffee.modules.inventory.dto.request.GoodsReceiptCreateRequest;
 import com.lowlands.coffee.modules.inventory.dto.request.GoodsReceiptItemRequest;
 import com.lowlands.coffee.modules.inventory.dto.request.GoodsReceiptUpdateRequest;
+import com.lowlands.coffee.modules.inventory.dto.request.ManagerGoodsReceiptCreateRequest;
+import com.lowlands.coffee.modules.inventory.dto.request.ManagerGoodsReceiptUpdateRequest;
+import com.lowlands.coffee.modules.inventory.dto.request.ManagerStockAdjustmentRequest;
 import com.lowlands.coffee.modules.inventory.dto.request.StockAdjustmentRequest;
 import com.lowlands.coffee.modules.inventory.dto.response.GoodsReceiptResponse;
 import com.lowlands.coffee.modules.inventory.dto.response.StockBalanceResponse;
@@ -81,8 +84,24 @@ public class InventoryServiceImpl implements InventoryService {
 
     @Override
     @Transactional(readOnly = true)
+    public List<GoodsReceiptResponse> findGoodsReceiptsByStore(Long storeId) {
+        return goodsReceiptRepository.findByStoreId(storeId).stream()
+                .map(inventoryMapper::toGoodsReceiptResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public GoodsReceiptResponse findGoodsReceiptById(Long id) {
         return inventoryMapper.toGoodsReceiptResponse(getGoodsReceipt(id));
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public GoodsReceiptResponse findGoodsReceiptByIdForStore(Long id, Long storeId) {
+        GoodsReceiptEntity receipt = getGoodsReceipt(id);
+        ensureReceiptStore(receipt, storeId);
+        return inventoryMapper.toGoodsReceiptResponse(receipt);
     }
 
     @Override
@@ -96,6 +115,29 @@ public class InventoryServiceImpl implements InventoryService {
         receipt.setSupplier(getSupplier(request.getSupplierId()));
         receipt.setStore(getStore(request.getStoreId()));
         receipt.setCreatedBy(getUser(request.getCreatedById()));
+        receipt.setReceiptCode(receiptCode);
+        receipt.setStatus(DRAFT);
+        receipt.setNote(clean(request.getNote()));
+        replaceReceiptItems(receipt, request.getItems());
+        receipt.setTotalAmount(calculateTotal(receipt));
+        return inventoryMapper.toGoodsReceiptResponse(goodsReceiptRepository.save(receipt));
+    }
+
+    @Override
+    public GoodsReceiptResponse createManagerGoodsReceipt(
+            ManagerGoodsReceiptCreateRequest request,
+            Long storeId,
+            Long createdById
+    ) {
+        validateReceiptItems(request.getItems());
+        String receiptCode = request.getReceiptCode().trim();
+        if (goodsReceiptRepository.existsByReceiptCode(receiptCode)) {
+            throw new DuplicateResourceException("Goods receipt code already exists");
+        }
+        GoodsReceiptEntity receipt = new GoodsReceiptEntity();
+        receipt.setSupplier(getSupplier(request.getSupplierId()));
+        receipt.setStore(getStore(storeId));
+        receipt.setCreatedBy(getUser(createdById));
         receipt.setReceiptCode(receiptCode);
         receipt.setStatus(DRAFT);
         receipt.setNote(clean(request.getNote()));
@@ -125,6 +167,31 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    public GoodsReceiptResponse updateManagerGoodsReceipt(
+            Long id,
+            ManagerGoodsReceiptUpdateRequest request,
+            Long storeId,
+            Long updatedById
+    ) {
+        validateReceiptItems(request.getItems());
+        GoodsReceiptEntity receipt = getGoodsReceipt(id);
+        ensureReceiptStore(receipt, storeId);
+        ensureDraft(receipt);
+        String receiptCode = request.getReceiptCode().trim();
+        if (goodsReceiptRepository.existsByReceiptCodeAndIdNot(receiptCode, id)) {
+            throw new DuplicateResourceException("Goods receipt code already exists");
+        }
+        receipt.setSupplier(getSupplier(request.getSupplierId()));
+        receipt.setCreatedBy(getUser(updatedById));
+        receipt.setReceiptCode(receiptCode);
+        receipt.setNote(clean(request.getNote()));
+        receipt.getItems().clear();
+        replaceReceiptItems(receipt, request.getItems());
+        receipt.setTotalAmount(calculateTotal(receipt));
+        return inventoryMapper.toGoodsReceiptResponse(goodsReceiptRepository.save(receipt));
+    }
+
+    @Override
     public void deleteGoodsReceipt(Long id) {
         GoodsReceiptEntity receipt = getGoodsReceipt(id);
         ensureDraft(receipt);
@@ -145,9 +212,40 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    public GoodsReceiptResponse completeManagerGoodsReceipt(Long id, Long storeId) {
+        GoodsReceiptEntity receipt = getGoodsReceipt(id);
+        ensureReceiptStore(receipt, storeId);
+        if (COMPLETED.equals(receipt.getStatus())) {
+            if (stockMovementRepository.existsByMovementTypeAndReferenceTypeAndReferenceId(IN, GOODS_RECEIPT, receipt.getId())) {
+                return inventoryMapper.toGoodsReceiptResponse(receipt);
+            }
+            throw new com.lowlands.coffee.common.exception.ConflictException(
+                    "Completed goods receipt is missing stock movements"
+            );
+        }
+        ensureDraft(receipt);
+        receipt.setStatus(COMPLETED);
+        GoodsReceiptEntity savedReceipt = goodsReceiptRepository.save(receipt);
+        if (!stockMovementRepository.existsByMovementTypeAndReferenceTypeAndReferenceId(IN, GOODS_RECEIPT, savedReceipt.getId())) {
+            savedReceipt.getItems().forEach(item -> stockMovementRepository.save(
+                    createReceiptMovement(savedReceipt, item)
+            ));
+        }
+        return inventoryMapper.toGoodsReceiptResponse(savedReceipt);
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<StockMovementResponse> findStockMovements() {
         return stockMovementRepository.findAll().stream()
+                .map(inventoryMapper::toStockMovementResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<StockMovementResponse> findStockMovementsByStore(Long storeId) {
+        return stockMovementRepository.findByStoreIdOrderByCreatedAtDesc(storeId).stream()
                 .map(inventoryMapper::toStockMovementResponse)
                 .toList();
     }
@@ -171,9 +269,39 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    public StockMovementResponse createManagerManualAdjustment(
+            ManagerStockAdjustmentRequest request,
+            Long storeId,
+            Long createdById
+    ) {
+        if (BigDecimal.ZERO.compareTo(request.getQuantity()) == 0) {
+            throw new BadRequestException("Adjustment quantity must not be zero");
+        }
+        StockMovementEntity movement = new StockMovementEntity();
+        movement.setStore(getStore(storeId));
+        movement.setIngredient(getIngredient(request.getIngredientId()));
+        movement.setMovementType(ADJUSTMENT);
+        movement.setQuantity(request.getQuantity());
+        movement.setUnit(request.getUnit().trim());
+        movement.setReferenceType(MANUAL_ADJUSTMENT);
+        movement.setReferenceId(null);
+        movement.setNote(clean(request.getNote()));
+        movement.setCreatedBy(getUser(createdById));
+        return inventoryMapper.toStockMovementResponse(stockMovementRepository.save(movement));
+    }
+
+    @Override
     @Transactional(readOnly = true)
     public List<StockBalanceResponse> getStockBalances() {
         return stockMovementRepository.calculateAllStockBalances().stream()
+                .map(inventoryMapper::toStockBalanceResponse)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<StockBalanceResponse> getStockBalancesByStore(Long storeId) {
+        return stockMovementRepository.calculateStockBalancesByStoreId(storeId).stream()
                 .map(inventoryMapper::toStockBalanceResponse)
                 .toList();
     }
@@ -223,6 +351,12 @@ public class InventoryServiceImpl implements InventoryService {
     private void ensureDraft(GoodsReceiptEntity receipt) {
         if (!DRAFT.equals(receipt.getStatus())) {
             throw new BadRequestException("Only draft goods receipt can be changed");
+        }
+    }
+
+    private void ensureReceiptStore(GoodsReceiptEntity receipt, Long storeId) {
+        if (!receipt.getStore().getId().equals(storeId)) {
+            throw new org.springframework.security.access.AccessDeniedException("Goods receipt store access denied");
         }
     }
 

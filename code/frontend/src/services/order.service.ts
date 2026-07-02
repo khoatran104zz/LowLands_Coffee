@@ -33,7 +33,7 @@ interface BackendOrderRequest {
   }[];
 }
 
-interface BackendOrderResponse {
+export interface BackendOrderResponse {
   id: number;
   userId?: number | null;
   storeId: number;
@@ -110,7 +110,7 @@ const toBackendOrderRequest = (order: Order): BackendOrderRequest => ({
   })),
 });
 
-const toFrontendOrder = (order: BackendOrderResponse): Order => ({
+export const toFrontendOrder = (order: BackendOrderResponse): Order => ({
   id: order.id,
   userId: order.userId ?? undefined,
   storeId: order.storeId,

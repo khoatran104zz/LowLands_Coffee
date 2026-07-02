@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from "react";
 import { Coins, TrendingUp, Calendar, ArrowUpRight, DollarSign } from "lucide-react";
-import { getManagerDashboardSummary, ManagerDashboardSummary } from "@/services/dashboard.service";
-import { useAuthStore } from "@/store/auth.store";
+import { ManagerDashboardSummary } from "@/services/dashboard.service";
+import { getManagerDashboardSummary } from "@/services/manager-dashboard.service";
 import { useTranslation } from "@/hooks/useTranslation";
 import { StatsCard } from "@/components/admin/StatsCard";
 
@@ -13,8 +13,7 @@ export default function ManagerRevenuePage() {
   const [summary, setSummary] = useState<ManagerDashboardSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const currentUser = useAuthStore((state) => state.user);
-  const branchName = currentUser?.branchName || "Hồ Con Rùa";
+  const branchName = summary?.storeName || "";
 
   const loadData = async () => {
     setIsLoading(true);

@@ -4,9 +4,9 @@ import React, { useState, useEffect } from "react";
 import { DollarSign, ShoppingBag, Users, AlertTriangle, Coffee, CheckCircle, FileDown } from "lucide-react";
 import { StatsCard } from "@/components/admin/StatsCard";
 import { ChartCard } from "@/components/admin/ChartCard";
-import { getManagerDashboardSummary, ManagerDashboardSummary } from "@/services/dashboard.service";
+import { ManagerDashboardSummary } from "@/services/dashboard.service";
+import { getManagerDashboardSummary } from "@/services/manager-dashboard.service";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useAuthStore } from "@/store/auth.store";
 
 export default function ManagerDashboardPage() {
   const { t } = useTranslation();
@@ -14,8 +14,7 @@ export default function ManagerDashboardPage() {
   const [summary, setSummary] = useState<ManagerDashboardSummary | null>(null);
   const [summaryError, setSummaryError] = useState<string | null>(null);
 
-  const currentUser = useAuthStore((state) => state.user);
-  const branchName = currentUser?.branchName || "Hồ Con Rùa";
+  const branchName = summary?.storeName || "";
 
   const loadDashboardData = () => {
     getManagerDashboardSummary()
