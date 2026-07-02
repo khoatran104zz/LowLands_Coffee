@@ -42,12 +42,16 @@ export default function ManagerOrdersPage() {
   const loadOrders = async () => {
     setIsLoading(true);
     try {
+<<<<<<< HEAD
       const list = await getManagerOrders();
       setBranchName(list[0]?.storeName || "");
+=======
+      const list = await getOrders({ storeId: myBranchId });
+>>>>>>> 54a6bd0c9437303967cbdf41710e49c89c345a1a
       setOrders(list);
     } catch (error) {
       console.error("Failed to load store orders", error);
-      toast.error("Không thể tải danh sách đơn hàng.");
+      toast.error(t("manager.orders.toastLoadError"));
     } finally {
       setIsLoading(false);
     }
@@ -70,35 +74,58 @@ export default function ManagerOrdersPage() {
     return matchesStatus && matchesSearch;
   });
 
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      pending: t("manager.orders.statusPending"),
+      confirmed: t("manager.orders.statusConfirmed"),
+      preparing: t("manager.orders.statusPreparing"),
+      ready: t("manager.orders.statusReady"),
+      completed: t("manager.orders.statusCompleted"),
+      cancelled: t("manager.orders.statusCancelled"),
+    };
+    return labels[status.toLowerCase()] || status;
+  };
+
+  const getOrderTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      delivery: t("manager.orders.typeDelivery"),
+      pickup: t("manager.orders.typePickup"),
+      dine_in: t("manager.orders.typeDineIn"),
+      takeaway: t("manager.orders.typeTakeaway"),
+    };
+    return labels[type] || type;
+  };
+
+  const getPaymentMethodLabel = (method: string) => {
+    const labels: Record<string, string> = {
+      bank_transfer: t("manager.orders.payMethodBank"),
+      e_wallet: t("manager.orders.payMethodWallet"),
+      cod: t("manager.orders.payMethodCash"),
+    };
+    return labels[method] || method;
+  };
+
   const columns: Column<Order>[] = [
-    { key: "orderCode", header: "Mã đơn hàng", render: (item) => <span className="font-mono font-bold text-amber-900">{item.orderCode}</span> },
-    { key: "receiverName", header: "Khách hàng", render: (item) => <span>{item.receiverName}</span> },
+    { key: "orderCode", header: t("manager.orders.colCode"), render: (item) => <span className="font-mono font-bold text-amber-900">{item.orderCode}</span> },
+    { key: "receiverName", header: t("manager.orders.colCustomer"), render: (item) => <span>{item.receiverName}</span> },
     { 
       key: "orderType", 
-      header: "Hình thức", 
-      render: (item) => {
-        const typeLabels: Record<string, string> = {
-          delivery: "Giao hàng",
-          pickup: "Tự nhận",
-          dine_in: "Tại quán",
-          takeaway: "Mang đi",
-        };
-        return <span>{typeLabels[item.orderType] || item.orderType}</span>;
-      }
+      header: t("manager.orders.colType"), 
+      render: (item) => <span>{getOrderTypeLabel(item.orderType)}</span>
     },
     { 
       key: "totalAmount", 
-      header: "Tổng tiền", 
+      header: t("manager.orders.colTotal"), 
       render: (item) => <span className="font-extrabold text-[#c8510a]">{item.totalAmount.toLocaleString()}đ</span> 
     },
     { 
       key: "status", 
-      header: "Trạng thái", 
+      header: t("manager.orders.colStatus"), 
       render: (item) => <StatusBadge status={item.status || "pending"} /> 
     },
     { 
       key: "createdAt", 
-      header: "Thời gian", 
+      header: t("manager.orders.colTime"), 
       render: (item) => item.createdAt ? new Date(item.createdAt).toLocaleString(locale === "vi" ? "vi-VN" : "en-US") : "N/A" 
     }
   ];
@@ -116,14 +143,19 @@ export default function ManagerOrdersPage() {
     if (!selectedOrder?.id) return;
     setIsActionLoading(true);
     try {
+<<<<<<< HEAD
       await confirmManagerOrder(selectedOrder.id);
       toast.success(`Đã xác nhận đơn hàng ${selectedOrder.orderCode}`);
+=======
+      await confirmOrder(selectedOrder.id);
+      toast.success(t("manager.orders.toastConfirmSuccess", { code: selectedOrder.orderCode || "" }));
+>>>>>>> 54a6bd0c9437303967cbdf41710e49c89c345a1a
       setIsConfirmOpen(false);
       setIsDetailOpen(false);
       loadOrders();
     } catch (error) {
       console.error(error);
-      toast.error("Không thể xác nhận đơn hàng.");
+      toast.error(t("manager.orders.toastConfirmError"));
     } finally {
       setIsActionLoading(false);
     }
@@ -137,19 +169,24 @@ export default function ManagerOrdersPage() {
   const handleCancelOrder = async () => {
     if (!selectedOrder?.id) return;
     if (!cancelReason.trim()) {
-      toast.error("Vui lòng nhập lý do hủy đơn.");
+      toast.error(t("manager.orders.toastReasonRequired"));
       return;
     }
     setIsActionLoading(true);
     try {
+<<<<<<< HEAD
       await cancelManagerOrder(selectedOrder.id, cancelReason);
       toast.success(`Đã hủy đơn hàng ${selectedOrder.orderCode}`);
+=======
+      await cancelOrder(selectedOrder.id, cancelReason);
+      toast.success(t("manager.orders.toastCancelSuccess", { code: selectedOrder.orderCode || "" }));
+>>>>>>> 54a6bd0c9437303967cbdf41710e49c89c345a1a
       setIsCancelOpen(false);
       setIsDetailOpen(false);
       loadOrders();
     } catch (error) {
       console.error(error);
-      toast.error("Không thể hủy đơn hàng.");
+      toast.error(t("manager.orders.toastCancelError"));
     } finally {
       setIsActionLoading(false);
     }
@@ -174,28 +211,28 @@ export default function ManagerOrdersPage() {
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Tìm theo mã đơn, khách hàng, số điện thoại..."
+          placeholder={t("manager.orders.searchPlaceholder")}
         />
         <Filter
-          label="Trạng thái đơn"
+          label={t("manager.orders.filterLabel")}
           value={statusFilter}
           onChange={setStatusFilter}
           options={[
-            { value: "pending", label: "Chờ xác nhận (Pending)" },
-            { value: "confirmed", label: "Đã xác nhận (Confirmed)" },
-            { value: "preparing", label: "Đang làm món (Preparing)" },
-            { value: "ready", label: "Chờ lấy (Ready)" },
-            { value: "completed", label: "Hoàn tất (Completed)" },
-            { value: "cancelled", label: "Đã hủy (Cancelled)" },
+            { value: "pending", label: `${t("manager.orders.statusPending")} (Pending)` },
+            { value: "confirmed", label: `${t("manager.orders.statusConfirmed")} (Confirmed)` },
+            { value: "preparing", label: `${t("manager.orders.statusPreparing")} (Preparing)` },
+            { value: "ready", label: `${t("manager.orders.statusReady")} (Ready)` },
+            { value: "completed", label: `${t("manager.orders.statusCompleted")} (Completed)` },
+            { value: "cancelled", label: `${t("manager.orders.statusCancelled")} (Cancelled)` },
           ]}
-          placeholder="Tất cả trạng thái"
+          placeholder={t("manager.orders.filterAll")}
         />
       </div>
 
       {/* Data Table */}
       {isLoading ? (
         <div className="text-center py-20 text-xs text-muted-foreground font-semibold">
-          Đang tải danh sách đơn hàng...
+          {t("common.loading")}
         </div>
       ) : (
         <DataTable
@@ -211,34 +248,34 @@ export default function ManagerOrdersPage() {
       <FormModal
         isOpen={isDetailOpen}
         onClose={() => setIsDetailOpen(false)}
-        title={`Chi tiết đơn hàng: ${selectedOrder?.orderCode || ""}`}
+        title={selectedOrder ? t("manager.orders.modalDetailTitle", { code: selectedOrder.orderCode || "" }) : ""}
         size="lg"
       >
         {selectedOrder && (
           <div className="space-y-5 text-left">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
               <div className="bg-zinc-50/50 dark:bg-zinc-950/20 border border-border p-3.5 rounded-xl space-y-1.5">
-                <div className="font-bold text-zinc-400 uppercase text-[9px] select-none">Khách hàng</div>
+                <div className="font-bold text-zinc-400 uppercase text-[9px] select-none">{t("manager.orders.modalCustomerInfo")}</div>
                 <div className="font-extrabold text-zinc-800 dark:text-zinc-250 text-sm">{selectedOrder.receiverName}</div>
-                <div className="font-semibold text-zinc-500">SĐT: {selectedOrder.receiverPhone}</div>
-                <div className="font-semibold text-zinc-500 truncate" title={selectedOrder.deliveryAddress}>Địa chỉ: {selectedOrder.deliveryAddress}</div>
+                <div className="font-semibold text-zinc-500">{t("manager.orders.modalPhone")} {selectedOrder.receiverPhone}</div>
+                <div className="font-semibold text-zinc-500 truncate" title={selectedOrder.deliveryAddress}>{t("manager.orders.modalAddress")} {selectedOrder.deliveryAddress}</div>
               </div>
               <div className="bg-zinc-50/50 dark:bg-zinc-950/20 border border-border p-3.5 rounded-xl space-y-1.5">
-                <div className="font-bold text-zinc-400 uppercase text-[9px] select-none">Thông tin đơn</div>
+                <div className="font-bold text-zinc-400 uppercase text-[9px] select-none">{t("manager.orders.modalOrderInfo")}</div>
                 <div className="flex items-center space-x-1.5">
-                  <span className="font-semibold text-zinc-500">Hình thức:</span>
+                  <span className="font-semibold text-zinc-500">{t("manager.orders.modalType")}</span>
                   <span className="font-bold text-zinc-700 dark:text-zinc-300">
-                    {selectedOrder.orderType === "delivery" ? "Giao hàng" : selectedOrder.orderType === "pickup" ? "Tự nhận" : selectedOrder.orderType === "dine_in" ? "Tại quán" : "Mang đi"}
+                    {getOrderTypeLabel(selectedOrder.orderType)}
                   </span>
                 </div>
                 <div className="flex items-center space-x-1.5">
-                  <span className="font-semibold text-zinc-500">Thanh toán:</span>
+                  <span className="font-semibold text-zinc-500">{t("manager.orders.modalPayment")}</span>
                   <span className="font-bold text-zinc-700 dark:text-zinc-300">
-                    {selectedOrder.paymentMethod === "bank_transfer" ? "Chuyển khoản" : selectedOrder.paymentMethod === "e_wallet" ? "Ví điện tử" : "Tiền mặt"}
+                    {getPaymentMethodLabel(selectedOrder.paymentMethod)}
                   </span>
                 </div>
                 <div className="flex items-center space-x-1.5">
-                  <span className="font-semibold text-zinc-500">Trạng thái:</span>
+                  <span className="font-semibold text-zinc-500">{t("manager.orders.modalStatus")}</span>
                   <StatusBadge status={selectedOrder.status || "pending"} />
                 </div>
               </div>
@@ -247,7 +284,7 @@ export default function ManagerOrdersPage() {
             {/* Note */}
             {selectedOrder.note && (
               <div className="bg-amber-50/40 border border-amber-900/10 p-3 rounded-lg text-xs italic text-amber-900 select-none">
-                Ghi chú đơn hàng: {selectedOrder.note}
+                {t("manager.orders.modalNote", { note: selectedOrder.note })}
               </div>
             )}
 
@@ -256,11 +293,11 @@ export default function ManagerOrdersPage() {
               <table className="w-full text-xs font-semibold text-foreground/80">
                 <thead className="bg-muted border-b border-border">
                   <tr className="text-left text-zinc-450 uppercase text-[10px] font-bold">
-                    <th className="p-3">Mặt hàng</th>
-                    <th className="p-3 text-center">Kích cỡ</th>
-                    <th className="p-3 text-center">Số lượng</th>
-                    <th className="p-3 text-right">Đơn giá</th>
-                    <th className="p-3 text-right">Thành tiền</th>
+                    <th className="p-3">{t("manager.orders.tableItem")}</th>
+                    <th className="p-3 text-center">{t("manager.orders.tableSize")}</th>
+                    <th className="p-3 text-center">{t("manager.orders.tableQty")}</th>
+                    <th className="p-3 text-right">{t("manager.orders.tablePrice")}</th>
+                    <th className="p-3 text-right">{t("manager.orders.tableTotal")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -275,7 +312,7 @@ export default function ManagerOrdersPage() {
                       </tr>
                       {item.toppings && item.toppings.map((top, tIdx) => (
                         <tr key={tIdx} className="bg-muted/10 text-muted-foreground text-[11px]">
-                          <td className="p-2 pl-8 font-medium">+ Topping: {top.toppingName}</td>
+                          <td className="p-2 pl-8 font-medium">{t("manager.orders.tableTopping", { name: top.toppingName })}</td>
                           <td className="p-2 text-center">-</td>
                           <td className="p-2 text-center">x{top.quantity}</td>
                           <td className="p-2 text-right">{top.unitPrice.toLocaleString()}đ</td>
@@ -285,7 +322,7 @@ export default function ManagerOrdersPage() {
                       {item.note && (
                         <tr className="bg-amber-800/[0.01] text-[11px]">
                           <td colSpan={5} className="p-2 pl-8 italic text-amber-800/80">
-                            Yêu cầu thêm: {item.note}
+                            {t("manager.orders.tableExtraNote", { note: item.note })}
                           </td>
                         </tr>
                       )}
@@ -297,7 +334,7 @@ export default function ManagerOrdersPage() {
 
             {/* Total summary */}
             <div className="flex justify-between items-center bg-[#FAF7F2] p-4 rounded-xl border border-amber-900/10">
-              <span className="text-xs font-bold text-amber-950 uppercase select-none">Tổng giá trị thanh toán:</span>
+              <span className="text-xs font-bold text-amber-950 uppercase select-none">{t("manager.orders.modalTotalAmount")}</span>
               <span className="text-base font-extrabold text-[#c8510a]">{selectedOrder.totalAmount.toLocaleString()}đ</span>
             </div>
 
@@ -309,7 +346,7 @@ export default function ManagerOrdersPage() {
                 onClick={() => setIsDetailOpen(false)}
                 className="h-10 text-xs font-semibold rounded-lg"
               >
-                Đóng
+                {t("manager.orders.modalBtnClose")}
               </Button>
 
               {(selectedOrder.status === "pending" || selectedOrder.status === "confirmed") && (
@@ -317,7 +354,7 @@ export default function ManagerOrdersPage() {
                   onClick={handleOpenCancel}
                   className="bg-rose-600 hover:bg-rose-700 text-white rounded-lg h-10 text-xs font-semibold px-4 cursor-pointer"
                 >
-                  Hủy đơn hàng
+                  {t("manager.orders.modalBtnCancel")}
                 </Button>
               )}
 
@@ -326,7 +363,7 @@ export default function ManagerOrdersPage() {
                   onClick={handleOpenConfirm}
                   className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg h-10 text-xs font-semibold px-4 cursor-pointer"
                 >
-                  Xác nhận đơn
+                  {t("manager.orders.modalBtnConfirm")}
                 </Button>
               )}
             </div>
@@ -339,32 +376,32 @@ export default function ManagerOrdersPage() {
         isOpen={isConfirmOpen}
         onClose={() => setIsConfirmOpen(false)}
         onConfirm={handleConfirmOrder}
-        title="Xác nhận đơn hàng"
-        message={`Bạn có chắc chắn muốn xác nhận đơn hàng ${selectedOrder?.orderCode}?`}
-        confirmText="Xác nhận"
-        cancelText="Hủy bỏ"
+        title={t("manager.orders.confirmTitle")}
+        message={selectedOrder ? t("manager.orders.confirmMsg", { code: selectedOrder.orderCode || "" }) : ""}
+        confirmText={t("manager.orders.confirmBtn")}
+        cancelText={t("manager.orders.confirmCancel")}
       />
 
       {/* Cancel Reason Dialog */}
       <FormModal
         isOpen={isCancelOpen}
         onClose={() => setIsCancelOpen(false)}
-        title={`Hủy đơn hàng: ${selectedOrder?.orderCode || ""}`}
+        title={selectedOrder ? t("manager.orders.cancelModalTitle", { code: selectedOrder.orderCode || "" }) : ""}
         size="md"
       >
         <div className="space-y-4 text-left">
           <div className="flex items-start space-x-2.5 rounded-xl border border-destructive/20 bg-destructive/5 px-4 py-3 text-xs text-destructive select-none">
             <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5" />
-            <span>Hành động hủy đơn hàng sẽ chuyển trạng thái đơn sang Cancelled và không thể hoàn tác.</span>
+            <span>{t("manager.orders.cancelWarning")}</span>
           </div>
 
           <div className="space-y-1.5 select-none">
-            <label className="text-xs font-bold text-muted-foreground uppercase">Lý do hủy đơn hàng *</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase">{t("manager.orders.cancelReasonLabel")}</label>
             <Input
               required
               value={cancelReason}
               onChange={(e) => setCancelReason(e.target.value)}
-              placeholder="Nhập lý do hủy (ví dụ: Hết nguyên liệu, Khách yêu cầu hủy...)"
+              placeholder={t("manager.orders.cancelReasonPlaceholder")}
               className="h-10 text-xs border-border bg-background"
             />
           </div>
@@ -377,14 +414,14 @@ export default function ManagerOrdersPage() {
               disabled={isActionLoading}
               className="h-10 text-xs font-semibold rounded-lg"
             >
-              Hủy bỏ
+              {t("manager.orders.confirmCancel")}
             </Button>
             <Button
               onClick={handleCancelOrder}
               disabled={isActionLoading}
               className="bg-rose-600 hover:bg-rose-700 text-white rounded-lg h-10 text-xs font-semibold px-4 cursor-pointer"
             >
-              Xác nhận hủy
+              {t("manager.orders.cancelBtnConfirm")}
             </Button>
           </div>
         </div>

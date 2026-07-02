@@ -1,7 +1,13 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+<<<<<<< HEAD
 import { Clock, Plus, Trash2, Calendar, Coffee, Check, AlertTriangle } from "lucide-react";
+=======
+import { Clock, Plus, Trash2, Calendar, Coffee } from "lucide-react";
+import { useAuthStore } from "@/store/auth.store";
+import { useDashboardStore } from "@/store/dashboardStore";
+>>>>>>> 54a6bd0c9437303967cbdf41710e49c89c345a1a
 import { useTranslation } from "@/hooks/useTranslation";
 import { Shift } from "@/services/shift.service";
 import { getManagerShifts, assignManagerShift, deleteManagerShift } from "@/services/manager-shift.service";
@@ -45,7 +51,7 @@ export default function ManagerShiftsPage() {
       setShifts(data);
     } catch (error) {
       console.error("Failed to load shifts", error);
-      toast.error("Không thể tải danh sách ca làm việc.");
+      toast.error(t("manager.shifts.toastLoadError"));
     } finally {
       setIsLoading(false);
     }
@@ -62,11 +68,11 @@ export default function ManagerShiftsPage() {
     }
   }, [selectedDate, isMounted]);
 
-  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">Đang tải...</div>;
+  if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
 
   const handleOpenAssign = () => {
     if (activeStoreStaff.length === 0) {
-      toast.error("Vui lòng kích hoạt/thêm nhân viên cho chi nhánh trước.");
+      toast.error(t("manager.shifts.toastActiveStaffRequired"));
       return;
     }
     setFormUserId(String(activeStoreStaff[0].userId));
@@ -77,7 +83,7 @@ export default function ManagerShiftsPage() {
   const handleSaveAssign = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formUserId) {
-      toast.error("Vui lòng chọn nhân sự.");
+      toast.error(t("manager.shifts.toastStaffRequired"));
       return;
     }
     setIsActionLoading(true);
@@ -87,12 +93,12 @@ export default function ManagerShiftsPage() {
         shiftName: formShiftName,
         shiftDate: selectedDate,
       });
-      toast.success("Phân ca làm việc thành công!");
+      toast.success(t("manager.shifts.toastAssignSuccess"));
       setIsAssignOpen(false);
       loadShifts();
     } catch (error: any) {
       console.error(error);
-      const msg = error.response?.data?.message || "Không thể phân ca làm việc.";
+      const msg = error.response?.data?.message || t("manager.shifts.toastAssignError");
       toast.error(msg);
     } finally {
       setIsActionLoading(false);
@@ -108,13 +114,18 @@ export default function ManagerShiftsPage() {
     if (!shiftToDelete) return;
     setIsActionLoading(true);
     try {
+<<<<<<< HEAD
       await deleteManagerShift(shiftToDelete.id);
       toast.success(`Đã xóa ca của ${shiftToDelete.userFullName}`);
+=======
+      await deleteShift(shiftToDelete.id);
+      toast.success(t("manager.shifts.toastDeleteSuccess", { name: shiftToDelete.userFullName }));
+>>>>>>> 54a6bd0c9437303967cbdf41710e49c89c345a1a
       setIsDeleteOpen(false);
       loadShifts();
     } catch (error) {
       console.error(error);
-      toast.error("Không thể xóa ca làm việc.");
+      toast.error(t("manager.shifts.toastDeleteError"));
     } finally {
       setIsActionLoading(false);
     }
@@ -132,10 +143,10 @@ export default function ManagerShiftsPage() {
         <div>
           <h1 className="text-xl font-extrabold text-amber-900 font-outfit uppercase tracking-wide flex items-center gap-2">
             <Clock className="h-5 w-5 text-amber-850" />
-            Ca Làm Việc & Lịch Trực - {branchName}
+            {t("manager.shifts.title")} - {branchName}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold mt-1">
-            Phân bổ ca trực và gán barista làm việc cho chi nhánh của bạn.
+            {t("manager.shifts.subtitle")}
           </p>
         </div>
         <Button
@@ -143,7 +154,7 @@ export default function ManagerShiftsPage() {
           className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg px-4 h-10 text-xs font-semibold flex items-center space-x-2 shrink-0 self-start sm:self-auto cursor-pointer"
         >
           <Plus className="h-4 w-4" />
-          <span>Gán ca trực mới</span>
+          <span>{t("manager.shifts.btnCreate")}</span>
         </Button>
       </div>
 
@@ -151,7 +162,7 @@ export default function ManagerShiftsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center gap-4 bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-xl p-4 shadow-2xs">
         <div className="flex items-center space-x-3 w-full sm:w-auto">
           <Calendar className="h-4 w-4 text-zinc-400 shrink-0" />
-          <span className="text-xs font-bold text-muted-foreground uppercase whitespace-nowrap">Chọn ngày xem lịch:</span>
+          <span className="text-xs font-bold text-muted-foreground uppercase whitespace-nowrap">{t("manager.shifts.filterLabel")}</span>
           <Input
             type="date"
             value={selectedDate}
@@ -163,7 +174,7 @@ export default function ManagerShiftsPage() {
 
       {isLoading ? (
         <div className="text-center py-20 text-xs text-muted-foreground font-semibold">
-          Đang tải lịch trực ca...
+          {t("common.loading")}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -172,14 +183,14 @@ export default function ManagerShiftsPage() {
             <div className="flex items-center justify-between border-b border-zinc-100 pb-3 select-none">
               <div className="flex items-center space-x-2">
                 <Coffee className="h-4 w-4 text-amber-700" />
-                <h3 className="text-sm font-extrabold text-zinc-850 dark:text-zinc-100 uppercase tracking-wide font-outfit">Ca Sáng (Morning)</h3>
+                <h3 className="text-sm font-extrabold text-zinc-850 dark:text-zinc-100 uppercase tracking-wide font-outfit">{t("manager.shifts.shiftMorning")}</h3>
               </div>
               <span className="text-[10px] font-extrabold bg-amber-800/10 text-amber-800 border border-amber-800/10 px-2 py-0.5 rounded-md">06:00 - 12:00</span>
             </div>
 
             <div className="space-y-2.5">
               {morningShifts.length === 0 ? (
-                <div className="text-center py-8 text-xs text-muted-foreground font-medium italic select-none">Chưa gán nhân sự</div>
+                <div className="text-center py-8 text-xs text-muted-foreground font-medium italic select-none">{t("manager.shifts.noAssignments")}</div>
               ) : (
                 morningShifts.map((s) => (
                   <div key={s.id} className="flex items-center justify-between p-3 bg-zinc-50/50 dark:bg-zinc-950/20 border border-zinc-200/60 rounded-xl">
@@ -190,7 +201,7 @@ export default function ManagerShiftsPage() {
                     <button
                       onClick={() => handleOpenDelete(s)}
                       className="text-zinc-400 hover:text-rose-600 p-1.5 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                      title="Xóa phân ca"
+                      title={t("manager.shifts.actionDeleteTitle")}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -205,14 +216,14 @@ export default function ManagerShiftsPage() {
             <div className="flex items-center justify-between border-b border-zinc-100 pb-3 select-none">
               <div className="flex items-center space-x-2">
                 <Coffee className="h-4 w-4 text-orange-600" />
-                <h3 className="text-sm font-extrabold text-zinc-850 dark:text-zinc-100 uppercase tracking-wide font-outfit">Ca Chiều (Afternoon)</h3>
+                <h3 className="text-sm font-extrabold text-zinc-850 dark:text-zinc-100 uppercase tracking-wide font-outfit">{t("manager.shifts.shiftAfternoon")}</h3>
               </div>
               <span className="text-[10px] font-extrabold bg-orange-600/10 text-orange-700 border border-orange-600/10 px-2 py-0.5 rounded-md">12:00 - 18:00</span>
             </div>
 
             <div className="space-y-2.5">
               {afternoonShifts.length === 0 ? (
-                <div className="text-center py-8 text-xs text-muted-foreground font-medium italic select-none">Chưa gán nhân sự</div>
+                <div className="text-center py-8 text-xs text-muted-foreground font-medium italic select-none">{t("manager.shifts.noAssignments")}</div>
               ) : (
                 afternoonShifts.map((s) => (
                   <div key={s.id} className="flex items-center justify-between p-3 bg-zinc-50/50 dark:bg-zinc-950/20 border border-zinc-200/60 rounded-xl">
@@ -223,7 +234,7 @@ export default function ManagerShiftsPage() {
                     <button
                       onClick={() => handleOpenDelete(s)}
                       className="text-zinc-400 hover:text-rose-600 p-1.5 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                      title="Xóa phân ca"
+                      title={t("manager.shifts.actionDeleteTitle")}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -238,14 +249,14 @@ export default function ManagerShiftsPage() {
             <div className="flex items-center justify-between border-b border-zinc-100 pb-3 select-none">
               <div className="flex items-center space-x-2">
                 <Coffee className="h-4 w-4 text-indigo-600" />
-                <h3 className="text-sm font-extrabold text-zinc-850 dark:text-zinc-100 uppercase tracking-wide font-outfit">Ca Tối (Night)</h3>
+                <h3 className="text-sm font-extrabold text-zinc-850 dark:text-zinc-100 uppercase tracking-wide font-outfit">{t("manager.shifts.shiftNight")}</h3>
               </div>
               <span className="text-[10px] font-extrabold bg-indigo-650/10 text-indigo-700 border border-indigo-650/10 px-2 py-0.5 rounded-md">18:00 - 23:00</span>
             </div>
 
             <div className="space-y-2.5">
               {nightShifts.length === 0 ? (
-                <div className="text-center py-8 text-xs text-muted-foreground font-medium italic select-none">Chưa gán nhân sự</div>
+                <div className="text-center py-8 text-xs text-muted-foreground font-medium italic select-none">{t("manager.shifts.noAssignments")}</div>
               ) : (
                 nightShifts.map((s) => (
                   <div key={s.id} className="flex items-center justify-between p-3 bg-zinc-50/50 dark:bg-zinc-950/20 border border-zinc-200/60 rounded-xl">
@@ -256,7 +267,7 @@ export default function ManagerShiftsPage() {
                     <button
                       onClick={() => handleOpenDelete(s)}
                       className="text-zinc-400 hover:text-rose-600 p-1.5 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
-                      title="Xóa phân ca"
+                      title={t("manager.shifts.actionDeleteTitle")}
                     >
                       <Trash2 className="h-4 w-4" />
                     </button>
@@ -272,12 +283,12 @@ export default function ManagerShiftsPage() {
       <FormModal
         isOpen={isAssignOpen}
         onClose={() => setIsAssignOpen(false)}
-        title="Gán phân ca làm việc"
+        title={t("manager.shifts.modalCreateTitle")}
         size="md"
       >
         <form onSubmit={handleSaveAssign} className="space-y-4 text-left">
           <div className="space-y-1.5 select-none">
-            <label className="text-xs font-bold text-muted-foreground uppercase">Chọn nhân sự chi nhánh *</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase">{t("manager.shifts.modalLabelUser")}</label>
             <select
               value={formUserId}
               onChange={(e) => setFormUserId(e.target.value)}
@@ -292,7 +303,7 @@ export default function ManagerShiftsPage() {
           </div>
 
           <div className="space-y-1.5 select-none">
-            <label className="text-xs font-bold text-muted-foreground uppercase">Chọn ca trực *</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase">{t("manager.shifts.modalLabelShift")}</label>
             <select
               value={formShiftName}
               onChange={(e) => setFormShiftName(e.target.value)}
@@ -305,7 +316,7 @@ export default function ManagerShiftsPage() {
           </div>
 
           <div className="space-y-1.5 select-none">
-            <label className="text-xs font-bold text-muted-foreground uppercase">Ngày trực trực quan</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase">{t("manager.shifts.modalLabelDate")}</label>
             <Input
               readOnly
               disabled
@@ -322,14 +333,14 @@ export default function ManagerShiftsPage() {
               disabled={isActionLoading}
               className="h-10 text-xs font-semibold rounded-lg"
             >
-              Hủy bỏ
+              {t("manager.shifts.modalBtnCancel")}
             </Button>
             <Button
               type="submit"
               disabled={isActionLoading}
               className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg h-10 text-xs font-semibold px-4 cursor-pointer"
             >
-              Xác nhận gán
+              {t("manager.shifts.modalBtnSubmit")}
             </Button>
           </div>
         </form>
@@ -340,10 +351,10 @@ export default function ManagerShiftsPage() {
         isOpen={isDeleteOpen}
         onClose={() => setIsDeleteOpen(false)}
         onConfirm={handleConfirmDelete}
-        title="Xóa phân ca làm việc"
-        message={`Bạn có chắc chắn muốn xóa ca làm việc của nhân sự ${shiftToDelete?.userFullName} vào ngày ${shiftToDelete?.shiftDate}?`}
-        confirmText="Xác nhận xóa"
-        cancelText="Hủy bỏ"
+        title={t("manager.shifts.confirmDeleteTitle")}
+        message={shiftToDelete ? t("manager.shifts.confirmDeleteMsg", { name: shiftToDelete.userFullName, date: shiftToDelete.shiftDate }) : ""}
+        confirmText={t("manager.shifts.confirmDeleteBtn")}
+        cancelText={t("manager.shifts.confirmDeleteCancel")}
       />
     </div>
   );

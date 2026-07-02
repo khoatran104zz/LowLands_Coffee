@@ -41,55 +41,55 @@ export default function ManagerRevenuePage() {
         <div>
           <h1 className="text-xl font-extrabold text-amber-900 font-outfit uppercase tracking-wide flex items-center gap-2">
             <Coins className="h-5 w-5 text-amber-850" />
-            Báo cáo Doanh thu - {branchName}
+            {t("manager.revenue.title")} - {branchName}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold mt-1">
-            Số liệu thống kê doanh thu bán lẻ qua quầy POS của chi nhánh.
+            {t("manager.revenue.subtitle")}
           </p>
         </div>
       </div>
 
       {isLoading ? (
         <div className="text-center py-20 text-xs text-muted-foreground font-semibold">
-          Đang tải số liệu doanh thu...
+          {t("manager.revenue.loading")}
         </div>
       ) : (
         <div className="space-y-6">
           {/* Stats Cards Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <StatsCard
-              title="Hôm nay (Today)"
+              title={t("manager.revenue.today")}
               value={summary ? `${summary.todayRevenue.toLocaleString()}đ` : "0đ"}
               icon={DollarSign}
-              description="Doanh thu ghi nhận trong ngày"
+              description={t("manager.revenue.todayDesc")}
             />
             <StatsCard
-              title="Hôm qua (Yesterday)"
+              title={t("manager.revenue.yesterday")}
               value={summary ? `${summary.yesterdayRevenue.toLocaleString()}đ` : "0đ"}
               icon={Calendar}
-              description="Doanh thu ngày hôm trước"
+              description={t("manager.revenue.yesterdayDesc")}
             />
             <StatsCard
-              title="Tuần này (This Week)"
+              title={t("manager.revenue.thisWeek")}
               value={summary ? `${summary.thisWeekRevenue.toLocaleString()}đ` : "0đ"}
               icon={TrendingUp}
-              description="Tính từ Thứ Hai đầu tuần"
+              description={t("manager.revenue.thisWeekDesc")}
             />
             <StatsCard
-              title="Tháng này (This Month)"
+              title={t("manager.revenue.thisMonth")}
               value={summary ? `${summary.thisMonthRevenue.toLocaleString()}đ` : "0đ"}
               icon={ArrowUpRight}
-              description="Tính từ ngày đầu tiên của tháng"
+              description={t("manager.revenue.thisMonthDesc")}
             />
           </div>
 
           {/* Additional details */}
           <div className="bg-white dark:bg-zinc-900 border border-zinc-200/80 dark:border-zinc-800 rounded-xl p-5 select-none space-y-4">
-            <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">Thông tin đối soát doanh số</h3>
+            <h3 className="text-xs font-bold text-zinc-400 uppercase tracking-widest">{t("manager.revenue.noteTitle")}</h3>
             <div className="text-xs text-zinc-650 dark:text-zinc-350 space-y-2">
-              <p>• Doanh thu hiển thị ở trên là doanh số thực tế đã hoàn thành thanh toán (tính trên các đơn hàng có trạng thái <strong className="text-amber-850">Completed</strong>).</p>
-              <p>• Số liệu được cập nhật trực tiếp theo thời gian thực từ cơ sở dữ liệu bán hàng của hệ thống.</p>
-              <p>• Mọi chênh lệch giữa tiền mặt két thu ngân và doanh số hệ thống cần được báo cáo điều chỉnh qua phiếu điều chỉnh két hoặc liên hệ quản trị hệ thống.</p>
+              <p>{t("manager.revenue.noteDesc1")}</p>
+              <p>{t("manager.revenue.noteDesc2")}</p>
+              <p>{t("manager.revenue.noteDesc3")}</p>
             </div>
           </div>
         </div>
