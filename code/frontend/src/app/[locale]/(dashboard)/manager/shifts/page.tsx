@@ -298,9 +298,9 @@ export default function ManagerShiftsPage() {
               onChange={(e) => setFormShiftName(e.target.value)}
               className="w-full h-10 px-3 bg-background border border-border text-foreground hover:bg-muted/10 rounded-lg text-xs font-medium focus:outline-none"
             >
-              <option value="MORNING">Ca Sáng (06:00 - 12:00)</option>
-              <option value="AFTERNOON">Ca Chiều (12:00 - 18:00)</option>
-              <option value="NIGHT">Ca Tối (18:00 - 23:00)</option>
+              <option value="MORNING">{t("manager.shifts.optionMorning")}</option>
+              <option value="AFTERNOON">{t("manager.shifts.optionAfternoon")}</option>
+              <option value="NIGHT">{t("manager.shifts.optionNight")}</option>
             </select>
           </div>
 

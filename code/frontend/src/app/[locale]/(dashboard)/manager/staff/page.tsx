@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { Eye } from "lucide-react";
 import { DataTable, Column } from "@/components/admin/DataTable";
 import { SearchBar } from "@/components/admin/SearchBar";
 import { StatusBadge } from "@/components/admin/StatusBadge";
@@ -85,15 +84,6 @@ export default function ManagerStaffPage() {
         searchKey="fullName"
         searchQuery={searchQuery}
         onView={handleOpenDetail}
-        extraActions={[
-          {
-            icon: Eye,
-            onClick: handleOpenDetail,
-            color: "text-zinc-600 hover:bg-zinc-50",
-            title: "View details",
-            visible: () => true,
-          },
-        ]}
       />
 
       <FormModal
