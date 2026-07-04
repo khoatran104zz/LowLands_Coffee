@@ -117,6 +117,8 @@
     "working": "Đang trực",
     "off": "Đã nghỉ"
   },
+  "confirmDeactivateTitle": "Xác nhận ngưng hoạt động",
+  "confirmDeactivateMessage": "Bạn có chắc chắn muốn ngưng hoạt động mục này?",
   "seo": {
     "homeTitle": "Lowlands Coffee & Tea - Hương vị nguyên bản Việt Nam",
     "homeDesc": "Đặt hàng cà phê phin, trà trái cây hiện đại trực tuyến tại Lowlands Coffee. Giao hàng nhanh chóng, ưu đãi ngập tràn.",

@@ -93,6 +93,16 @@ export default function AdminCategoriesPage() {
 
     try {
       if (editingCategory) {
+        if (editingCategory.status === "active" && formStatus === "inactive") {
+          const isConfirmed = await confirm({
+            title: t("common.confirmDeactivateTitle") || "Xác nhận ngưng hoạt động",
+            message: `${t("common.confirmDeactivateMessage") || "Bạn có chắc chắn muốn ngưng hoạt động mục này?"} ("${editingCategory.name}")`,
+            confirmText: t("common.inactive") || "Ngưng hoạt động",
+            cancelText: t("common.cancel"),
+            variant: "warning"
+          });
+          if (!isConfirmed) return;
+        }
         await updateCategory({
           id: editingCategory.id,
           name: formName.trim(),

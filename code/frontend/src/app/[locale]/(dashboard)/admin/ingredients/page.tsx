@@ -21,9 +21,11 @@ import { FormModal } from "@/components/admin/FormModal";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useConfirm } from "@/hooks/useConfirm";
 
 export default function AdminIngredientsPage() {
   const { t } = useTranslation();
+  const confirm = useConfirm();
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [categories, setCategories] = useState<IngredientCategory[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -35,9 +37,7 @@ export default function AdminIngredientsPage() {
 
   // Modal controls
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Ingredient | null>(null);
-  const [itemToDelete, setItemToDelete] = useState<Ingredient | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   // Form input states
@@ -130,9 +130,27 @@ export default function AdminIngredientsPage() {
     setIsFormOpen(true);
   };
 
-  const handleOpenDelete = (item: Ingredient) => {
-    setItemToDelete(item);
-    setIsDeleteOpen(true);
+  const handleOpenDelete = async (item: Ingredient) => {
+    const isConfirmed = await confirm({
+      title: t("common.confirmDeleteTitle") || "Xác nhận xóa",
+      message: `${t("admin.ingredientsPage.deleteMessage") || "Bạn có chắc chắn muốn xóa mục này không?"} "${item.name}"?`,
+      confirmText: t("admin.ingredientsPage.deleteConfirm") || t("common.delete") || "Xóa",
+      cancelText: t("common.cancel") || "Hủy",
+      variant: "danger"
+    });
+    if (!isConfirmed) return;
+
+    setIsSaving(true);
+    try {
+      await deleteIngredient(item.id);
+      toast.success(t("admin.ingredientsPage.successDelete"));
+      loadData();
+    } catch (error) {
+      console.error("Failed to delete ingredient", error);
+      toast.error(t("admin.ingredientsPage.errorDelete"));
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -148,23 +166,40 @@ export default function AdminIngredientsPage() {
       return;
     }
 
-    setIsSaving(true);
     try {
-      const payload = {
-        categoryId: parseInt(formCategoryId),
-        code: formCode.trim(),
-        name: formName.trim(),
-        unit: formUnit.trim(),
-        minStock,
-        description: formDescription.trim(),
-        status: formStatus
-      };
-
       if (editingItem) {
-        await updateIngredient(editingItem.id, payload);
+        if (editingItem.status === "active" && formStatus === "inactive") {
+          const isConfirmed = await confirm({
+            title: t("common.confirmDeactivateTitle") || "Xác nhận ngưng hoạt động",
+            message: `${t("common.confirmDeactivateMessage") || "Bạn có chắc chắn muốn ngưng hoạt động mục này?"} ("${editingItem.name}")`,
+            confirmText: t("common.inactive") || "Ngưng hoạt động",
+            cancelText: t("common.cancel") || "Hủy",
+            variant: "warning"
+          });
+          if (!isConfirmed) return;
+        }
+        setIsSaving(true);
+        await updateIngredient(editingItem.id, {
+          categoryId: parseInt(formCategoryId),
+          code: formCode.trim(),
+          name: formName.trim(),
+          unit: formUnit.trim(),
+          minStock,
+          description: formDescription.trim(),
+          status: formStatus
+        });
         toast.success(t("admin.ingredientsPage.successUpdate"));
       } else {
-        await createIngredient(payload);
+        setIsSaving(true);
+        await createIngredient({
+          categoryId: parseInt(formCategoryId),
+          code: formCode.trim(),
+          name: formName.trim(),
+          unit: formUnit.trim(),
+          minStock,
+          description: formDescription.trim(),
+          status: formStatus
+        });
         toast.success(t("admin.ingredientsPage.successCreate"));
       }
       setIsFormOpen(false);
@@ -172,22 +207,6 @@ export default function AdminIngredientsPage() {
     } catch (error) {
       console.error("Failed to save ingredient", error);
       toast.error(t("admin.ingredientsPage.errorSave"));
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!itemToDelete) return;
-    setIsSaving(true);
-    try {
-      await deleteIngredient(itemToDelete.id);
-      toast.success(t("admin.ingredientsPage.successDelete"));
-      setIsDeleteOpen(false);
-      loadData();
-    } catch (error) {
-      console.error("Failed to delete ingredient", error);
-      toast.error(t("admin.ingredientsPage.errorDelete"));
     } finally {
       setIsSaving(false);
     }
@@ -358,18 +377,6 @@ export default function AdminIngredientsPage() {
         </div>
       </FormModal>
 
-      {/* Delete Confirmation Modal */}
-      <ConfirmDialog
-        isOpen={isDeleteOpen}
-        onClose={() => setIsDeleteOpen(false)}
-        onConfirm={handleDelete}
-        title={t("admin.ingredientsPage.deleteTitle")}
-        message={`${t("admin.ingredientsPage.deleteMessage")} "${itemToDelete?.name}"?`}
-        confirmText={t("admin.ingredientsPage.deleteConfirm")}
-        cancelText={t("common.cancel")}
-        variant="danger"
-        isLoading={isSaving}
-      />
     </div>
   );
 }

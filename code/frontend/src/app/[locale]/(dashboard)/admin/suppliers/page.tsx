@@ -19,9 +19,11 @@ import { FormModal } from "@/components/admin/FormModal";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useConfirm } from "@/hooks/useConfirm";
 
 export default function AdminSuppliersPage() {
   const { t } = useTranslation();
+  const confirm = useConfirm();
   const [suppliers, setSuppliers] = useState<Supplier[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isMounted, setIsMounted] = useState(false);
@@ -32,9 +34,7 @@ export default function AdminSuppliersPage() {
 
   // Modal controls
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Supplier | null>(null);
-  const [itemToDelete, setItemToDelete] = useState<Supplier | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   // Form input states
@@ -117,9 +117,27 @@ export default function AdminSuppliersPage() {
     setIsFormOpen(true);
   };
 
-  const handleOpenDelete = (item: Supplier) => {
-    setItemToDelete(item);
-    setIsDeleteOpen(true);
+  const handleOpenDelete = async (item: Supplier) => {
+    const isConfirmed = await confirm({
+      title: t("common.confirmDeleteTitle") || "Xác nhận xóa",
+      message: `Bạn có chắc chắn muốn xóa nhà cung cấp "${item.name}" không?`,
+      confirmText: t("common.delete") || "Xóa",
+      cancelText: t("common.cancel") || "Hủy",
+      variant: "danger"
+    });
+    if (!isConfirmed) return;
+
+    setIsSaving(true);
+    try {
+      await deleteSupplier(item.id);
+      toast.success("Xóa nhà cung cấp thành công!");
+      loadData();
+    } catch (error) {
+      console.error("Failed to delete supplier", error);
+      toast.error("Không thể xóa nhà cung cấp. Vui lòng kiểm tra lại các phiếu nhập kho liên quan.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -129,24 +147,42 @@ export default function AdminSuppliersPage() {
       return;
     }
 
-    setIsSaving(true);
     try {
-      const payload = {
-        code: formCode.trim(),
-        name: formName.trim(),
-        contactName: formContactName.trim(),
-        phone: formPhone.trim(),
-        email: formEmail.trim(),
-        address: formAddress.trim(),
-        taxCode: formTaxCode.trim(),
-        status: formStatus
-      };
-
       if (editingItem) {
-        await updateSupplier(editingItem.id, payload);
+        if (editingItem.status === "active" && formStatus === "inactive") {
+          const isConfirmed = await confirm({
+            title: t("common.confirmDeactivateTitle") || "Xác nhận ngưng hoạt động",
+            message: `${t("common.confirmDeactivateMessage") || "Bạn có chắc chắn muốn ngưng hoạt động mục này?"} ("${editingItem.name}")`,
+            confirmText: t("common.inactive") || "Ngưng hoạt động",
+            cancelText: t("common.cancel") || "Hủy",
+            variant: "warning"
+          });
+          if (!isConfirmed) return;
+        }
+        setIsSaving(true);
+        await updateSupplier(editingItem.id, {
+          code: formCode.trim(),
+          name: formName.trim(),
+          contactName: formContactName.trim(),
+          phone: formPhone.trim(),
+          email: formEmail.trim(),
+          address: formAddress.trim(),
+          taxCode: formTaxCode.trim(),
+          status: formStatus
+        });
         toast.success("Cập nhật nhà cung cấp thành công!");
       } else {
-        await createSupplier(payload);
+        setIsSaving(true);
+        await createSupplier({
+          code: formCode.trim(),
+          name: formName.trim(),
+          contactName: formContactName.trim(),
+          phone: formPhone.trim(),
+          email: formEmail.trim(),
+          address: formAddress.trim(),
+          taxCode: formTaxCode.trim(),
+          status: formStatus
+        });
         toast.success("Thêm nhà cung cấp mới thành công!");
       }
       setIsFormOpen(false);
@@ -154,22 +190,6 @@ export default function AdminSuppliersPage() {
     } catch (error) {
       console.error("Failed to save supplier", error);
       toast.error("Thao tác thất bại. Vui lòng kiểm tra lại dữ liệu.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!itemToDelete) return;
-    setIsSaving(true);
-    try {
-      await deleteSupplier(itemToDelete.id);
-      toast.success("Xóa nhà cung cấp thành công!");
-      setIsDeleteOpen(false);
-      loadData();
-    } catch (error) {
-      console.error("Failed to delete supplier", error);
-      toast.error("Không thể xóa nhà cung cấp. Vui lòng kiểm tra lại các phiếu nhập kho liên quan.");
     } finally {
       setIsSaving(false);
     }
@@ -350,18 +370,6 @@ export default function AdminSuppliersPage() {
         </div>
       </FormModal>
 
-      {/* Delete Confirmation Modal */}
-      <ConfirmDialog
-        isOpen={isDeleteOpen}
-        onClose={() => setIsDeleteOpen(false)}
-        onConfirm={handleDelete}
-        title="Xác nhận ngừng hợp tác"
-        message={`Bạn có chắc chắn muốn xóa/ngừng hợp tác với nhà cung cấp "${itemToDelete?.name}"? Thao tác này có thể ảnh hưởng tới các phiếu nhập kho hiện tại.`}
-        confirmText="Xác nhận"
-        cancelText="Hủy"
-        variant="danger"
-        isLoading={isSaving}
-      />
     </div>
   );
 }

@@ -91,6 +91,10 @@ export default function StaffPOSPage() {
   // Checkout success modal
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [sortBy, setSortBy] = useState<"default" | "name" | "price-asc" | "price-desc">("default");
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const sortDropdownRef = useRef<HTMLDivElement>(null);
 
   const loadTodayOrders = async () => {
     if (!user?.branchId) return;
@@ -157,7 +161,7 @@ export default function StaffPOSPage() {
 
   useEffect(() => {
     if (categories.length > 0 && !hasInitializedCategory) {
-      setSelectedCategoryId(categories[0].id);
+      setSelectedCategoryId(null);
       setHasInitializedCategory(true);
     }
   }, [categories, hasInitializedCategory]);
@@ -195,11 +199,14 @@ export default function StaffPOSPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  // Click outside to close notifications dropdown
+  // Click outside to close notifications dropdown & sort dropdown
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
         setIsNotifOpen(false);
+      }
+      if (sortDropdownRef.current && !sortDropdownRef.current.contains(event.target as Node)) {
+        setShowSortDropdown(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -229,14 +236,31 @@ export default function StaffPOSPage() {
 
   if (!isMounted) return <div className="text-center py-20 text-muted-foreground">{t("common.loading")}</div>;
 
-  // Filter products by selected category and search query
-  const filteredProducts = products.filter((p) => {
-    const matchesCategory = selectedCategoryId === null || p.categoryId === selectedCategoryId;
-    const matchesSearch = 
-      p.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
-      (p.description && p.description.toLowerCase().includes(searchQuery.trim().toLowerCase()));
-    return matchesCategory && matchesSearch;
-  });
+  // Filter products by selected category and search query, then sort
+  const sortedAndFilteredProducts = [...products]
+    .filter((p) => {
+      const matchesCategory = selectedCategoryId === null || p.categoryId === selectedCategoryId;
+      const matchesSearch = 
+        p.name.toLowerCase().includes(searchQuery.trim().toLowerCase()) ||
+        (p.description && p.description.toLowerCase().includes(searchQuery.trim().toLowerCase()));
+      return matchesCategory && matchesSearch;
+    })
+    .sort((a, b) => {
+      if (sortBy === "name") {
+        return a.name.localeCompare(b.name, "vi");
+      }
+      if (sortBy === "price-asc") {
+        const priceA = a.variants?.[0]?.price || 0;
+        const priceB = b.variants?.[0]?.price || 0;
+        return priceA - priceB;
+      }
+      if (sortBy === "price-desc") {
+        const priceA = a.variants?.[0]?.price || 0;
+        const priceB = b.variants?.[0]?.price || 0;
+        return priceB - priceA;
+      }
+      return 0; // Default sorting (no change)
+    });
 
 
   // Cart operations
@@ -502,18 +526,104 @@ export default function StaffPOSPage() {
                 </h2>
                 
                 <div className="flex items-center space-x-1.5 shrink-0">
-                  <button className="flex items-center space-x-1 py-1 px-2.5 bg-[#F5EBE1] text-[#C8510A] rounded-lg text-[10px] font-bold shadow-2xs border border-[#C8510A]/10">
+                  <button 
+                    onClick={() => setViewMode("grid")}
+                    className={`flex items-center space-x-1 py-1 px-2.5 rounded-lg text-[10px] font-bold transition-all border ${
+                      viewMode === "grid"
+                        ? "bg-[#F5EBE1] text-[#C8510A] border-[#C8510A]/10 shadow-2xs"
+                        : "bg-background border-border hover:bg-muted/10 text-zinc-500"
+                    }`}
+                  >
                     <Grid className="h-3 w-3" />
                     <span>{t("pos.viewGrid")}</span>
                   </button>
-                  <button className="flex items-center space-x-1 py-1 px-2.5 bg-background border border-border hover:bg-muted/10 rounded-lg text-[10px] font-bold text-zinc-500">
+                  <button 
+                    onClick={() => setViewMode("list")}
+                    className={`flex items-center space-x-1 py-1 px-2.5 rounded-lg text-[10px] font-bold transition-all border ${
+                      viewMode === "list"
+                        ? "bg-[#F5EBE1] text-[#C8510A] border-[#C8510A]/10 shadow-2xs"
+                        : "bg-background border-border hover:bg-muted/10 text-zinc-500"
+                    }`}
+                  >
                     <List className="h-3 w-3" />
                     <span>{t("pos.viewList")}</span>
                   </button>
-                  <button className="flex items-center space-x-1 py-1 px-2.5 bg-background border border-border hover:bg-muted/10 rounded-lg text-[10px] font-bold text-zinc-500">
-                    <ArrowUpDown className="h-3 w-3" />
-                    <span>{t("pos.sort")}</span>
-                  </button>
+                  
+                  <div className="relative" ref={sortDropdownRef}>
+                    <button 
+                      onClick={() => setShowSortDropdown(!showSortDropdown)}
+                      className={`flex items-center space-x-1 py-1 px-2.5 rounded-lg text-[10px] font-bold transition-all border ${
+                        sortBy !== "default" || showSortDropdown
+                          ? "bg-[#F5EBE1] text-[#C8510A] border-[#C8510A]/10 shadow-2xs"
+                          : "bg-background border-border hover:bg-muted/10 text-zinc-500"
+                      }`}
+                    >
+                      <ArrowUpDown className="h-3 w-3" />
+                      <span>
+                        {sortBy === "default" 
+                          ? t("pos.sort") 
+                          : (sortBy === "name" 
+                            ? t("pos.sortNameAsc") 
+                            : (sortBy === "price-asc" 
+                              ? t("pos.sortPriceAsc") 
+                              : t("pos.sortPriceDesc")))}
+                      </span>
+                    </button>
+                    
+                    {showSortDropdown && (
+                      <div className="absolute right-0 mt-1.5 w-44 bg-white border border-zinc-200 rounded-xl shadow-lg py-1.5 z-50 animate-slide-in-down text-left">
+                        <div className="px-3 py-1 border-b border-zinc-100 flex justify-between items-center">
+                          <span className="text-[10px] font-bold text-zinc-400 uppercase tracking-wider">{t("pos.sortLabel")}</span>
+                        </div>
+                        <div className="flex flex-col py-1">
+                          <button
+                            onClick={() => {
+                              setSortBy("default");
+                              setShowSortDropdown(false);
+                            }}
+                            className={`px-3 py-1.5 text-[11px] font-bold text-left hover:bg-zinc-50 transition-colors ${
+                              sortBy === "default" ? "text-[#C8510A] bg-zinc-50/50" : "text-zinc-650"
+                            }`}
+                          >
+                            {t("pos.sortDefault")}
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSortBy("name");
+                              setShowSortDropdown(false);
+                            }}
+                            className={`px-3 py-1.5 text-[11px] font-bold text-left hover:bg-zinc-50 transition-colors ${
+                              sortBy === "name" ? "text-[#C8510A] bg-zinc-50/50" : "text-zinc-650"
+                            }`}
+                          >
+                            {t("pos.sortNameAsc")}
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSortBy("price-asc");
+                              setShowSortDropdown(false);
+                            }}
+                            className={`px-3 py-1.5 text-[11px] font-bold text-left hover:bg-zinc-50 transition-colors ${
+                              sortBy === "price-asc" ? "text-[#C8510A] bg-zinc-50/50" : "text-zinc-650"
+                            }`}
+                          >
+                            {t("pos.sortPriceAsc")}
+                          </button>
+                          <button
+                            onClick={() => {
+                              setSortBy("price-desc");
+                              setShowSortDropdown(false);
+                            }}
+                            className={`px-3 py-1.5 text-[11px] font-bold text-left hover:bg-zinc-50 transition-colors ${
+                              sortBy === "price-desc" ? "text-[#C8510A] bg-zinc-50/50" : "text-zinc-650"
+                            }`}
+                          >
+                            {t("pos.sortPriceDesc")}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -549,10 +659,19 @@ export default function StaffPOSPage() {
                 </div>
               </div>
               
-              {/* Products Grid - Increased visible products density */}
-              <div className="flex-grow overflow-y-auto grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5 pr-1 pb-1.5 content-start items-start">
-                {filteredProducts.map((p) => (
-                  <ProductCard key={p.id} product={p} onAddToCart={handleAddToCart} />
+              {/* Products Container */}
+              <div className={`flex-grow overflow-y-auto pr-1 pb-1.5 content-start items-start ${
+                viewMode === "grid" 
+                  ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5" 
+                  : "flex flex-col gap-2"
+              }`}>
+                {sortedAndFilteredProducts.map((p) => (
+                  <ProductCard 
+                    key={p.id} 
+                    product={p} 
+                    onAddToCart={handleAddToCart} 
+                    viewMode={viewMode}
+                  />
                 ))}
               </div>
 

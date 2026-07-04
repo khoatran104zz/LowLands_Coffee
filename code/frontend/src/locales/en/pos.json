@@ -125,5 +125,10 @@
   "toppingsSelected": "Selected",
   "toppingsCount": "toppings",
   "noToppings": "No toppings available for this product.",
-  "confirm": "Confirm"
+  "confirm": "Confirm",
+  "sortDefault": "Default",
+  "sortNameAsc": "Name: A-Z",
+  "sortPriceAsc": "Price: Low to High",
+  "sortPriceDesc": "Price: High to Low",
+  "sortLabel": "Sort By"
 }

@@ -21,6 +21,7 @@ import { FormModal } from "@/components/admin/FormModal";
 import { ConfirmDialog } from "@/components/admin/ConfirmDialog";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useConfirm } from "@/hooks/useConfirm";
 
 interface FormIngRow {
   ingredientId: number;
@@ -30,6 +31,7 @@ interface FormIngRow {
 
 export default function AdminRecipesPage() {
   const { t } = useTranslation();
+  const confirm = useConfirm();
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [ingredients, setIngredients] = useState<Ingredient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -44,9 +46,7 @@ export default function AdminRecipesPage() {
 
   // Modals controls
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<Recipe | null>(null);
-  const [itemToDelete, setItemToDelete] = useState<Recipe | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
   // Form input states
@@ -173,9 +173,27 @@ export default function AdminRecipesPage() {
     setIsFormOpen(true);
   };
 
-  const handleOpenDelete = (item: Recipe) => {
-    setItemToDelete(item);
-    setIsDeleteOpen(true);
+  const handleOpenDelete = async (item: Recipe) => {
+    const isConfirmed = await confirm({
+      title: t("common.confirmDeleteTitle") || "Xác nhận xóa",
+      message: `Bạn có chắc chắn muốn xóa công thức pha chế "${item.name}" không?`,
+      confirmText: t("common.delete") || "Xóa",
+      cancelText: t("common.cancel") || "Hủy",
+      variant: "danger"
+    });
+    if (!isConfirmed) return;
+
+    setIsSaving(true);
+    try {
+      await deleteRecipe(item.id);
+      toast.success("Xóa công thức thành công!");
+      loadData();
+    } catch (error) {
+      console.error("Failed to delete recipe", error);
+      toast.error("Thao tác thất bại. Công thức có thể đang được sử dụng ở nơi khác.");
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleAddRow = () => {
@@ -210,26 +228,46 @@ export default function AdminRecipesPage() {
       return;
     }
 
-    setIsSaving(true);
     try {
-      const payload = {
-        productVariantId: parseInt(formProductVariantId),
-        code: formCode.trim(),
-        name: formName.trim(),
-        description: formDescription.trim(),
-        status: formStatus,
-        ingredients: formIngRows.map(row => ({
-          ingredientId: row.ingredientId,
-          quantity: row.quantity,
-          unit: row.unit
-        }))
-      };
-
       if (editingItem) {
-        await updateRecipe(editingItem.id, payload);
+        if (editingItem.status === "active" && formStatus === "inactive") {
+          const isConfirmed = await confirm({
+            title: t("common.confirmDeactivateTitle") || "Xác nhận ngưng hoạt động",
+            message: `${t("common.confirmDeactivateMessage") || "Bạn có chắc chắn muốn ngưng hoạt động mục này?"} ("${editingItem.name}")`,
+            confirmText: t("common.inactive") || "Ngưng hoạt động",
+            cancelText: t("common.cancel") || "Hủy",
+            variant: "warning"
+          });
+          if (!isConfirmed) return;
+        }
+        setIsSaving(true);
+        await updateRecipe(editingItem.id, {
+          productVariantId: parseInt(formProductVariantId),
+          code: formCode.trim(),
+          name: formName.trim(),
+          description: formDescription.trim(),
+          status: formStatus,
+          ingredients: formIngRows.map(row => ({
+            ingredientId: row.ingredientId,
+            quantity: row.quantity,
+            unit: row.unit
+          }))
+        });
         toast.success("Cập nhật công thức pha chế thành công!");
       } else {
-        await createRecipe(payload);
+        setIsSaving(true);
+        await createRecipe({
+          productVariantId: parseInt(formProductVariantId),
+          code: formCode.trim(),
+          name: formName.trim(),
+          description: formDescription.trim(),
+          status: formStatus,
+          ingredients: formIngRows.map(row => ({
+            ingredientId: row.ingredientId,
+            quantity: row.quantity,
+            unit: row.unit
+          }))
+        });
         toast.success("Tạo công thức pha chế mới thành công!");
       }
       setIsFormOpen(false);
@@ -237,22 +275,6 @@ export default function AdminRecipesPage() {
     } catch (error) {
       console.error("Failed to save recipe", error);
       toast.error("Thao tác thất bại. Vui lòng kiểm tra lại dữ liệu.");
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!itemToDelete) return;
-    setIsSaving(true);
-    try {
-      await deleteRecipe(itemToDelete.id);
-      toast.success("Xóa công thức thành công!");
-      setIsDeleteOpen(false);
-      loadData();
-    } catch (error) {
-      console.error("Failed to delete recipe", error);
-      toast.error("Thao tác thất bại. Công thức có thể đang được sử dụng ở nơi khác.");
     } finally {
       setIsSaving(false);
     }
@@ -448,18 +470,6 @@ export default function AdminRecipesPage() {
         </div>
       </FormModal>
 
-      {/* Delete Confirmation Modal */}
-      <ConfirmDialog
-        isOpen={isDeleteOpen}
-        onClose={() => setIsDeleteOpen(false)}
-        onConfirm={handleDelete}
-        title="Xác nhận xóa công thức"
-        message={`Bạn có chắc chắn muốn xóa công thức pha chế "${itemToDelete?.name}"? Các cửa hàng sẽ không thể pha chế kích cỡ sản phẩm này tự động nếu thiếu công thức.`}
-        confirmText="Xác nhận xóa"
-        cancelText="Hủy"
-        variant="danger"
-        isLoading={isSaving}
-      />
     </div>
   );
 }

@@ -125,5 +125,10 @@
   "toppingsSelected": "Đã chọn",
   "toppingsCount": "topping",
   "noToppings": "Không có toppings cho sản phẩm này.",
-  "confirm": "Xác nhận"
+  "confirm": "Xác nhận",
+  "sortDefault": "Mặc định",
+  "sortNameAsc": "Tên: A-Z",
+  "sortPriceAsc": "Giá: Thấp đến Cao",
+  "sortPriceDesc": "Giá: Cao đến Thấp",
+  "sortLabel": "Sắp xếp theo"
 }

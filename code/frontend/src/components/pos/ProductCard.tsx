@@ -15,9 +15,10 @@ interface ProductCardProps {
     selectedToppings: Topping[],
     note: string
   ) => void;
+  viewMode?: "grid" | "list";
 }
 
-export function ProductCard({ product, onAddToCart }: ProductCardProps) {
+export function ProductCard({ product, onAddToCart, viewMode = "grid" }: ProductCardProps) {
   const { t } = useTranslation();
   const categories = useDashboardStore((state) => state.categories);
   const categoryName = categories.find((c) => c.id === product.categoryId)?.name || "Coffee & Tea";
@@ -80,83 +81,158 @@ export function ProductCard({ product, onAddToCart }: ProductCardProps) {
 
   return (
     <>
-      <div 
-        onClick={isOutOfStock ? undefined : handleOpenConfig}
-        className={`group bg-card rounded-xl border border-border/80 p-2 shadow-2xs transition-all duration-200 ease-out flex flex-col select-none ${
-          isOutOfStock 
-            ? "opacity-60 cursor-not-allowed" 
-            : "cursor-pointer hover:bg-muted/10 hover:shadow-md hover:border-zinc-300 hover:-translate-y-0.5 active:scale-[0.98]"
-        }`}
-      >
-        {/* Image - Ratio 16:11 */}
-        <div className="w-full aspect-[16/11] rounded-lg overflow-hidden bg-muted/40 relative shrink-0">
-          {product.imageUrl ? (
-            <img
-              src={product.imageUrl}
-              alt={product.name}
-              className={`w-full h-full object-cover transition-transform duration-500 ${
-                isOutOfStock ? "" : "group-hover:scale-105"
-              }`}
-            />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs font-semibold uppercase">
-              {product.name.slice(0, 2)}
-            </div>
-          )}
+      {viewMode === "grid" ? (
+        <div 
+          onClick={isOutOfStock ? undefined : handleOpenConfig}
+          className={`group bg-card rounded-xl border border-border/80 p-2 shadow-2xs transition-all duration-200 ease-out flex flex-col select-none ${
+            isOutOfStock 
+              ? "opacity-60 cursor-not-allowed" 
+              : "cursor-pointer hover:bg-[#F5EBE1]/40 hover:shadow-md hover:border-[#C8510A]/30 hover:-translate-y-0.5 active:scale-[0.98]"
+          }`}
+        >
+          {/* Image - Ratio 16:11 */}
+          <div className="w-full aspect-[16/11] rounded-lg overflow-hidden bg-muted/40 relative shrink-0">
+            {product.imageUrl ? (
+              <img
+                src={product.imageUrl}
+                alt={product.name}
+                className={`w-full h-full object-cover transition-transform duration-500 ${
+                  isOutOfStock ? "" : "group-hover:scale-105"
+                }`}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs font-semibold uppercase">
+                {product.name.slice(0, 2)}
+              </div>
+            )}
 
-          {/* Hover Overlay mờ */}
-          {!isOutOfStock && (
-            <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
-          )}
+            {/* Hover Overlay mờ */}
+            {!isOutOfStock && (
+              <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-300" />
+            )}
 
-          {/* Floating Badges */}
-          {!isOutOfStock && (
-            <div className="absolute top-1.5 left-1.5 flex flex-col gap-1 z-10 pointer-events-none">
-              {product.id % 6 === 0 && (
-                <span className="bg-amber-500 text-amber-950 text-[9px] font-black uppercase px-1.5 py-0.5 rounded shadow-sm tracking-wider leading-none">
-                  {t("pos.bestSeller") || "Best Seller"}
-                </span>
-              )}
-              {product.id % 8 === 0 && (
-                <span className="bg-emerald-600 text-white text-[9px] font-black uppercase px-1.5 py-0.5 rounded shadow-sm tracking-wider leading-none">
-                  {t("pos.new") || "Mới"}
-                </span>
-              )}
-              {product.id % 9 === 0 && (
-                <span className="bg-indigo-600 text-white text-[9px] font-black uppercase px-1.5 py-0.5 rounded shadow-sm tracking-wider leading-none">
-                  {t("pos.limited") || "Giới hạn"}
-                </span>
-              )}
-            </div>
-          )}
+            {/* Floating Badges */}
+            {!isOutOfStock && (
+              <div className="absolute top-1.5 left-1.5 flex flex-col gap-1 z-10 pointer-events-none">
+                {product.id % 6 === 0 && (
+                  <span className="bg-amber-500 text-amber-950 text-[9px] font-black uppercase px-1.5 py-0.5 rounded shadow-sm tracking-wider leading-none">
+                    {t("pos.bestSeller") || "Best Seller"}
+                  </span>
+                )}
+                {product.id % 8 === 0 && (
+                  <span className="bg-emerald-600 text-white text-[9px] font-black uppercase px-1.5 py-0.5 rounded shadow-sm tracking-wider leading-none">
+                    {t("pos.new") || "Mới"}
+                  </span>
+                )}
+                {product.id % 9 === 0 && (
+                  <span className="bg-indigo-600 text-white text-[9px] font-black uppercase px-1.5 py-0.5 rounded shadow-sm tracking-wider leading-none">
+                    {t("pos.limited") || "Giới hạn"}
+                  </span>
+                )}
+              </div>
+            )}
 
-          {/* Badge Hết hàng */}
-          {isOutOfStock && (
-            <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center">
-              <span className="bg-rose-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded shadow-md tracking-wider">
-                {t("pos.outOfStock")}
+            {/* Badge Hết hàng */}
+            {isOutOfStock && (
+              <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center">
+                <span className="bg-rose-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded shadow-md tracking-wider">
+                  {t("pos.outOfStock")}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Text Area - Compact, no empty space */}
+          <div className="mt-1.5 text-left flex justify-between items-end flex-grow">
+            <div className="flex flex-col min-w-0 pr-1">
+              <h4 className="text-xs font-semibold text-zinc-900 line-clamp-1 group-hover:text-[#C8510A] transition-colors leading-tight" title={product.name}>
+                {product.name}
+              </h4>
+              <span className="text-[13px] font-extrabold text-[#C8510A] mt-1 block leading-none">
+                {displayPrice.toLocaleString("vi-VN")}đ
               </span>
             </div>
-          )}
+            {!isOutOfStock && (
+              <div className="rounded-full h-7 w-7 bg-[#C8510A] text-white flex items-center justify-center shadow-xs group-hover:bg-[#B04308] group-hover:scale-105 transition-all duration-300 shrink-0">
+                <Plus className="h-4 w-4" />
+              </div>
+            )}
+          </div>
         </div>
+      ) : (
+        <div 
+          onClick={isOutOfStock ? undefined : handleOpenConfig}
+          className={`group bg-white rounded-xl border border-border/85 p-3.5 shadow-2xs hover:shadow-md hover:border-[#C8510A]/35 hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-200 flex items-center justify-between select-none ${
+            isOutOfStock 
+              ? "opacity-60 cursor-not-allowed font-medium" 
+              : "cursor-pointer"
+          }`}
+        >
+          <div className="flex items-center gap-4 min-w-0 flex-grow pr-4">
+            {/* Image */}
+            <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted/40 relative shrink-0 border border-border/40">
+              {product.imageUrl ? (
+                <img
+                  src={product.imageUrl}
+                  alt={product.name}
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-muted-foreground text-xs font-semibold uppercase">
+                  {product.name.slice(0, 2)}
+                </div>
+              )}
+              {isOutOfStock && (
+                <div className="absolute inset-0 bg-black/45 flex items-center justify-center">
+                  <span className="text-[9px] text-white font-extrabold uppercase px-1.5 py-0.5 rounded leading-none">
+                    {t("pos.outOfStock")}
+                  </span>
+                </div>
+              )}
+            </div>
 
-        {/* Text Area - Compact, no empty space */}
-        <div className="mt-1.5 text-left flex justify-between items-end flex-grow">
-          <div className="flex flex-col min-w-0 pr-1">
-            <h4 className="text-xs font-semibold text-zinc-900 line-clamp-1 group-hover:text-[#C8510A] transition-colors leading-tight" title={product.name}>
-              {product.name}
-            </h4>
-            <span className="text-[13px] font-extrabold text-[#C8510A] mt-1 block leading-none">
+            {/* Details */}
+            <div className="flex flex-col min-w-0 text-left">
+              <div className="flex items-center gap-2">
+                <span className="text-[9px] font-bold text-[#C8510A] uppercase tracking-wider">
+                  {categoryName}
+                </span>
+                {/* Badges */}
+                {!isOutOfStock && product.id % 6 === 0 && (
+                  <span className="bg-amber-500 text-amber-950 text-[8px] font-black uppercase px-1.5 py-0.5 rounded-sm leading-none scale-90">
+                    {t("pos.bestSeller") || "Best Seller"}
+                  </span>
+                )}
+                {!isOutOfStock && product.id % 8 === 0 && (
+                  <span className="bg-emerald-600 text-white text-[8px] font-black uppercase px-1.5 py-0.5 rounded-sm leading-none scale-90">
+                    {t("pos.new") || "Mới"}
+                  </span>
+                )}
+              </div>
+              <h4 className="text-xs font-bold text-zinc-950 leading-snug mt-1 truncate group-hover:text-[#C8510A] transition-colors">
+                {product.name}
+              </h4>
+              {product.description && (
+                <p className="text-[10px] text-zinc-500 line-clamp-1 leading-normal mt-1 font-medium">
+                  {product.description}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Price & Action */}
+          <div className="flex items-center gap-4 shrink-0">
+            <span className="text-sm font-black text-[#C8510A] whitespace-nowrap">
               {displayPrice.toLocaleString("vi-VN")}đ
             </span>
+            {!isOutOfStock && (
+              <div className="rounded-full h-8 w-8 bg-[#C8510A] text-white flex items-center justify-center shadow-xs group-hover:bg-[#B04308] group-hover:scale-105 transition-all shrink-0">
+                <Plus className="h-4.5 w-4.5" />
+              </div>
+            )}
           </div>
-          {!isOutOfStock && (
-            <div className="rounded-full h-7 w-7 bg-[#C8510A] text-white flex items-center justify-center shadow-xs group-hover:bg-[#B04308] group-hover:scale-105 transition-all duration-300 shrink-0">
-              <Plus className="h-4 w-4" />
-            </div>
-          )}
         </div>
-      </div>
+      )}
 
       {/* Configuration Modal */}
       <Modal

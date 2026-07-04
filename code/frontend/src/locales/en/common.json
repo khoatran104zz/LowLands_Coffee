@@ -117,6 +117,8 @@
     "working": "On Duty",
     "off": "Resigned"
   },
+  "confirmDeactivateTitle": "Confirm Deactivation",
+  "confirmDeactivateMessage": "Are you sure you want to deactivate this item?",
   "seo": {
     "homeTitle": "Lowlands Coffee & Tea - Original Vietnamese Taste",
     "homeDesc": "Order traditional phin coffee and modern fruit teas online at Lowlands Coffee. Fast delivery, massive deals.",
