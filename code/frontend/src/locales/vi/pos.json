@@ -117,5 +117,13 @@
   "emptyCartDesc": "Chọn đồ uống từ thực đơn để thêm vào đơn hàng",
   "posClearCart": "Xóa giỏ hàng",
   "posEnterPromo": "Nhập mã giảm giá...",
-  "posSaveTemporary": "Lưu đơn tạm"
+  "posSaveTemporary": "Lưu đơn tạm",
+  "addTopping": "Thêm Topping",
+  "clickToSelectToppings": "Nhấp để chọn các loại topping...",
+  "selectToppings": "Chọn Toppings",
+  "searchToppingsPlaceholder": "Tìm kiếm topping...",
+  "toppingsSelected": "Đã chọn",
+  "toppingsCount": "topping",
+  "noToppings": "Không có toppings cho sản phẩm này.",
+  "confirm": "Xác nhận"
 }

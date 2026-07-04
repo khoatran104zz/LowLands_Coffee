@@ -117,5 +117,13 @@
   "emptyCartDesc": "Choose drinks from the menu to add to your order",
   "posClearCart": "Clear cart",
   "posEnterPromo": "Enter promo code...",
-  "posSaveTemporary": "Save temporary"
+  "posSaveTemporary": "Save temporary",
+  "addTopping": "Add Topping",
+  "clickToSelectToppings": "Click to select toppings...",
+  "selectToppings": "Select Toppings",
+  "searchToppingsPlaceholder": "Search toppings...",
+  "toppingsSelected": "Selected",
+  "toppingsCount": "toppings",
+  "noToppings": "No toppings available for this product.",
+  "confirm": "Confirm"
 }
