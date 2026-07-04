@@ -130,5 +130,9 @@
   "sortNameAsc": "Tên: A-Z",
   "sortPriceAsc": "Giá: Thấp đến Cao",
   "sortPriceDesc": "Giá: Cao đến Thấp",
-  "sortLabel": "Sắp xếp theo"
+  "sortLabel": "Sắp xếp theo",
+  "confirmClearCartTitle": "Xác nhận xóa giỏ hàng",
+  "confirmClearCartMsg": "Bạn có chắc chắn muốn xóa toàn bộ món trong giỏ hàng hiện tại?",
+  "confirmRemoveItemMsg": "Bạn có chắc chắn muốn xóa món này khỏi đơn hàng?",
+  "cartClearedInfo": "Đã xóa toàn bộ giỏ hàng!"
 }

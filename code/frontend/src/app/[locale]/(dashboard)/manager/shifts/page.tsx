@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { Clock, Plus, Trash2, Calendar, Coffee, Check, AlertTriangle } from "lucide-react";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useConfirm } from "@/hooks/useConfirm";
 import { Shift } from "@/services/shift.service";
 import { getManagerShifts, assignManagerShift, deleteManagerShift } from "@/services/manager-shift.service";
 import { getManagerStaff, ManagerStaff } from "@/services/manager-staff.service";
@@ -14,6 +15,7 @@ import { toast } from "sonner";
 
 export default function ManagerShiftsPage() {
   const { t } = useTranslation();
+  const confirm = useConfirm();
   const [isMounted, setIsMounted] = useState(false);
 
   // States
@@ -25,8 +27,6 @@ export default function ManagerShiftsPage() {
 
   // Modals
   const [isAssignOpen, setIsAssignOpen] = useState(false);
-  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  const [shiftToDelete, setShiftToDelete] = useState<Shift | null>(null);
   const [isActionLoading, setIsActionLoading] = useState(false);
 
   // Form states
@@ -99,18 +99,20 @@ export default function ManagerShiftsPage() {
     }
   };
 
-  const handleOpenDelete = (shift: Shift) => {
-    setShiftToDelete(shift);
-    setIsDeleteOpen(true);
-  };
+  const handleOpenDelete = async (shift: Shift) => {
+    const isConfirmed = await confirm({
+      title: t("manager.shifts.confirmDeleteTitle") || "Xác nhận xóa ca làm",
+      message: t("manager.shifts.confirmDeleteMsg", { name: shift.userFullName, date: shift.shiftDate }) || `Bạn có chắc chắn muốn xóa ca làm của "${shift.userFullName}" ngày ${shift.shiftDate}?`,
+      confirmText: t("manager.shifts.confirmDeleteBtn") || "Xóa",
+      cancelText: t("manager.shifts.confirmDeleteCancel") || "Hủy",
+      variant: "danger"
+    });
+    if (!isConfirmed) return;
 
-  const handleConfirmDelete = async () => {
-    if (!shiftToDelete) return;
     setIsActionLoading(true);
     try {
-      await deleteManagerShift(shiftToDelete.id);
-      toast.success(t("manager.shifts.toastDeleteSuccess", { name: shiftToDelete.userFullName }));
-      setIsDeleteOpen(false);
+      await deleteManagerShift(shift.id);
+      toast.success(t("manager.shifts.toastDeleteSuccess", { name: shift.userFullName }));
       loadShifts();
     } catch (error) {
       console.error(error);
@@ -335,16 +337,6 @@ export default function ManagerShiftsPage() {
         </form>
       </FormModal>
 
-      {/* Delete Confirm */}
-      <ConfirmDialog
-        isOpen={isDeleteOpen}
-        onClose={() => setIsDeleteOpen(false)}
-        onConfirm={handleConfirmDelete}
-        title={t("manager.shifts.confirmDeleteTitle")}
-        message={shiftToDelete ? t("manager.shifts.confirmDeleteMsg", { name: shiftToDelete.userFullName, date: shiftToDelete.shiftDate }) : ""}
-        confirmText={t("manager.shifts.confirmDeleteBtn")}
-        cancelText={t("manager.shifts.confirmDeleteCancel")}
-      />
     </div>
   );
 }

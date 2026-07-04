@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useTranslation";
 import { createOrder } from "@/services/order.service";
+import { useConfirm } from "@/hooks/useConfirm";
 
 interface POSCartProps {
   items: CartItem[];
@@ -42,6 +43,7 @@ export function POSCart({
   onCheckoutSuccess
 }: POSCartProps) {
   const { t } = useTranslation();
+  const confirm = useConfirm();
   const [promoCode, setPromoCode] = useState("");
   const [, setAppliedPromo] = useState<Promotion | null>(null);
   
@@ -266,9 +268,36 @@ export function POSCart({
     }
   };
 
-  const handleRemoveItemLocal = (itemId: string) => {
-    onRemoveItem(itemId);
-    toast.info(t("pos.itemRemovedInfo"));
+  const handleRemoveItemLocal = async (itemId: string) => {
+    const item = items.find(i => i.id === itemId);
+    if (!item) return;
+
+    const isConfirmed = await confirm({
+      title: t("common.confirmDeleteTitle") || "Xác nhận xóa",
+      message: `${t("pos.confirmRemoveItemMsg") || "Bạn có chắc chắn muốn xóa món này khỏi đơn hàng?"} ("${item.product.name}")`,
+      confirmText: t("common.delete") || "Xóa",
+      cancelText: t("common.cancel") || "Hủy",
+      variant: "danger"
+    });
+    
+    if (isConfirmed) {
+      onRemoveItem(itemId);
+      toast.info(t("pos.itemRemovedInfo"));
+    }
+  };
+
+  const handleClearCartClick = async () => {
+    const isConfirmed = await confirm({
+      title: t("pos.confirmClearCartTitle") || "Xác nhận xóa giỏ hàng",
+      message: t("pos.confirmClearCartMsg") || "Bạn có chắc chắn muốn xóa toàn bộ món trong giỏ hàng hiện tại?",
+      confirmText: t("pos.posClearCart") || "Xóa giỏ hàng",
+      cancelText: t("common.cancel") || "Hủy",
+      variant: "danger"
+    });
+    if (isConfirmed) {
+      onClearCart();
+      toast.info(t("pos.cartClearedInfo") || "Đã xóa toàn bộ giỏ hàng!");
+    }
   };
 
   return (
@@ -280,7 +309,7 @@ export function POSCart({
         </h3>
         {items.length > 0 && (
           <button 
-            onClick={onClearCart} 
+            onClick={handleClearCartClick} 
             className="text-muted-foreground hover:text-rose-600 transition-colors p-1 hover:bg-muted/40 rounded-md"
             title={t("pos.posClearCart") || "Xóa giỏ hàng"}
           >

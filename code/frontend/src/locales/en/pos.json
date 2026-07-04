@@ -130,5 +130,9 @@
   "sortNameAsc": "Name: A-Z",
   "sortPriceAsc": "Price: Low to High",
   "sortPriceDesc": "Price: High to Low",
-  "sortLabel": "Sort By"
+  "sortLabel": "Sort By",
+  "confirmClearCartTitle": "Confirm Clear Cart",
+  "confirmClearCartMsg": "Are you sure you want to remove all items from the current cart?",
+  "confirmRemoveItemMsg": "Are you sure you want to remove this item from the order?",
+  "cartClearedInfo": "Cleared all items from the cart!"
 }
