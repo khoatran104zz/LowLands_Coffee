@@ -19,9 +19,13 @@ public interface OrderService {
             String actorEmail
     );
 
+    Page<OrderResponse> findMine(int page, int size, String actorEmail);
+
     OrderResponse findById(Long id, String actorEmail);
 
     OrderResponse findByCode(String orderCode, String actorEmail);
+
+    OrderResponse track(String orderCode, String receiverPhone);
 
     OrderResponse confirm(Long id, String actorEmail);
 

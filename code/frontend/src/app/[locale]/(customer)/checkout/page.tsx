@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as zod from "zod";
 import { useCartStore } from "@/store/cart.store";
+import { useAuthStore } from "@/store/auth.store";
 import { createOrder } from "@/services/order.service";
 import { Order, OrderItemInput } from "@/types";
 import { Button } from "@/components/ui/button";
@@ -19,19 +20,162 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { ShoppingBag, ArrowLeft, CheckCircle2, AlertCircle } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowLeft,
+  ArrowRight,
+  Banknote,
+  CheckCircle2,
+  CreditCard,
+  Landmark,
+  Loader2,
+  MapPin,
+  QrCode,
+  ReceiptText,
+  ShieldCheck,
+  ShoppingBag,
+  Smartphone,
+  TicketPercent,
+  Timer,
+  Truck,
+  UserRound,
+  WalletCards,
+} from "lucide-react";
+
+const PAYMENT_METHOD_VALUES = [
+  "cod",
+  "vnpay_qr",
+  "vnpay_card",
+  "bank_transfer",
+  "momo",
+  "zalopay",
+  "shopeepay",
+] as const;
+
+type CheckoutPaymentMethod = (typeof PAYMENT_METHOD_VALUES)[number];
+type GatewayStep = "review" | "processing" | "otp";
+
+interface PaymentReceipt {
+  transactionCode: string;
+  methodLabel: string;
+  bankName?: string;
+  paidAt: string;
+}
+
+const PAYMENT_OPTIONS: {
+  id: CheckoutPaymentMethod;
+  title: string;
+  subtitle: string;
+  badge: string;
+  requiresBank?: boolean;
+}[] = [
+  {
+    id: "cod",
+    title: "Thanh toán khi nhận hàng",
+    subtitle: "Trả tiền mặt cho nhân viên khi nhận đồ uống.",
+    badge: "COD",
+  },
+  {
+    id: "vnpay_qr",
+    title: "VNPay QR",
+    subtitle: "Quét mã VNPay sandbox bằng ứng dụng ngân hàng.",
+    badge: "VNPAY",
+    requiresBank: true,
+  },
+  {
+    id: "vnpay_card",
+    title: "Thẻ nội địa / quốc tế",
+    subtitle: "Giả lập cổng VNPay/NAPAS với xác thực OTP.",
+    badge: "NAPAS",
+    requiresBank: true,
+  },
+  {
+    id: "bank_transfer",
+    title: "Chuyển khoản ngân hàng",
+    subtitle: "Chọn ngân hàng và xác nhận giao dịch sandbox.",
+    badge: "BANK",
+    requiresBank: true,
+  },
+  {
+    id: "momo",
+    title: "MoMo",
+    subtitle: "Giả lập ví MoMo và xác nhận bằng OTP.",
+    badge: "MOMO",
+  },
+  {
+    id: "zalopay",
+    title: "ZaloPay",
+    subtitle: "Thanh toán qua ví ZaloPay sandbox.",
+    badge: "ZALO",
+  },
+  {
+    id: "shopeepay",
+    title: "ShopeePay",
+    subtitle: "Thanh toán qua ví ShopeePay sandbox.",
+    badge: "S PAY",
+  },
+];
+
+const BANK_OPTIONS = [
+  { id: "vcb", name: "Vietcombank", shortName: "VCB" },
+  { id: "tcb", name: "Techcombank", shortName: "TCB" },
+  { id: "mb", name: "MB Bank", shortName: "MB" },
+  { id: "bidv", name: "BIDV", shortName: "BIDV" },
+  { id: "vietin", name: "VietinBank", shortName: "VTB" },
+  { id: "acb", name: "ACB", shortName: "ACB" },
+  { id: "sacombank", name: "Sacombank", shortName: "STB" },
+  { id: "vpbank", name: "VPBank", shortName: "VPB" },
+];
+
+const LOWLANDS_TRANSFER_ACCOUNT = {
+  holderName: "LOWLANDS COFFEE",
+  accountNumber: "26666666666222",
+};
+
+const ONLINE_PAYMENT_METHODS = new Set<CheckoutPaymentMethod>([
+  "vnpay_qr",
+  "vnpay_card",
+  "bank_transfer",
+  "momo",
+  "zalopay",
+  "shopeepay",
+]);
+
+const toBackendPaymentMethod = (paymentMethod: CheckoutPaymentMethod): Order["paymentMethod"] => {
+  if (paymentMethod === "cod") return "cod";
+  if (paymentMethod === "momo" || paymentMethod === "zalopay" || paymentMethod === "shopeepay") return "e_wallet";
+  return "bank_transfer";
+};
+
+const formatGatewayTime = (value: Date) =>
+  new Intl.DateTimeFormat("vi-VN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(value);
+
+const generateTransactionCode = () => `LLPAY${Date.now().toString().slice(-9)}`;
+
+const getPaymentLabel = (paymentMethod: CheckoutPaymentMethod) =>
+  PAYMENT_OPTIONS.find((option) => option.id === paymentMethod)?.title || "Thanh toán";
 
 export default function CheckoutPage() {
   const { t } = useTranslation();
   const router = useRouter();
 
-  const { items, getSubtotal, getDiscountAmount, getTotalAmount, clearCart, orderType, selectedStoreId } = useCartStore();
+  const {
+    items,
+    getSubtotal,
+    getDiscountAmount,
+    getTotalAmount,
+    clearCart,
+    orderType,
+    selectedStoreId,
+  } = useCartStore();
+  const { isAuthenticated, user } = useAuthStore();
 
-  const [checkoutPayload, setCheckoutPayload] = useState<Order | null>(null);
-  const [isSuccessDialogOpen, setIsSuccessDialogOpen] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-
-  // Zod form validation schema matching messages validations
   const formSchema = zod.object({
     receiverName: zod.string().min(1, { message: t("product.checkout.validation.nameRequired") }),
     receiverPhone: zod
@@ -39,42 +183,88 @@ export default function CheckoutPage() {
       .regex(/^0[0-9]{9}$/, { message: t("product.checkout.validation.phoneInvalid") }),
     deliveryAddress: zod.string().min(1, { message: t("product.checkout.validation.addressRequired") }),
     note: zod.string().optional(),
-    paymentMethod: zod.enum(["cod", "bank_transfer", "e_wallet"] as const),
+    saveInfo: zod.boolean().optional(),
+    acceptPolicy: zod.boolean().refine(Boolean, { message: "Vui lòng đồng ý chính sách bảo mật." }),
+    paymentMethod: zod.enum(PAYMENT_METHOD_VALUES),
   });
 
   type FormData = zod.infer<typeof formSchema>;
 
+  const [createdOrder, setCreatedOrder] = useState<Order | null>(null);
+  const [isSuccessDialogOpen, setIsSuccessDialogOpen] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [voucherCode, setVoucherCode] = useState("");
+  const [voucherMessage, setVoucherMessage] = useState<string | null>(null);
+  const [selectedBankId, setSelectedBankId] = useState(BANK_OPTIONS[0].id);
+  const [isGatewayOpen, setIsGatewayOpen] = useState(false);
+  const [gatewayStep, setGatewayStep] = useState<GatewayStep>("review");
+  const [gatewayTransactionCode, setGatewayTransactionCode] = useState("");
+  const [otpCode, setOtpCode] = useState("");
+  const [pendingCheckoutData, setPendingCheckoutData] = useState<FormData | null>(null);
+  const [completedPaymentReceipt, setCompletedPaymentReceipt] = useState<PaymentReceipt | null>(null);
+  const [checkoutStartedAt] = useState(() => Date.now());
+
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      receiverName: "",
-      receiverPhone: "",
+      receiverName: user?.fullName || "",
+      receiverPhone: user?.phone || "",
       deliveryAddress: "",
       note: "",
+      saveInfo: false,
+      acceptPolicy: true,
       paymentMethod: "cod",
     },
   });
+
+  const selectedPaymentMethod = useWatch({ control, name: "paymentMethod" }) || "cod";
+  const selectedPaymentOption = PAYMENT_OPTIONS.find((option) => option.id === selectedPaymentMethod) || PAYMENT_OPTIONS[0];
+  const selectedBank = BANK_OPTIONS.find((bank) => bank.id === selectedBankId) || BANK_OPTIONS[0];
+  const subtotal = getSubtotal();
+  const discountAmount = getDiscountAmount();
+  const totalAmount = getTotalAmount();
+  const deliveryLabel = orderType === "delivery" ? "Giao hàng tận nơi" : "Nhận tại cửa hàng";
+  const estimatedReceiveTime = useMemo(() => {
+    const minutes = orderType === "delivery" ? 35 : 18;
+    return formatGatewayTime(new Date(checkoutStartedAt + minutes * 60_000));
+  }, [checkoutStartedAt, orderType]);
 
   const formatPrice = (amount: number) => {
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
+      maximumFractionDigits: 0,
     }).format(amount);
   };
 
-  const onSubmit = async (data: FormData) => {
-    if (items.length === 0) return;
+  const getOrderErrorMessage = (error: unknown) => {
+    const responseMessage = (error as { response?: { data?: { message?: string } } }).response?.data?.message;
+    if (responseMessage) {
+      return responseMessage;
+    }
+    return error instanceof Error ? error.message : "Không thể gửi đơn hàng. Vui lòng thử lại.";
+  };
 
-    setSubmitting(true);
+  const formatOrderStatus = (status?: string) => {
+    const normalized = status?.toLowerCase();
+    if (normalized === "pending") return "Chờ nhân viên xác nhận";
+    if (normalized === "confirmed") return "Đã xác nhận";
+    if (normalized === "preparing") return "Đang pha chế";
+    if (normalized === "ready") return "Sẵn sàng giao/nhận";
+    if (normalized === "completed") return "Hoàn tất";
+    if (normalized === "cancelled") return "Đã hủy";
+    return status || "Chờ nhân viên xác nhận";
+  };
 
-    // Map cart items to backend OrderItemInput format
-    const orderItems: OrderItemInput[] = items.map((item) => {
+  const buildOrderItems = (): OrderItemInput[] =>
+    items.map((item) => {
       const toppingsPrice = item.toppings.reduce(
-        (sum, t) => sum + Number(t.topping.price) * t.quantity,
+        (sum, topping) => sum + Number(topping.topping.price) * topping.quantity,
         0
       );
       const unitPrice = Number(item.variant.price) + toppingsPrice;
@@ -84,57 +274,141 @@ export default function CheckoutPage() {
         productVariantId: item.variant.id,
         productName: item.product.name,
         size: item.variant.size,
-        unitPrice: unitPrice,
+        unitPrice,
         quantity: item.quantity,
         totalPrice: unitPrice * item.quantity,
         note: item.note,
-        toppings: item.toppings.map((t) => ({
-          toppingId: t.topping.id,
-          toppingName: t.topping.name,
-          unitPrice: Number(t.topping.price),
-          quantity: t.quantity,
-          totalPrice: Number(t.topping.price) * t.quantity,
+        toppings: item.toppings.map((topping) => ({
+          toppingId: topping.topping.id,
+          toppingName: topping.topping.name,
+          unitPrice: Number(topping.topping.price),
+          quantity: topping.quantity,
+          totalPrice: Number(topping.topping.price) * topping.quantity,
         })),
       };
     });
 
+  const buildOrderNote = (note?: string, receipt?: PaymentReceipt) => {
+    const paymentNote = receipt
+      ? `Thanh toán sandbox: ${receipt.methodLabel}${receipt.bankName ? ` - ${receipt.bankName}` : ""} - ${receipt.transactionCode}`
+      : null;
+    const fullNote = [note?.trim(), paymentNote].filter(Boolean).join(" | ");
+    return fullNote ? fullNote.slice(0, 255) : undefined;
+  };
+
+  const submitOrder = async (data: FormData, receipt?: PaymentReceipt) => {
+    if (items.length === 0) return;
+
+    setSubmitting(true);
+
     const orderData: Order = {
-      storeId: selectedStoreId || 1, // Fallback to store 1
-      orderType: orderType,
+      storeId: selectedStoreId || 1,
+      orderType,
       receiverName: data.receiverName,
       receiverPhone: data.receiverPhone,
       deliveryAddress: data.deliveryAddress,
-      subtotal: getSubtotal(),
-      discountAmount: getDiscountAmount(),
-      totalAmount: getTotalAmount(),
-      note: data.note,
-      items: orderItems,
-      paymentMethod: data.paymentMethod,
+      subtotal,
+      discountAmount,
+      totalAmount,
+      note: buildOrderNote(data.note, receipt),
+      items: buildOrderItems(),
+      paymentMethod: toBackendPaymentMethod(data.paymentMethod),
     };
 
     try {
-      // Attempt to hit Spring Boot Backend API
-      await createOrder(orderData);
-      toast.success(t("product.checkout.orderSuccess"));
-      clearCart();
-      router.push("/menu");
-    } catch (err) {
-      console.warn("Backend API not reachable. Displaying payload schema for debugging.", err);
-      // Backend is offline, display the generated payload in modal to verify correctness
-      setCheckoutPayload(orderData);
+      const savedOrder = await createOrder(orderData);
+      setCompletedPaymentReceipt(receipt || null);
+      setCreatedOrder(savedOrder);
+      setIsGatewayOpen(false);
+      setPendingCheckoutData(null);
       setIsSuccessDialogOpen(true);
+      toast.success(receipt ? "Thanh toán mô phỏng thành công, đơn đã gửi đến nhân viên." : t("product.checkout.orderSuccess"));
+    } catch (err) {
+      console.error("Failed to submit customer order", err);
+      toast.error(getOrderErrorMessage(err));
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleDemoSuccess = () => {
+  const openPaymentGateway = (data: FormData) => {
+    setPendingCheckoutData(data);
+    setGatewayTransactionCode(generateTransactionCode());
+    setGatewayStep("review");
+    setOtpCode("");
+    setIsGatewayOpen(true);
+  };
+
+  const onSubmit = async (data: FormData) => {
+    if (items.length === 0) return;
+
+    if (ONLINE_PAYMENT_METHODS.has(data.paymentMethod)) {
+      openPaymentGateway(data);
+      return;
+    }
+
+    await submitOrder(data);
+  };
+
+  const handleGatewayPrimaryAction = async () => {
+    if (!pendingCheckoutData) return;
+
+    if (gatewayStep === "review") {
+      setGatewayStep("processing");
+      window.setTimeout(() => setGatewayStep("otp"), 850);
+      return;
+    }
+
+    if (gatewayStep === "otp") {
+      if (otpCode.trim() !== "123456") {
+        toast.error("OTP sandbox chưa đúng. Gợi ý: 123456");
+        return;
+      }
+
+      const receipt: PaymentReceipt = {
+        transactionCode: gatewayTransactionCode,
+        methodLabel: getPaymentLabel(pendingCheckoutData.paymentMethod),
+        bankName: selectedPaymentOption.requiresBank ? selectedBank.name : undefined,
+        paidAt: formatGatewayTime(new Date()),
+      };
+
+      await submitOrder(pendingCheckoutData, receipt);
+    }
+  };
+
+  const handleApplyVoucher = () => {
+    const normalized = voucherCode.trim().toUpperCase();
+    if (!normalized) {
+      setVoucherMessage("Nhập mã khuyến mãi để kiểm tra.");
+      return;
+    }
+    setVoucherMessage(
+      normalized === "LOWLANDS"
+        ? "Mã LOWLANDS đang ở chế độ demo. Backend hiện chưa ghi giảm giá vào đơn."
+        : "Mã giảm giá không hợp lệ."
+    );
+  };
+
+  const handleOrderSuccessClose = () => {
     setIsSuccessDialogOpen(false);
+    setCreatedOrder(null);
+    setCompletedPaymentReceipt(null);
     clearCart();
     router.push("/menu");
   };
 
-  if (items.length === 0) {
+  const handleTrackCreatedOrder = () => {
+    if (!createdOrder) return;
+    setIsSuccessDialogOpen(false);
+    clearCart();
+    if (isAuthenticated) {
+      router.push("/profile#orders");
+      return;
+    }
+    router.push(`/track-order?code=${encodeURIComponent(createdOrder.orderCode || "")}&phone=${encodeURIComponent(createdOrder.receiverPhone || "")}`);
+  };
+
+  if (items.length === 0 && !createdOrder) {
     return (
       <div className="py-20 min-h-[60vh] bg-background flex flex-col items-center justify-center text-center gap-6">
         <div className="rounded-full bg-secondary p-6 text-muted-foreground/45">
@@ -152,212 +426,784 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="py-12 bg-background min-h-screen text-left">
+    <div className="min-h-screen bg-[#FBF7F0] py-10 text-left">
       <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        
-        {/* Back Link */}
         <Link
           href="/cart"
-          className="inline-flex items-center gap-2 text-sm font-semibold text-muted-foreground hover:text-primary mb-8"
+          className="inline-flex items-center gap-2 text-sm font-bold text-[#7B655A] hover:text-[#3A1D14]"
         >
           <ArrowLeft className="h-4 w-4" />
           <span>{t("common.cart")}</span>
         </Link>
 
-        <h1 className="font-heading font-extrabold text-3xl text-primary tracking-tight mb-8">
-          {t("product.checkout.title")}
-        </h1>
+        <div className="mt-8 flex flex-col gap-2">
+          <h1 className="font-heading text-3xl font-black tracking-tight text-[#3A1D14]">
+            {t("product.checkout.title")}
+          </h1>
+          <p className="text-sm font-semibold text-[#7B655A]">
+            Hoàn tất thông tin, chọn VNPay/ngân hàng hoặc ví điện tử sandbox để gửi đơn đến nhân viên.
+          </p>
+        </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-          
-          {/* Checkout Form */}
-          <div className="lg:col-span-7">
-            <form onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-6">
-              
-              {/* Shipping Address Section */}
-              <div className="border border-border/85 rounded-2xl p-6 bg-card shadow-sm flex flex-col gap-4 text-left">
-                <h3 className="font-bold text-base text-primary border-b border-border/60 pb-3">
-                  {t("product.checkout.shippingAddress")}
-                </h3>
-                
+        <form onSubmit={handleSubmit(onSubmit)} className="mt-8 grid grid-cols-1 gap-7 lg:grid-cols-12 lg:items-start">
+          <div className="space-y-6 lg:col-span-7">
+            <section className="rounded-2xl border border-[#E5D8C8] bg-white p-5 shadow-sm md:p-6">
+              <div className="flex items-center gap-2 border-b border-[#E9DED1] pb-4">
+                <Truck className="h-5 w-5 text-[#C69A5B]" />
+                <h2 className="text-xl font-black text-[#3A1D14]">Thông tin nhận hàng</h2>
+              </div>
+
+              <div className="mt-5 space-y-3 text-sm">
+                <div className="flex items-start gap-2">
+                  <MapPin className="mt-0.5 h-4 w-4 text-[#C8510A]" />
+                  <div>
+                    <p className="font-black text-[#3A1D14]">{deliveryLabel}</p>
+                    <p className="mt-1 font-semibold text-[#7B655A]">
+                      Nhân viên Lowlands sẽ xác nhận đơn trước khi chuẩn bị.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="rounded-xl bg-[#F7EFE5] px-4 py-3">
+                  <div className="flex items-center gap-2 text-sm font-black text-[#3A1D14]">
+                    <Timer className="h-4 w-4 text-[#C8510A]" />
+                    Thời gian nhận dự kiến
+                  </div>
+                  <p className="mt-1 text-sm font-black text-[#C8510A]">{estimatedReceiveTime}</p>
+                </div>
+
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">{t("product.checkout.fullName")}</label>
+                  <label className="text-xs font-black uppercase tracking-wide text-[#7B655A]">
+                    Hướng dẫn cho nhân viên
+                  </label>
+                  <textarea
+                    {...register("note")}
+                    className="min-h-[86px] w-full resize-none rounded-xl border border-[#E5D8C8] bg-[#FFFCF8] p-3 text-sm font-semibold text-[#3A1D14] outline-none transition focus:border-[#C69A5B] focus:ring-3 focus:ring-[#C69A5B]/20"
+                    placeholder="Ví dụ: ít đường, nhiều đá, gọi trước khi giao..."
+                  />
+                </div>
+              </div>
+            </section>
+
+            <section className="rounded-2xl border border-[#E5D8C8] bg-white p-5 shadow-sm md:p-6">
+              <div className="flex items-center gap-2 border-b border-[#E9DED1] pb-4">
+                <UserRound className="h-5 w-5 text-[#C69A5B]" />
+                <h2 className="text-xl font-black text-[#3A1D14]">Thông tin của bạn</h2>
+              </div>
+
+              <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-black uppercase tracking-wide text-[#7B655A]">
+                    Họ và tên <span className="text-[#C8510A]">*</span>
+                  </label>
                   <Input
                     {...register("receiverName")}
-                    className="border-border text-xs sm:text-sm h-10"
+                    className="h-11 rounded-xl border-[#E5D8C8] bg-[#FFFCF8] text-sm font-semibold"
                     placeholder="Nguyễn Văn A"
                   />
                   {errors.receiverName && (
-                    <span className="text-xs text-destructive font-semibold">{errors.receiverName.message}</span>
+                    <span className="text-xs font-semibold text-destructive">{errors.receiverName.message}</span>
                   )}
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">{t("product.checkout.phone")}</label>
+                  <label className="text-xs font-black uppercase tracking-wide text-[#7B655A]">
+                    Số điện thoại <span className="text-[#C8510A]">*</span>
+                  </label>
                   <Input
                     {...register("receiverPhone")}
-                    className="border-border text-xs sm:text-sm h-10"
+                    className="h-11 rounded-xl border-[#E5D8C8] bg-[#FFFCF8] text-sm font-semibold"
                     placeholder="0901234567"
                   />
                   {errors.receiverPhone && (
-                    <span className="text-xs text-destructive font-semibold">{errors.receiverPhone.message}</span>
+                    <span className="text-xs font-semibold text-destructive">{errors.receiverPhone.message}</span>
                   )}
                 </div>
 
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">{t("product.checkout.address")}</label>
+                <div className="flex flex-col gap-1.5 md:col-span-2">
+                  <label className="text-xs font-black uppercase tracking-wide text-[#7B655A]">
+                    Địa chỉ chi tiết <span className="text-[#C8510A]">*</span>
+                  </label>
                   <Input
                     {...register("deliveryAddress")}
-                    className="border-border text-xs sm:text-sm h-10"
-                    placeholder="123 Đường ABC, Quận 1, TP. Hồ Chí Minh"
+                    className="h-11 rounded-xl border-[#E5D8C8] bg-[#FFFCF8] text-sm font-semibold"
+                    placeholder="Số nhà, tên đường, phường/xã, quận/huyện..."
                   />
                   {errors.deliveryAddress && (
-                    <span className="text-xs text-destructive font-semibold">{errors.deliveryAddress.message}</span>
+                    <span className="text-xs font-semibold text-destructive">{errors.deliveryAddress.message}</span>
                   )}
                 </div>
-
-                <div className="flex flex-col gap-1.5">
-                  <label className="text-xs font-bold text-muted-foreground">{t("product.cart.promoCode")} ({t("common.empty")})</label>
-                  <textarea
-                    {...register("note")}
-                    className="w-full min-h-[80px] border border-border rounded-xl p-3 text-xs sm:text-sm focus:outline-primary/50 bg-card resize-none"
-                    placeholder="Ví dụ: Ít đường, nhiều sữa..."
-                  />
-                </div>
               </div>
 
-              {/* Payment Methods Section */}
-              <div className="border border-border/85 rounded-2xl p-6 bg-card shadow-sm flex flex-col gap-4 text-left">
-                <h3 className="font-bold text-base text-primary border-b border-border/60 pb-3">
-                  {t("product.checkout.paymentMethod")}
-                </h3>
-                
-                <div className="flex flex-col gap-3">
-                  <label className="flex items-center gap-3 border border-border/80 rounded-xl p-3.5 hover:bg-muted/30 cursor-pointer">
-                    <input
-                      type="radio"
-                      value="cod"
-                      {...register("paymentMethod")}
-                      className="accent-primary"
-                    />
-                    <span className="text-xs sm:text-sm font-semibold">{t("product.checkout.cashOnDelivery")}</span>
-                  </label>
+              <div className="mt-5 space-y-3 text-sm font-semibold text-[#3A1D14]">
+                <label className="flex items-start gap-3">
+                  <input type="checkbox" {...register("saveInfo")} className="mt-1 accent-[#C8510A]" />
+                  <span>Dùng thông tin này cho những lần đặt hàng sau.</span>
+                </label>
+                <label className="flex items-start gap-3">
+                  <input type="checkbox" {...register("acceptPolicy")} className="mt-1 accent-[#C8510A]" />
+                  <span>
+                    Tôi đồng ý để Lowlands Coffee sử dụng thông tin cá nhân cho mục đích xử lý đơn hàng.
+                    <span className="font-black text-[#C8510A]"> *</span>
+                  </span>
+                </label>
+                {errors.acceptPolicy && (
+                  <span className="block text-xs font-semibold text-destructive">{errors.acceptPolicy.message}</span>
+                )}
+              </div>
+            </section>
 
-                  <label className="flex items-center gap-3 border border-border/80 rounded-xl p-3.5 hover:bg-muted/30 cursor-pointer">
-                    <input
-                      type="radio"
-                      value="bank_transfer"
-                      {...register("paymentMethod")}
-                      className="accent-primary"
-                    />
-                    <span className="text-xs sm:text-sm font-semibold">{t("product.checkout.bankTransfer")}</span>
-                  </label>
-
-                  <label className="flex items-center gap-3 border border-border/80 rounded-xl p-3.5 hover:bg-muted/30 cursor-pointer">
-                    <input
-                      type="radio"
-                      value="e_wallet"
-                      {...register("paymentMethod")}
-                      className="accent-primary"
-                    />
-                    <span className="text-xs sm:text-sm font-semibold">{t("product.checkout.eWallet")}</span>
-                  </label>
-                </div>
+            <section className="rounded-2xl border border-[#E5D8C8] bg-white p-5 shadow-sm md:p-6">
+              <div className="flex items-center gap-2 border-b border-[#E9DED1] pb-4">
+                <WalletCards className="h-5 w-5 text-[#C69A5B]" />
+                <h2 className="text-xl font-black text-[#3A1D14]">Phương thức thanh toán</h2>
               </div>
 
-              {/* Form Submission CTA */}
+              <div className="mt-5 space-y-3">
+                {PAYMENT_OPTIONS.map((option) => {
+                  const isSelected = selectedPaymentMethod === option.id;
+                  return (
+                    <label
+                      key={option.id}
+                      className={`flex cursor-pointer items-center gap-3 rounded-xl border p-3.5 transition ${
+                        isSelected
+                          ? "border-[#C69A5B] bg-[#FFF8ED] shadow-[0_0_0_3px_rgba(198,154,91,0.12)]"
+                          : "border-[#E5D8C8] bg-white hover:border-[#C69A5B]/60 hover:bg-[#FFFCF8]"
+                      }`}
+                    >
+                      <input
+                        type="radio"
+                        value={option.id}
+                        {...register("paymentMethod")}
+                        className="sr-only"
+                      />
+                      <span
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
+                          isSelected ? "border-[#C8510A] bg-[#C8510A]" : "border-[#C69A5B]"
+                        }`}
+                      >
+                        {isSelected && <CheckCircle2 className="h-3.5 w-3.5 text-white" />}
+                      </span>
+                      <span className="flex h-14 w-20 shrink-0 items-center justify-center rounded-lg border border-[#E5D8C8] bg-[#FBF7F0]">
+                        <PaymentBrandMark method={option.id} badge={option.badge} />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-sm font-black text-[#3A1D14]">{option.title}</span>
+                        <span className="mt-0.5 block text-xs font-semibold text-[#7B655A]">{option.subtitle}</span>
+                      </span>
+                    </label>
+                  );
+                })}
+              </div>
+
+              {selectedPaymentOption.requiresBank && (
+                <div className="mt-5 rounded-xl border border-[#E5D8C8] bg-[#FFFCF8] p-4">
+                  <div className="flex items-center gap-2 text-sm font-black text-[#3A1D14]">
+                    <Landmark className="h-4 w-4 text-[#C8510A]" />
+                    Chọn ngân hàng sandbox
+                  </div>
+                  <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4">
+                    {BANK_OPTIONS.map((bank) => {
+                      const isSelected = selectedBankId === bank.id;
+                      return (
+                        <button
+                          key={bank.id}
+                          type="button"
+                          onClick={() => setSelectedBankId(bank.id)}
+                          className={`rounded-lg border px-3 py-2 text-left transition ${
+                            isSelected
+                              ? "border-[#C8510A] bg-[#F7EFE5] text-[#3A1D14]"
+                              : "border-[#E5D8C8] bg-white text-[#7B655A] hover:border-[#C69A5B]"
+                          }`}
+                        >
+                          <span className="block text-xs font-black">{bank.shortName}</span>
+                          <span className="mt-0.5 block truncate text-[11px] font-semibold">{bank.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </section>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <Link
+                href="/cart"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-[#C69A5B]/40 bg-[#8EA096] px-5 text-sm font-black text-white hover:bg-[#7F9188]"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Quay lại
+              </Link>
               <Button
                 type="submit"
-                disabled={submitting}
-                className="w-full py-6 rounded-full font-bold text-sm"
+                disabled={submitting || Boolean(createdOrder)}
+                className="h-12 rounded-xl bg-[#3A1D14] px-5 text-sm font-black text-white hover:bg-[#2C140F]"
               >
-                {submitting ? t("common.loading") : t("product.checkout.placeOrder")}
-              </Button>
-
-            </form>
-          </div>
-
-          {/* Sidebar Order Summary */}
-          <div className="lg:col-span-5 flex flex-col gap-4">
-            <div className="border border-border/85 rounded-2xl p-6 bg-card shadow-sm flex flex-col gap-4">
-              <h3 className="font-bold text-base text-primary border-b border-border/60 pb-3">
-                {t("product.checkout.orderSummary")}
-              </h3>
-
-              {/* Summary Items list */}
-              <div className="max-h-[220px] overflow-y-auto flex flex-col gap-3 pr-1 border-b border-border/60 pb-4">
-                {items.map((item) => (
-                  <div key={item.id} className="flex justify-between items-center text-xs text-left">
-                    <div className="flex flex-col max-w-[70%]">
-                      <span className="font-bold text-primary">{item.product.name} (x{item.quantity})</span>
-                      <span className="text-muted-foreground text-[10px]">Size {item.variant.size}</span>
-                    </div>
-                    <span className="font-semibold text-primary">
-                      {formatPrice(
-                        (Number(item.variant.price) +
-                          item.toppings.reduce((sum, t) => sum + Number(t.topping.price) * t.quantity, 0)) *
-                          item.quantity
-                      )}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Price Calculations */}
-              <div className="flex flex-col gap-2 text-xs sm:text-sm">
-                <div className="flex justify-between text-muted-foreground">
-                  <span>{t("product.cart.subtotal")}</span>
-                  <span className="font-semibold text-foreground">{formatPrice(getSubtotal())}</span>
-                </div>
-                {getDiscountAmount() > 0 && (
-                  <div className="flex justify-between text-accent font-semibold">
-                    <span>{t("product.cart.discount")}</span>
-                    <span>-{formatPrice(getDiscountAmount())}</span>
-                  </div>
+                {submitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    {t("common.loading")}
+                  </>
+                ) : (
+                  <>
+                    Đặt hàng
+                    <ArrowRight className="h-4 w-4" />
+                  </>
                 )}
-                <div className="flex justify-between border-t border-border/60 pt-3 text-base font-extrabold text-primary">
-                  <span>{t("common.total")}</span>
-                  <span className="text-lg font-black">{formatPrice(getTotalAmount())}</span>
-                </div>
-              </div>
+              </Button>
             </div>
           </div>
 
-        </div>
+          <aside className="space-y-5 lg:col-span-5 lg:sticky lg:top-24">
+            <section className="rounded-2xl border border-[#E5D8C8] bg-white p-5 shadow-sm">
+              <div className="flex items-center gap-2">
+                <TicketPercent className="h-5 w-5 text-[#C69A5B]" />
+                <h2 className="text-base font-black text-[#3A1D14]">Voucher / Code</h2>
+              </div>
+              <p className="mt-1 text-sm font-semibold text-[#7B655A]">Nhập mã khuyến mãi của bạn tại đây.</p>
+              <div className="mt-3 flex overflow-hidden rounded-xl border border-[#E5D8C8] bg-[#FFFCF8]">
+                <input
+                  value={voucherCode}
+                  onChange={(event) => setVoucherCode(event.target.value)}
+                  className="min-w-0 flex-1 bg-transparent px-3 text-sm font-semibold text-[#3A1D14] outline-none"
+                  placeholder="LOWLANDS"
+                />
+                <button
+                  type="button"
+                  onClick={handleApplyVoucher}
+                  className="bg-[#C8510A] px-4 py-2 text-sm font-black text-white hover:bg-[#A94309]"
+                >
+                  Áp dụng
+                </button>
+              </div>
+              {voucherMessage && (
+                <div className="mt-3 rounded-xl border border-[#EBCFC2] bg-[#FFF1EC] px-3 py-2 text-sm font-bold text-[#C8510A]">
+                  {voucherMessage}
+                </div>
+              )}
+            </section>
+
+            <section className="rounded-2xl border border-[#E5D8C8] bg-white p-5 shadow-sm">
+              <div className="flex items-center gap-2 border-b border-[#E9DED1] pb-4">
+                <ReceiptText className="h-5 w-5 text-[#C69A5B]" />
+                <h2 className="text-xl font-black text-[#3A1D14]">Đơn hàng của bạn</h2>
+              </div>
+
+              <div className="max-h-[260px] space-y-4 overflow-y-auto py-4 pr-1">
+                {items.map((item) => {
+                  const toppingsTotal = item.toppings.reduce(
+                    (sum, topping) => sum + Number(topping.topping.price) * topping.quantity,
+                    0
+                  );
+                  const itemPrice = (Number(item.variant.price) + toppingsTotal) * item.quantity;
+                  return (
+                    <div key={item.id} className="flex items-start justify-between gap-4 text-sm">
+                      <div className="min-w-0">
+                        <p className="font-black text-[#3A1D14]">
+                          {item.product.name} <span className="font-semibold text-[#7B655A]">x{item.quantity}</span>
+                        </p>
+                        <p className="mt-0.5 text-xs font-semibold text-[#7B655A]">Size {item.variant.size}</p>
+                        {item.toppings.length > 0 && (
+                          <p className="mt-0.5 truncate text-xs font-semibold text-[#9A7A65]">
+                            + {item.toppings.map((topping) => `${topping.topping.name} x${topping.quantity}`).join(", ")}
+                          </p>
+                        )}
+                      </div>
+                      <span className="shrink-0 font-black text-[#3A1D14]">{formatPrice(itemPrice)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="space-y-2 border-t border-[#E9DED1] pt-4 text-sm font-semibold">
+                <SummaryRow label="Tạm tính" value={formatPrice(subtotal)} />
+                <SummaryRow label="Giảm giá" value={discountAmount > 0 ? `-${formatPrice(discountAmount)}` : formatPrice(0)} />
+                <SummaryRow label="Phí giao hàng" value={formatPrice(0)} />
+                <SummaryRow label="Phụ thu" value={formatPrice(0)} />
+                <div className="mt-4 flex items-center justify-between border-t border-[#E9DED1] pt-4 text-xl font-black text-[#3A1D14]">
+                  <span>Tổng tiền</span>
+                  <span className="text-[#C8510A]">{formatPrice(totalAmount)}</span>
+                </div>
+              </div>
+
+              <div className="mt-4 rounded-xl border border-[#E5D8C8] bg-[#FBF7F0] p-3 text-xs font-semibold text-[#7B655A]">
+                <div className="flex items-center gap-2 font-black text-[#3A1D14]">
+                  <ShieldCheck className="h-4 w-4 text-[#C8510A]" />
+                  Thanh toán sandbox
+                </div>
+                <p className="mt-1">
+                  VNPay/ngân hàng/ví điện tử được mô phỏng để kiểm thử đồ án. Giao dịch không trừ tiền thật.
+                </p>
+              </div>
+            </section>
+          </aside>
+        </form>
       </div>
 
-      {/* Backend Offline / Payload Inspection Modal */}
-      {isSuccessDialogOpen && (
-        <Dialog open={isSuccessDialogOpen} onOpenChange={setIsSuccessDialogOpen}>
+      <Dialog open={isGatewayOpen} onOpenChange={setIsGatewayOpen}>
+        <DialogContent className="w-[min(1040px,calc(100vw-2rem))] !max-w-none overflow-hidden bg-white p-0 text-left">
+          <div className="max-h-[92vh] overflow-y-auto rounded-xl">
+            <div className="bg-[#3A1D14] px-5 py-4 text-white md:px-6">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-2 pr-8 text-xl font-black md:text-2xl">
+                  <ShieldCheck className="h-6 w-6 text-[#F0C77A]" />
+                  Lowlands Pay Sandbox
+                </DialogTitle>
+                <DialogDescription className="text-sm font-semibold text-[#EBDDCF]">
+                  Giả lập cổng {selectedPaymentOption.title}. OTP sandbox: <span className="font-black text-white">123456</span>
+                </DialogDescription>
+              </DialogHeader>
+            </div>
+
+            <div className="grid gap-0 md:grid-cols-[minmax(0,1fr)_310px] lg:grid-cols-[minmax(0,1fr)_340px]">
+              <div className="min-w-0 p-5 md:p-6">
+                {gatewayStep === "processing" ? (
+                  <div className="flex min-h-[330px] flex-col items-center justify-center text-center">
+                    <Loader2 className="h-12 w-12 animate-spin text-[#C8510A]" />
+                    <h3 className="mt-4 text-lg font-black text-[#3A1D14]">Đang kết nối cổng thanh toán</h3>
+                    <p className="mt-1 text-sm font-semibold text-[#7B655A]">
+                      Hệ thống đang kiểm tra giao dịch với {selectedPaymentOption.title}.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-5">
+                    <div className="rounded-2xl border border-[#E5D8C8] bg-[#FBF7F0] p-4">
+                      <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center">
+                        <div className="min-w-0">
+                          <p className="text-xs font-black uppercase tracking-wide text-[#7B655A]">Số tiền thanh toán</p>
+                          <p className="mt-1 text-3xl font-black text-[#C8510A] md:text-4xl">{formatPrice(totalAmount)}</p>
+                        </div>
+                        <div className="flex h-14 min-w-[132px] items-center justify-center rounded-xl border border-[#E5D8C8] bg-white px-4">
+                          <PaymentBrandMark method={selectedPaymentMethod} badge={selectedPaymentOption.badge} large />
+                        </div>
+                      </div>
+                      <div className="mt-4 grid grid-cols-1 gap-3 text-xs font-semibold text-[#7B655A] sm:grid-cols-3">
+                        <GatewayInfo label="Mã giao dịch" value={gatewayTransactionCode} />
+                        <GatewayInfo label="Phương thức" value={selectedPaymentOption.title} />
+                        {selectedPaymentOption.requiresBank && (
+                          <GatewayInfo label="Ngân hàng" value={selectedBank.name} />
+                        )}
+                      </div>
+                    </div>
+
+                    {(selectedPaymentMethod === "vnpay_qr" || selectedPaymentMethod === "bank_transfer") && (
+                      <div className="grid gap-4 sm:grid-cols-[280px_minmax(0,1fr)]">
+                        <VietQrCard
+                          transactionCode={gatewayTransactionCode}
+                          bankShortName={selectedBank.shortName}
+                          bankName={selectedBank.name}
+                          paymentMethod={selectedPaymentMethod}
+                          amountLabel={formatPrice(totalAmount)}
+                        />
+                        <GatewayMethodPanel
+                          title={selectedPaymentMethod === "bank_transfer" ? "Chuyển khoản bằng VietQR" : "Quét mã bằng app ngân hàng"}
+                          description={
+                            selectedPaymentMethod === "bank_transfer"
+                              ? "Mở ứng dụng ngân hàng, quét mã VietQR và kiểm tra đúng tên tài khoản, số tiền, nội dung chuyển khoản."
+                              : "Mở ứng dụng ngân hàng, chọn VNPay QR và quét mã sandbox. Sau đó nhập OTP để xác nhận giao dịch."
+                          }
+                          steps={
+                            selectedPaymentMethod === "bank_transfer"
+                              ? [
+                                  "Quét mã VietQR trong app ngân hàng.",
+                                  "Kiểm tra người nhận LOWLANDS COFFEE và nội dung chuyển khoản.",
+                                  "Nhập OTP sandbox để gửi đơn hàng.",
+                                ]
+                              : [
+                                  "Mở app ngân hàng hoặc ví hỗ trợ VNPay.",
+                                  "Chọn quét mã QR và kiểm tra số tiền.",
+                                  "Nhập OTP sandbox để hoàn tất.",
+                                ]
+                          }
+                        />
+                      </div>
+                    )}
+
+                    {selectedPaymentMethod !== "vnpay_qr" && selectedPaymentMethod !== "bank_transfer" && (
+                      <GatewayMethodPanel
+                        title={
+                          selectedPaymentOption.requiresBank
+                            ? `Xác nhận qua ${selectedBank.name}`
+                            : `Xác nhận qua ${selectedPaymentOption.title}`
+                        }
+                        description={
+                          selectedPaymentOption.requiresBank
+                            ? "Đây là giao dịch ngân hàng sandbox. Kiểm tra thông tin bên dưới rồi xác nhận để chuyển sang bước OTP."
+                            : "Ví điện tử sandbox sẽ mô phỏng trạng thái đang chờ xác nhận, sau đó yêu cầu OTP để hoàn tất."
+                        }
+                        steps={[
+                          "Kiểm tra đúng số tiền và mã giao dịch.",
+                          selectedPaymentOption.requiresBank ? "Chọn tài khoản nguồn trong ngân hàng sandbox." : "Mở ví điện tử sandbox để xác nhận.",
+                          "Nhập OTP 123456 để gửi đơn hàng.",
+                        ]}
+                      />
+                    )}
+
+                    {gatewayStep === "otp" && (
+                      <div className="rounded-2xl border border-[#E5D8C8] p-4">
+                        <label className="text-xs font-black uppercase tracking-wide text-[#7B655A]">
+                          Mã OTP xác thực
+                        </label>
+                        <Input
+                          value={otpCode}
+                          onChange={(event) => setOtpCode(event.target.value)}
+                          className="mt-2 h-12 rounded-xl border-[#C69A5B] text-center text-lg font-black tracking-[0.35em]"
+                          maxLength={6}
+                          placeholder="123456"
+                        />
+                        <p className="mt-2 text-xs font-semibold text-[#7B655A]">
+                          Nhập <span className="font-black text-[#C8510A]">123456</span> để hoàn tất giao dịch sandbox.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              <div className="min-w-0 border-t border-[#E5D8C8] bg-[#FFFCF8] p-5 md:border-l md:border-t-0 md:p-6">
+                <h3 className="text-lg font-black text-[#3A1D14]">Tóm tắt thanh toán</h3>
+                <div className="mt-4 space-y-2 text-sm font-semibold text-[#7B655A]">
+                  <SummaryRow label="Đơn hàng" value={`${items.length} món`} />
+                  <SummaryRow label="Tổng tiền" value={formatPrice(totalAmount)} strong />
+                  <SummaryRow label="Cổng" value={selectedPaymentOption.badge} />
+                  {selectedPaymentOption.requiresBank && <SummaryRow label="Ngân hàng" value={selectedBank.shortName} />}
+                </div>
+
+                <div className="mt-5 rounded-xl border border-[#E5D8C8] bg-white p-3 text-xs font-semibold text-[#7B655A]">
+                  <p className="font-black text-[#3A1D14]">Quy trình giả lập</p>
+                  <ol className="mt-2 space-y-1">
+                    <li>1. Kiểm tra thông tin giao dịch.</li>
+                    <li>2. Cổng thanh toán phản hồi sandbox.</li>
+                    <li>3. Xác thực OTP và gửi đơn.</li>
+                  </ol>
+                </div>
+
+                <Button
+                  type="button"
+                  onClick={handleGatewayPrimaryAction}
+                  disabled={submitting || gatewayStep === "processing"}
+                  className="mt-5 h-11 w-full rounded-xl bg-[#C8510A] text-sm font-black text-white hover:bg-[#A94309]"
+                >
+                  {gatewayStep === "review" && (
+                    <>
+                      Xác nhận thanh toán
+                      <ArrowRight className="h-4 w-4" />
+                    </>
+                  )}
+                  {gatewayStep === "processing" && (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      Đang xử lý
+                    </>
+                  )}
+                  {gatewayStep === "otp" && (
+                    <>
+                      Hoàn tất giao dịch
+                      <CheckCircle2 className="h-4 w-4" />
+                    </>
+                  )}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {isSuccessDialogOpen && createdOrder && (
+        <Dialog
+          open={isSuccessDialogOpen}
+          onOpenChange={(open) => {
+            if (!open) {
+              handleOrderSuccessClose();
+            }
+          }}
+        >
           <DialogContent className="max-w-2xl bg-card text-left max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-lg font-extrabold text-primary">
-                <CheckCircle2 className="h-6 w-6 text-accent shrink-0 animate-bounce" />
-                <span>Kiểm Thử Đặt Hàng - API Offline</span>
+                <CheckCircle2 className="h-6 w-6 text-emerald-600 shrink-0" />
+                <span>Đơn hàng đã gửi đến nhân viên</span>
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground leading-relaxed pt-1">
-                Giao diện đã chuẩn bị đầy đủ payload gửi lên API Server. Dưới đây là JSON Object đã được Zod xác thực thành công, sẵn sàng chuyển giao cho backend xử lý ghi nhận vào cơ sở dữ liệu:
+                Đơn hàng của bạn đã được ghi nhận vào hệ thống. Nhân viên cửa hàng sẽ kiểm tra và xác nhận trong ít phút.
               </DialogDescription>
             </DialogHeader>
-            
-            <div className="bg-secondary/40 p-4 rounded-xl border border-border font-mono text-[10px] text-foreground/80 overflow-x-auto my-2">
-              <pre>{JSON.stringify(checkoutPayload, null, 2)}</pre>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 my-2">
+              <div className="rounded-xl border border-border bg-secondary/25 p-4">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Mã đơn hàng</div>
+                <div className="mt-1 text-lg font-black text-primary">{createdOrder.orderCode}</div>
+              </div>
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-800">Trạng thái</div>
+                <div className="mt-1 text-sm font-black text-emerald-800">{formatOrderStatus(createdOrder.status)}</div>
+              </div>
+              <div className="rounded-xl border border-border bg-secondary/25 p-4">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Cửa hàng</div>
+                <div className="mt-1 text-sm font-extrabold text-primary">{createdOrder.storeName || `#${createdOrder.storeId}`}</div>
+              </div>
+              <div className="rounded-xl border border-border bg-secondary/25 p-4">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Tổng tiền</div>
+                <div className="mt-1 text-sm font-extrabold text-primary">{formatPrice(createdOrder.totalAmount)}</div>
+              </div>
             </div>
+
+            {completedPaymentReceipt && (
+              <div className="rounded-xl border border-[#E5D8C8] bg-[#FBF7F0] p-4 text-xs font-semibold text-[#7B655A]">
+                <div className="flex items-center gap-2 font-black text-[#3A1D14]">
+                  <ShieldCheck className="h-4 w-4 text-[#C8510A]" />
+                  Đã thanh toán sandbox
+                </div>
+                <p className="mt-1">
+                  {completedPaymentReceipt.methodLabel}
+                  {completedPaymentReceipt.bankName ? ` - ${completedPaymentReceipt.bankName}` : ""} - {completedPaymentReceipt.transactionCode}
+                </p>
+                <p className="mt-0.5">Thời gian: {completedPaymentReceipt.paidAt}</p>
+              </div>
+            )}
 
             <div className="flex items-start gap-2 bg-accent/5 border border-accent/15 rounded-xl p-3.5 text-xs text-muted-foreground leading-relaxed">
               <AlertCircle className="h-5 w-5 text-accent shrink-0 mt-0.5" />
               <p>
-                Để tích hợp API thực, hãy khởi động Spring Boot API tại cổng <span className="font-bold">8080</span>. Khi đó, frontend sẽ tự động gửi trực tiếp đơn hàng này lên database.
+                Trạng thái hiện tại là <span className="font-bold">{formatOrderStatus(createdOrder.status)}</span>. Khi nhân viên xác nhận, đơn sẽ chuyển sang trạng thái đã xác nhận trong hệ thống quản lý đơn.
               </p>
             </div>
 
-            <Button onClick={handleDemoSuccess} className="w-full rounded-full font-bold mt-2">
-              Đồng ý &amp; Làm trống Giỏ hàng
-            </Button>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+              <Button onClick={handleTrackCreatedOrder} className="rounded-full font-bold">
+                Theo dõi đơn hàng
+              </Button>
+              <Button onClick={handleOrderSuccessClose} variant="outline" className="rounded-full font-bold">
+                Tiếp tục mua hàng
+              </Button>
+            </div>
           </DialogContent>
         </Dialog>
       )}
+    </div>
+  );
+}
 
+function PaymentBrandMark({
+  method,
+  badge,
+  large = false,
+}: {
+  method: CheckoutPaymentMethod;
+  badge: string;
+  large?: boolean;
+}) {
+  const iconClass = large ? "h-6 w-6" : "h-5 w-5";
+  const textClass = large ? "text-sm" : "text-xs";
+
+  if (method === "cod") {
+    return (
+      <span className="flex items-center gap-1.5 text-[#C8510A]">
+        <Banknote className={iconClass} />
+        <span className={`${textClass} font-black`}>{badge}</span>
+      </span>
+    );
+  }
+
+  if (method === "vnpay_qr") {
+    return (
+      <span className="flex items-center gap-1.5 text-[#1D5FA7]">
+        <QrCode className={iconClass} />
+        <span className={`${textClass} font-black`}>{badge}</span>
+      </span>
+    );
+  }
+
+  if (method === "vnpay_card") {
+    return (
+      <span className="flex items-center gap-1.5 text-[#1F7A4D]">
+        <CreditCard className={iconClass} />
+        <span className={`${textClass} font-black`}>{badge}</span>
+      </span>
+    );
+  }
+
+  if (method === "bank_transfer") {
+    return (
+      <span className="flex items-center gap-1.5 text-[#3A1D14]">
+        <Landmark className={iconClass} />
+        <span className={`${textClass} font-black`}>{badge}</span>
+      </span>
+    );
+  }
+
+  return (
+    <span className="flex items-center gap-1.5 text-[#C8510A]">
+      <Smartphone className={iconClass} />
+      <span className={`${textClass} font-black`}>{badge}</span>
+    </span>
+  );
+}
+
+function SummaryRow({ label, value, strong = false }: { label: string; value: string; strong?: boolean }) {
+  return (
+    <div className={`flex min-w-0 items-center justify-between gap-3 ${strong ? "font-black text-[#3A1D14]" : "text-[#7B655A]"}`}>
+      <span className="min-w-0">{label}</span>
+      <span className="shrink-0 text-right">{value}</span>
+    </div>
+  );
+}
+
+function GatewayInfo({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0 rounded-xl border border-[#E5D8C8] bg-white px-3 py-2">
+      <div className="text-[10px] font-black uppercase tracking-wide text-[#9A7A65]">{label}</div>
+      <div className="mt-1 break-words text-sm font-black text-[#3A1D14]">{value}</div>
+    </div>
+  );
+}
+
+function GatewayMethodPanel({
+  title,
+  description,
+  steps,
+}: {
+  title: string;
+  description: string;
+  steps: string[];
+}) {
+  return (
+    <div className="min-w-0 rounded-2xl border border-[#E5D8C8] bg-white p-4">
+      <div className="flex items-start gap-3">
+        <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#F7EFE5] text-[#C8510A]">
+          <ShieldCheck className="h-5 w-5" />
+        </div>
+        <div className="min-w-0">
+          <h3 className="text-base font-black text-[#3A1D14]">{title}</h3>
+          <p className="mt-1 text-sm font-semibold leading-relaxed text-[#7B655A]">{description}</p>
+        </div>
+      </div>
+
+      <div className="mt-4 rounded-xl bg-[#FBF7F0] p-3">
+        <p className="text-xs font-black uppercase tracking-wide text-[#9A7A65]">Các bước mô phỏng</p>
+        <ol className="mt-2 space-y-2 text-sm font-semibold leading-relaxed text-[#7B655A]">
+          {steps.map((step, index) => (
+            <li key={step} className="flex gap-2">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#C8510A] text-[10px] font-black text-white">
+                {index + 1}
+              </span>
+              <span>{step}</span>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </div>
+  );
+}
+
+function VietQrCard({
+  transactionCode,
+  bankShortName,
+  bankName,
+  paymentMethod,
+  amountLabel,
+}: {
+  transactionCode: string;
+  bankShortName: string;
+  bankName: string;
+  paymentMethod: CheckoutPaymentMethod;
+  amountLabel: string;
+}) {
+  const seed = transactionCode.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
+  const providerLabel = paymentMethod === "bank_transfer" ? "VIETQR" : "VNPAY QR";
+  const transferContent = `LL ${transactionCode}`;
+  const size = 21;
+
+  const getQrCell = (row: number, col: number) => {
+    const finderOrigins = [
+      [0, 0],
+      [0, size - 7],
+      [size - 7, 0],
+    ];
+
+    for (const [originRow, originCol] of finderOrigins) {
+      const localRow = row - originRow;
+      const localCol = col - originCol;
+      const inFinder = localRow >= 0 && localRow < 7 && localCol >= 0 && localCol < 7;
+
+      if (inFinder) {
+        const isOuter = localRow === 0 || localRow === 6 || localCol === 0 || localCol === 6;
+        const isInner = localRow >= 2 && localRow <= 4 && localCol >= 2 && localCol <= 4;
+        return isOuter || isInner;
+      }
+    }
+
+    const diagonal = (row + col + seed) % 7 === 0;
+    const stripe = (row * 3 + col * 5 + seed) % 11 < 4;
+    const cluster = ((row - 10) ** 2 + (col - 11) ** 2 + seed) % 13 < 5;
+    return diagonal || stripe || cluster;
+  };
+
+  return (
+    <div className="overflow-hidden rounded-[22px] border border-[#CDE9F6] bg-gradient-to-br from-[#E7F8FF] via-white to-[#F2FBFF] shadow-sm">
+      <div className="border-b border-[#D7EDF7] bg-white/75 px-4 py-3">
+        <div className="text-[10px] font-black uppercase tracking-wider text-[#1D5FA7]">
+          {LOWLANDS_TRANSFER_ACCOUNT.holderName}
+        </div>
+        <div className="mt-0.5 text-lg font-black tracking-wide text-[#25333A]">
+          {LOWLANDS_TRANSFER_ACCOUNT.accountNumber}
+        </div>
+      </div>
+
+      <div className="px-4 py-3">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xl font-black text-[#D71920]">VietQR</span>
+            <span className="rounded-full bg-[#EAF4FF] px-2 py-0.5 text-[10px] font-black text-[#1D5FA7]">
+              {providerLabel}
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="h-5 w-5 rounded-full bg-[#D71920]" />
+            <span className="text-xl font-black text-[#173B88]">{bankShortName}</span>
+          </div>
+        </div>
+
+        <div className="relative mx-auto mt-3 aspect-square w-full max-w-[250px] rounded-2xl bg-white p-3 shadow-inner ring-1 ring-[#D8ECF6]">
+          <div className="grid h-full w-full grid-cols-[repeat(21,minmax(0,1fr))] gap-[3px]">
+            {Array.from({ length: size * size }, (_, index) => {
+              const row = Math.floor(index / size);
+              const col = index % size;
+              const filled = getQrCell(row, col);
+              return (
+                <span
+                  key={`${transactionCode}-${index}`}
+                  className={`rounded-[2px] ${filled ? "bg-[#26343A]" : "bg-[#F7FCFF]"}`}
+                />
+              );
+            })}
+          </div>
+          <div className="absolute left-1/2 top-1/2 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-xl border border-[#D8ECF6] bg-white text-sm font-black text-[#C8510A] shadow-sm">
+            LL
+          </div>
+        </div>
+
+        <div className="mt-3 rounded-2xl bg-white/80 p-3 text-xs font-semibold text-[#506A76]">
+          <div className="flex items-center justify-between gap-3">
+            <span>Ngân hàng</span>
+            <span className="text-right font-black text-[#25333A]">{bankName}</span>
+          </div>
+          <div className="mt-1 flex items-center justify-between gap-3">
+            <span>Số tiền</span>
+            <span className="text-right font-black text-[#C8510A]">{amountLabel}</span>
+          </div>
+          <div className="mt-1 flex items-center justify-between gap-3">
+            <span>Nội dung</span>
+            <span className="text-right font-black text-[#25333A]">{transferContent}</span>
+          </div>
+        </div>
+
+        <div className="mt-3 flex items-center justify-between gap-2 text-[10px] font-black text-[#506A76]">
+          <span>VietQR Pay</span>
+          <span>VietQR Global</span>
+          <span>napas 247</span>
+        </div>
+      </div>
     </div>
   );
 }

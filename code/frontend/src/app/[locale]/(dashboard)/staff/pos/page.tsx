@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { 
   Coffee, History, LayoutDashboard, Printer, CheckCircle, Bell,
-  CupSoda, Cake, Salad, Ticket, Users, BarChart2, Settings, Grid, List, ArrowUpDown 
+  CupSoda, Cake, Salad, Ticket, Users, BarChart2, Settings, Grid, List, ArrowUpDown,
+  ClipboardList, Clock, XCircle, ChefHat, PackageCheck
 } from "lucide-react";
 import { Product, ProductVariant, Topping, CartItem, Order } from "@/types";
 import { useDashboardStore } from "@/store/dashboardStore";
@@ -21,7 +22,8 @@ import { useRouter, useParams } from "next/navigation";
 import { AccountDropdown } from "@/components/account/AccountDropdown";
 import { AccountModal } from "@/components/account/AccountModal";
 import { LanguageSwitcher } from "@/components/features/layout/LanguageSwitcher";
-import { getOrders } from "@/services/order.service";
+import { cancelOrder, completeOrder, confirmOrder, getOrders, prepareOrder, readyOrder } from "@/services/order.service";
+import { StatusBadge } from "@/components/admin/StatusBadge";
 
 interface ReceiptData extends Order {
   cashReceived?: number;
@@ -87,6 +89,8 @@ export default function StaffPOSPage() {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [todayOrders, setTodayOrders] = useState<Order[]>([]);
   const [isLoadingTodayOrders, setIsLoadingTodayOrders] = useState(false);
+  const [selectedIncomingOrder, setSelectedIncomingOrder] = useState<Order | null>(null);
+  const [isOrderActionLoading, setIsOrderActionLoading] = useState(false);
   
   // Checkout success modal
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
@@ -96,7 +100,7 @@ export default function StaffPOSPage() {
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const sortDropdownRef = useRef<HTMLDivElement>(null);
 
-  const loadTodayOrders = async () => {
+  const loadTodayOrders = useCallback(async () => {
     if (!user?.branchId) return;
     setIsLoadingTodayOrders(true);
     try {
@@ -111,13 +115,17 @@ export default function StaffPOSPage() {
     } finally {
       setIsLoadingTodayOrders(false);
     }
-  };
+  }, [user?.branchId]);
 
   useEffect(() => {
     if (isMounted && user?.branchId) {
-      loadTodayOrders();
+      void loadTodayOrders();
+      const intervalId = window.setInterval(() => {
+        void loadTodayOrders();
+      }, 15000);
+      return () => window.clearInterval(intervalId);
     }
-  }, [isMounted, user?.branchId]);
+  }, [isMounted, user?.branchId, loadTodayOrders]);
 
   useEffect(() => {
     hydrateFromStorage();
@@ -215,8 +223,165 @@ export default function StaffPOSPage() {
     };
   }, []);
 
-  // Notifications
-  const notifications: any[] = [];
+  const formatCurrency = (value: number) => `${value.toLocaleString("vi-VN")}đ`;
+
+  const getStatusLabel = (status?: string) => {
+    const normalized = status?.toLowerCase();
+    if (normalized === "pending") return "Chờ xác nhận";
+    if (normalized === "confirmed") return "Đã xác nhận";
+    if (normalized === "preparing") return "Đang pha chế";
+    if (normalized === "ready") return "Sẵn sàng";
+    if (normalized === "completed") return "Hoàn tất";
+    if (normalized === "cancelled") return "Đã hủy";
+    return status || "Chờ xác nhận";
+  };
+
+  const getOrderTypeLabel = (orderType: Order["orderType"]) => {
+    if (orderType === "delivery") return "Giao hàng";
+    if (orderType === "pickup") return "Khách đến nhận";
+    if (orderType === "dine_in") return "Ăn tại bàn";
+    return "Mang đi";
+  };
+
+  const pendingOnlineOrders = useMemo(
+    () =>
+      todayOrders.filter(
+        (order) =>
+          order.status === "pending" &&
+          (order.orderType === "delivery" || order.orderType === "pickup")
+      ),
+    [todayOrders]
+  );
+
+  const notifications = useMemo(
+    () =>
+      pendingOnlineOrders.slice(0, 8).map((order) => ({
+        id: order.id ?? order.orderCode,
+        title: `Đơn mới ${order.orderCode || `#${order.id}`}`,
+        time: order.createdAt
+          ? new Date(order.createdAt).toLocaleTimeString("vi-VN", {
+              hour: "2-digit",
+              minute: "2-digit",
+            })
+          : "",
+        desc: `${order.receiverName || "Khách"} - ${getOrderTypeLabel(order.orderType)} - ${formatCurrency(order.totalAmount)}`,
+        order,
+      })),
+    [pendingOnlineOrders]
+  );
+
+  useEffect(() => {
+    if (!selectedIncomingOrder?.id) return;
+    const latest = todayOrders.find((order) => order.id === selectedIncomingOrder.id);
+    if (latest) {
+      setSelectedIncomingOrder(latest);
+    }
+  }, [selectedIncomingOrder?.id, todayOrders]);
+
+  const updateOnlineOrderStatus = async (
+    order: Order,
+    action: "confirm" | "prepare" | "ready" | "complete" | "cancel"
+  ) => {
+    if (!order.id) return;
+
+    if (action === "cancel") {
+      const accepted = await confirm({
+        title: "Hủy đơn online",
+        message: `Bạn có chắc chắn muốn hủy đơn ${order.orderCode || `#${order.id}`}?`,
+        confirmText: "Hủy đơn",
+        cancelText: t("common.cancel"),
+        variant: "danger",
+      });
+      if (!accepted) return;
+    }
+
+    setIsOrderActionLoading(true);
+    try {
+      let updatedOrder: Order = order;
+      if (action === "confirm") updatedOrder = await confirmOrder(order.id);
+      if (action === "prepare") updatedOrder = await prepareOrder(order.id);
+      if (action === "ready") updatedOrder = await readyOrder(order.id);
+      if (action === "complete") updatedOrder = await completeOrder(order.id);
+      if (action === "cancel") updatedOrder = await cancelOrder(order.id, "Staff cancelled online order");
+
+      setTodayOrders((current) =>
+        current.map((item) => (item.id === updatedOrder.id ? updatedOrder : item))
+      );
+      setSelectedIncomingOrder(updatedOrder);
+      toast.success(`Đơn ${updatedOrder.orderCode || `#${updatedOrder.id}`} đã chuyển sang: ${getStatusLabel(updatedOrder.status)}`);
+      await loadTodayOrders();
+    } catch (error) {
+      console.error("Failed to update online order status", error);
+      const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message;
+      toast.error(message || "Không thể cập nhật trạng thái đơn hàng.");
+    } finally {
+      setIsOrderActionLoading(false);
+    }
+  };
+
+  const renderOrderActions = (order: Order, compact = false) => {
+    const sizeClass = compact ? "h-7 px-2 text-[10px]" : "h-9 px-3 text-xs";
+    return (
+      <div className="flex flex-wrap justify-end gap-1.5">
+        {order.status === "pending" && (
+          <Button
+            type="button"
+            disabled={isOrderActionLoading}
+            onClick={() => updateOnlineOrderStatus(order, "confirm")}
+            className={`${sizeClass} bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold`}
+          >
+            <CheckCircle className="h-3.5 w-3.5 mr-1" />
+            Xác nhận
+          </Button>
+        )}
+        {order.status === "confirmed" && (
+          <Button
+            type="button"
+            disabled={isOrderActionLoading}
+            onClick={() => updateOnlineOrderStatus(order, "prepare")}
+            className={`${sizeClass} bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-bold`}
+          >
+            <ChefHat className="h-3.5 w-3.5 mr-1" />
+            Pha chế
+          </Button>
+        )}
+        {order.status === "preparing" && (
+          <Button
+            type="button"
+            disabled={isOrderActionLoading}
+            onClick={() => updateOnlineOrderStatus(order, "ready")}
+            className={`${sizeClass} bg-sky-600 hover:bg-sky-700 text-white rounded-lg font-bold`}
+          >
+            <PackageCheck className="h-3.5 w-3.5 mr-1" />
+            Sẵn sàng
+          </Button>
+        )}
+        {order.status === "ready" && (
+          <Button
+            type="button"
+            disabled={isOrderActionLoading}
+            onClick={() => updateOnlineOrderStatus(order, "complete")}
+            className={`${sizeClass} bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg font-bold`}
+          >
+            <CheckCircle className="h-3.5 w-3.5 mr-1" />
+            Hoàn tất
+          </Button>
+        )}
+        {order.status && !["completed", "cancelled"].includes(order.status) && (
+          <Button
+            type="button"
+            disabled={isOrderActionLoading}
+            variant="outline"
+            onClick={() => updateOnlineOrderStatus(order, "cancel")}
+            className={`${sizeClass} border-rose-200 text-rose-700 hover:bg-rose-50 rounded-lg font-bold`}
+          >
+            <XCircle className="h-3.5 w-3.5 mr-1" />
+            Hủy
+          </Button>
+        )}
+      </div>
+    );
+  };
 
   // Show full screen loading state before layout mounts or if user is unauthorized
   const userRole = user?.roleName?.toUpperCase();
@@ -359,24 +524,44 @@ export default function StaffPOSPage() {
             >
               <Bell className="h-4 w-4" />
               {notifications.length > 0 && (
-                <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-rose-600 ring-2 ring-white"></span>
+                <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 rounded-full bg-rose-600 text-white ring-2 ring-white text-[9px] font-black flex items-center justify-center">
+                  {notifications.length}
+                </span>
               )}
             </button>
 
             {isNotifOpen && (
               <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 rounded-xl shadow-lg py-2 z-50 animate-slide-in-down text-left">
                 <div className="px-4 py-1.5 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
-                  <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200">{t("pos.notifications") || "Thông báo"}</span>
-                  <span className="text-[10px] text-amber-850 font-bold cursor-pointer hover:underline">{t("pos.latest") || "Mới nhất"}</span>
+                  <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200">
+                    {t("pos.notifications") || "Thông báo"} ({pendingOnlineOrders.length})
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsNotifOpen(false);
+                      router.push(`/${locale}/staff/orders`);
+                    }}
+                    className="text-[10px] text-amber-850 font-bold cursor-pointer hover:underline"
+                  >
+                    Xem tất cả
+                  </button>
                 </div>
                 <div className="divide-y divide-zinc-100 dark:divide-zinc-850 max-h-60 overflow-y-auto">
                   {notifications.length === 0 ? (
                     <div className="p-4 text-center text-[10px] text-zinc-400 select-none font-semibold">
-                      Chưa có thông báo. Đang đợi kết nối API đến BE...
+                      Không có đơn online chờ xác nhận.
                     </div>
                   ) : (
                     notifications.map((n) => (
-                      <div key={n.id} className="p-3 text-left hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors cursor-pointer">
+                      <div
+                        key={n.id}
+                        onClick={() => {
+                          setSelectedIncomingOrder(n.order);
+                          setIsNotifOpen(false);
+                        }}
+                        className="p-3 text-left hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors cursor-pointer"
+                      >
                         <div className="flex justify-between items-start">
                           <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">{n.title}</span>
                           <span className="text-[9px] text-zinc-400 whitespace-nowrap ml-2">{n.time}</span>
@@ -483,7 +668,7 @@ export default function StaffPOSPage() {
           </button>
 
           <button
-            onClick={() => setActiveView("history")}
+            onClick={() => router.push(`/${locale}/staff/orders`)}
             className={`px-2.5 py-1.5 rounded-lg text-xs font-bold text-left whitespace-nowrap transition-all w-full flex items-center gap-2 ${
               activeView === "history"
                 ? "bg-[#F5EBE1] text-[#C8510A] shadow-2xs font-extrabold"
@@ -811,9 +996,7 @@ export default function StaffPOSPage() {
                           </div>
                         </div>
                         <div className="flex items-center space-x-1.5">
-                          <span className="text-[9px] px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded font-black uppercase tracking-wider">
-                            {t("pos.success")}
-                          </span>
+                          <StatusBadge status={ord.status || "pending"} customLabel={getStatusLabel(ord.status)} />
                           <span className="text-[9px] px-2 py-0.5 bg-muted/40 text-muted-foreground rounded font-bold uppercase tracking-wider">
                             {ord.paymentMethod === "cod" ? t("pos.cash") : ord.paymentMethod === "bank_transfer" ? t("pos.bankTransfer") : t("pos.card")}
                           </span>
@@ -839,17 +1022,20 @@ export default function StaffPOSPage() {
                         <div className="text-[10px] text-muted-foreground truncate font-medium flex-grow">
                           {t("pos.drinks")} {ord.items.map(item => `${item.productName} (x${item.quantity})`).join(", ")}
                         </div>
-                        <Button
-                          size="sm"
-                          onClick={() => {
-                            setReceiptData(ord);
-                            setIsReceiptOpen(true);
-                          }}
-                          className="h-7 text-[10px] font-bold border border-[#C8510A] text-[#C8510A] bg-transparent hover:bg-[#C8510A] hover:text-white rounded-lg transition-colors px-2.5 flex items-center gap-1 shrink-0"
-                        >
-                          <Printer className="h-3.5 w-3.5" />
-                          {t("pos.printReceipt")}
-                        </Button>
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          {renderOrderActions(ord, true)}
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              setReceiptData(ord);
+                              setIsReceiptOpen(true);
+                            }}
+                            className="h-7 text-[10px] font-bold border border-[#C8510A] text-[#C8510A] bg-transparent hover:bg-[#C8510A] hover:text-white rounded-lg transition-colors px-2.5 flex items-center gap-1 shrink-0"
+                          >
+                            <Printer className="h-3.5 w-3.5" />
+                            {t("pos.printReceipt")}
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   ))
@@ -871,6 +1057,101 @@ export default function StaffPOSPage() {
           />
         </div>
       </div>
+
+      {/* Incoming Online Order Modal */}
+      <Modal
+        isOpen={Boolean(selectedIncomingOrder)}
+        onClose={() => setSelectedIncomingOrder(null)}
+        title={selectedIncomingOrder ? `Đơn online ${selectedIncomingOrder.orderCode || `#${selectedIncomingOrder.id}`}` : "Đơn online"}
+        size="lg"
+      >
+        {selectedIncomingOrder && (
+          <div className="space-y-4 text-left">
+            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50/60 p-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-amber-950">
+                  <ClipboardList className="h-4 w-4" />
+                  <span className="text-sm font-black">{selectedIncomingOrder.orderCode || `#${selectedIncomingOrder.id}`}</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
+                  <Clock className="h-3.5 w-3.5" />
+                  <span>
+                    {selectedIncomingOrder.createdAt
+                      ? new Date(selectedIncomingOrder.createdAt).toLocaleString("vi-VN")
+                      : "Chưa có thời gian"}
+                  </span>
+                </div>
+              </div>
+              <StatusBadge status={selectedIncomingOrder.status || "pending"} customLabel={getStatusLabel(selectedIncomingOrder.status)} />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div className="rounded-xl border border-border bg-white p-3">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Khách hàng</div>
+                <div className="mt-1 font-extrabold text-foreground">{selectedIncomingOrder.receiverName || "Khách"}</div>
+                <div className="mt-0.5 font-semibold text-muted-foreground">{selectedIncomingOrder.receiverPhone || "-"}</div>
+              </div>
+              <div className="rounded-xl border border-border bg-white p-3">
+                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Nhận hàng</div>
+                <div className="mt-1 font-extrabold text-foreground">{getOrderTypeLabel(selectedIncomingOrder.orderType)}</div>
+                <div className="mt-0.5 font-semibold text-muted-foreground line-clamp-2">{selectedIncomingOrder.deliveryAddress || "-"}</div>
+              </div>
+            </div>
+
+            {selectedIncomingOrder.note && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50/70 px-3 py-2 text-xs font-semibold text-amber-900">
+                Ghi chú: {selectedIncomingOrder.note}
+              </div>
+            )}
+
+            <div className="rounded-xl border border-border overflow-hidden">
+              <div className="bg-muted px-3 py-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground">
+                Chi tiết món
+              </div>
+              <div className="divide-y divide-border">
+                {selectedIncomingOrder.items.map((item, index) => (
+                  <div key={`${item.productVariantId}-${index}`} className="p-3 text-xs">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <div className="font-extrabold text-foreground">
+                          {item.productName} - Size {item.size}
+                        </div>
+                        <div className="mt-0.5 text-muted-foreground font-semibold">
+                          x{item.quantity} - {formatCurrency(item.unitPrice)}
+                        </div>
+                      </div>
+                      <div className="font-black text-[#C8510A] whitespace-nowrap">
+                        {formatCurrency(item.totalPrice)}
+                      </div>
+                    </div>
+                    {item.toppings.length > 0 && (
+                      <div className="mt-2 space-y-1 pl-3 border-l border-border">
+                        {item.toppings.map((topping) => (
+                          <div key={topping.toppingId} className="flex justify-between gap-2 text-[11px] text-muted-foreground">
+                            <span>+ {topping.toppingName} x{topping.quantity}</span>
+                            <span>{formatCurrency(topping.totalPrice)}</span>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {item.note && (
+                      <div className="mt-2 text-[11px] italic text-amber-800">Ghi chú món: {item.note}</div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-border pt-4">
+              <div>
+                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Tổng tiền</div>
+                <div className="text-lg font-black text-[#C8510A]">{formatCurrency(selectedIncomingOrder.totalAmount)}</div>
+              </div>
+              {renderOrderActions(selectedIncomingOrder)}
+            </div>
+          </div>
+        )}
+      </Modal>
 
       {/* Receipt Success Modal */}
       <Modal

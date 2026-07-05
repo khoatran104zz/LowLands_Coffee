@@ -13,8 +13,17 @@ export const createOrder = async (orderData: Order): Promise<Order> => {
 };
 
 export const getOrderHistory = async (): Promise<Order[]> => {
-  const response = await axiosInstance.get<ApiResponse<{ content: BackendOrderResponse[] }>>("/orders");
+  const response = await axiosInstance.get<ApiResponse<{ content: BackendOrderResponse[] }>>("/orders/my", {
+    params: { page: 0, size: 100 },
+  });
   return response.data.data.content.map(toFrontendOrder);
+};
+
+export const trackOrder = async (code: string, phone: string): Promise<Order> => {
+  const response = await axiosInstance.get<ApiResponse<BackendOrderResponse>>("/orders/track", {
+    params: { code, phone },
+  });
+  return toFrontendOrder(response.data.data);
 };
 
 interface BackendOrderRequest {
@@ -202,4 +211,3 @@ export const cancelOrder = async (id: number, reason?: string): Promise<Order> =
   const response = await axiosInstance.post<ApiResponse<BackendOrderResponse>>(`/orders/${id}/cancel`, reason ? { reason } : {});
   return toFrontendOrder(response.data.data);
 };
-

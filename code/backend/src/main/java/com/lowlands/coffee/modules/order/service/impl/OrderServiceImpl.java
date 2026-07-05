@@ -73,6 +73,7 @@ public class OrderServiceImpl implements OrderService {
     private static final String CANCELLED = "CANCELLED";
     private static final String UNPAID = "UNPAID";
     private static final String PAID = "PAID";
+    private static final String CASH = "CASH";
     private static final String OUT = "OUT";
     private static final String ORDER = "ORDER";
 
@@ -120,14 +121,16 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderResponse create(OrderCreateRequest request, String actorEmail) {
-        UserEntity actor = getActor(actorEmail);
+        UserEntity actor = hasText(actorEmail) ? getActor(actorEmail) : null;
         StoreEntity store = getStore(request.getStoreId());
         ensureActive(store.getStatus(), "Store is inactive");
-        ensureStoreScope(actor, store.getId());
+        if (actor != null && !isCustomer(actor)) {
+            ensureStoreScope(actor, store.getId());
+        }
 
         OrderEntity order = new OrderEntity();
         order.setStore(store);
-        order.setUser(isCustomer(actor) ? actor : null);
+        order.setUser(actor != null && isCustomer(actor) ? actor : null);
         order.setOrderCode(orderCodeGenerator.generate());
         order.setOrderType(normalizeAllowed(request.getOrderType(), ORDER_TYPES, "Unsupported order type"));
         order.setStatus(PENDING);
@@ -183,6 +186,20 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
+    public Page<OrderResponse> findMine(int page, int size, String actorEmail) {
+        UserEntity actor = getActor(actorEmail);
+        Pageable pageable = PageRequest.of(
+                Math.max(page, 0),
+                Math.max(Math.min(size, 100), 1),
+                Sort.by(Sort.Direction.DESC, "createdAt")
+        );
+        Specification<OrderEntity> specification = (root, query, criteriaBuilder) ->
+                criteriaBuilder.equal(root.get("user").get("id"), actor.getId());
+        return orderRepository.findAll(specification, pageable).map(orderMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
     public OrderResponse findById(Long id, String actorEmail) {
         UserEntity actor = getActor(actorEmail);
         OrderEntity order = getOrder(id);
@@ -197,6 +214,20 @@ public class OrderServiceImpl implements OrderService {
         OrderEntity order = orderRepository.findByOrderCode(orderCode)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
         ensureStoreScope(actor, order.getStore().getId());
+        return orderMapper.toResponse(order);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OrderResponse track(String orderCode, String receiverPhone) {
+        if (!hasText(orderCode) || !hasText(receiverPhone)) {
+            throw new BadRequestException("Order code and receiver phone are required");
+        }
+        OrderEntity order = orderRepository.findByOrderCode(clean(orderCode))
+                .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
+        if (!sameText(order.getReceiverPhone(), clean(receiverPhone))) {
+            throw new ResourceNotFoundException("Order not found");
+        }
         return orderMapper.toResponse(order);
     }
 
@@ -451,7 +482,12 @@ public class OrderServiceImpl implements OrderService {
         PaymentEntity payment = new PaymentEntity();
         payment.setOrder(order);
         payment.setPaymentMethod(normalizeAllowed(paymentMethod, PAYMENT_METHODS, "Unsupported payment method"));
-        payment.setPaymentStatus(UNPAID);
+        if (CASH.equals(payment.getPaymentMethod())) {
+            payment.setPaymentStatus(UNPAID);
+        } else {
+            payment.setPaymentStatus(PAID);
+            payment.setPaidAt(LocalDateTime.now());
+        }
         payment.setAmount(order.getTotalAmount());
         return payment;
     }

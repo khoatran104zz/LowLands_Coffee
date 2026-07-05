@@ -31,12 +31,16 @@ public class OrderController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasAuthority('ORDER_CREATE')")
     public ApiResponse<OrderResponse> create(
             @Valid @RequestBody OrderCreateRequest request,
             Authentication authentication
     ) {
-        return ApiResponse.success("Order created", orderService.create(request, authentication.getName()));
+        String actorEmail = authentication == null
+                || !authentication.isAuthenticated()
+                || "anonymousUser".equals(authentication.getName())
+                ? null
+                : authentication.getName();
+        return ApiResponse.success("Order created", orderService.create(request, actorEmail));
     }
 
     @GetMapping
@@ -59,6 +63,23 @@ public class OrderController {
                 size,
                 authentication.getName()
         ));
+    }
+
+    @GetMapping("/my")
+    public ApiResponse<Page<OrderResponse>> findMine(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            Authentication authentication
+    ) {
+        return ApiResponse.success(orderService.findMine(page, size, authentication.getName()));
+    }
+
+    @GetMapping("/track")
+    public ApiResponse<OrderResponse> track(
+            @RequestParam String code,
+            @RequestParam String phone
+    ) {
+        return ApiResponse.success(orderService.track(code, phone));
     }
 
     @GetMapping("/{id}")
