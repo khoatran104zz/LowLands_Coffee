@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useParams } from "next/navigation";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useForm, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -30,6 +31,7 @@ import {
   Landmark,
   Loader2,
   MapPin,
+  Printer,
   QrCode,
   ReceiptText,
   ShieldCheck,
@@ -41,6 +43,7 @@ import {
   UserRound,
   WalletCards,
 } from "lucide-react";
+import { buildOrderTrackingUrl, printOrderAsPdf } from "@/lib/order-print";
 
 const PAYMENT_METHOD_VALUES = [
   "cod",
@@ -164,6 +167,8 @@ const getPaymentLabel = (paymentMethod: CheckoutPaymentMethod) =>
 export default function CheckoutPage() {
   const { t } = useTranslation();
   const router = useRouter();
+  const params = useParams();
+  const locale = (params?.locale as string) || "vi";
 
   const {
     items,
@@ -406,6 +411,22 @@ export default function CheckoutPage() {
       return;
     }
     router.push(`/track-order?code=${encodeURIComponent(createdOrder.orderCode || "")}&phone=${encodeURIComponent(createdOrder.receiverPhone || "")}`);
+  };
+
+  const handlePrintCreatedOrder = () => {
+    if (!createdOrder) return;
+
+    const opened = printOrderAsPdf(createdOrder, {
+      storeName: createdOrder.storeName,
+      trackingUrl: buildOrderTrackingUrl(createdOrder, locale),
+    });
+
+    if (opened) {
+      toast.success("Đã mở mẫu in. Chọn Save as PDF để lưu hóa đơn.");
+      return;
+    }
+
+    toast.error("Trình duyệt đang chặn cửa sổ in. Vui lòng cho phép popup rồi thử lại.");
   };
 
   if (items.length === 0 && !createdOrder) {
@@ -969,9 +990,13 @@ export default function CheckoutPage() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 mt-2">
               <Button onClick={handleTrackCreatedOrder} className="rounded-full font-bold">
                 Theo dõi đơn hàng
+              </Button>
+              <Button onClick={handlePrintCreatedOrder} variant="outline" className="rounded-full font-bold">
+                <Printer className="h-4 w-4 mr-1.5" />
+                In PDF
               </Button>
               <Button onClick={handleOrderSuccessClose} variant="outline" className="rounded-full font-bold">
                 Tiếp tục mua hàng

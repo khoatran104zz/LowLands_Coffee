@@ -1,13 +1,14 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { trackOrder } from "@/services/order.service";
 import { Order } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { AlertCircle, CheckCircle2, ChefHat, ClipboardList, Clock, PackageCheck, Search, Truck, XCircle } from "lucide-react";
+import { AlertCircle, CheckCircle2, ChefHat, ClipboardList, Clock, PackageCheck, Printer, Search, Truck, XCircle } from "lucide-react";
 import { toast } from "sonner";
+import { buildOrderTrackingUrl, printOrderAsPdf } from "@/lib/order-print";
 
 const ORDER_STEPS = [
   { key: "pending", label: "Chờ xác nhận", icon: ClipboardList },
@@ -58,6 +59,8 @@ export default function TrackOrderPage() {
 
 function TrackOrderContent() {
   const searchParams = useSearchParams();
+  const params = useParams();
+  const locale = (params?.locale as string) || "vi";
   const [code, setCode] = useState(searchParams.get("code") || "");
   const [phone, setPhone] = useState(searchParams.get("phone") || "");
   const [order, setOrder] = useState<Order | null>(null);
@@ -88,7 +91,10 @@ function TrackOrderContent() {
 
   useEffect(() => {
     if (code && phone) {
-      void handleTrack(true);
+      const initialTrackId = window.setTimeout(() => {
+        void handleTrack(true);
+      }, 0);
+      return () => window.clearTimeout(initialTrackId);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -101,6 +107,22 @@ function TrackOrderContent() {
     return () => window.clearInterval(intervalId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [order?.orderCode, code, phone]);
+
+  const handlePrintOrder = () => {
+    if (!order) return;
+
+    const opened = printOrderAsPdf(order, {
+      storeName: order.storeName,
+      trackingUrl: buildOrderTrackingUrl(order, locale),
+    });
+
+    if (opened) {
+      toast.success("Đã mở mẫu in. Chọn Save as PDF để lưu hóa đơn.");
+      return;
+    }
+
+    toast.error("Trình duyệt đang chặn cửa sổ in. Vui lòng cho phép popup rồi thử lại.");
+  };
 
   return (
     <div className="py-12 bg-background min-h-screen text-left">
@@ -168,7 +190,18 @@ function TrackOrderContent() {
                       </span>
                     </div>
                   </div>
-                  <StatusPill status={order.status} />
+                  <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+                    <StatusPill status={order.status} />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={handlePrintOrder}
+                      className="h-8 rounded-full border-[#C8510A]/25 px-3 text-[11px] font-bold text-[#C8510A] hover:bg-[#F5EBE1]"
+                    >
+                      <Printer className="h-3.5 w-3.5 mr-1.5" />
+                      In PDF
+                    </Button>
+                  </div>
                 </div>
 
                 <OrderTimeline status={order.status} />

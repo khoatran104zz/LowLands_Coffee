@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Trash2, Plus, Minus, ReceiptText, Ticket, Utensils, ShoppingBag } from "lucide-react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { CheckCircle2, Copy, Landmark, Minus, Plus, QrCode, ReceiptText, ShoppingBag, Ticket, Trash2, Utensils } from "lucide-react";
 import { CartItem, Promotion, Order } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/Modal";
@@ -34,6 +34,26 @@ const getOrderErrorMessage = (error: unknown) => {
   return error instanceof Error ? error.message : "Không thể tạo đơn hàng qua backend.";
 };
 
+const BANK_TRANSFER_CONFIG = {
+  bankBin: "970422",
+  bankName: "MB Bank",
+  bankShortName: "MB",
+  accountNo: "26666666666222",
+  accountName: "LOWLANDS COFFEE",
+};
+
+const createTransferReference = () => `LLPOS${Date.now().toString().slice(-8)}`;
+
+const buildVietQrUrl = (amount: number, transferReference: string) => {
+  const params = new URLSearchParams({
+    amount: String(Math.max(0, Math.round(amount))),
+    addInfo: transferReference,
+    accountName: BANK_TRANSFER_CONFIG.accountName,
+  });
+
+  return `https://img.vietqr.io/image/${BANK_TRANSFER_CONFIG.bankBin}-${BANK_TRANSFER_CONFIG.accountNo}-compact2.png?${params.toString()}`;
+};
+
 export function POSCart({
   items,
   storeId,
@@ -54,6 +74,7 @@ export function POSCart({
 
   // Payment details
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "bank_transfer" | "e_wallet">("cod");
+  const [transferReference, setTransferReference] = useState(() => createTransferReference());
 
   // Checkout modal
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
@@ -73,6 +94,7 @@ export function POSCart({
 
   const total = Math.max(0, subtotal - discount);
   const changeReturned = Math.max(0, cashReceived - total);
+  const bankQrUrl = useMemo(() => buildVietQrUrl(total, transferReference), [total, transferReference]);
 
   // Refs for tracking callback state in useEffect
   const stateRef = useRef({
@@ -87,7 +109,8 @@ export function POSCart({
     discount,
     orderNote,
     serviceType,
-    tableNumber
+    tableNumber,
+    transferReference
   });
 
   useEffect(() => {
@@ -103,7 +126,8 @@ export function POSCart({
       discount,
       orderNote,
       serviceType,
-      tableNumber
+      tableNumber,
+      transferReference
     };
   }, [
     isCheckoutOpen,
@@ -117,7 +141,8 @@ export function POSCart({
     discount,
     orderNote,
     serviceType,
-    tableNumber
+    tableNumber,
+    transferReference
   ]);
 
   // Apply promo handler
@@ -152,6 +177,20 @@ export function POSCart({
     }
     setCashReceived(paymentMethod === "cod" ? total : 0);
     setIsCheckoutOpen(true);
+  };
+
+  const handleCopyTransferValue = async (value: string, label: string) => {
+    if (!navigator.clipboard) {
+      toast.info(value);
+      return;
+    }
+
+    try {
+      await navigator.clipboard.writeText(value);
+      toast.success(`${label} ${t("pos.copied")}`);
+    } catch {
+      toast.info(value);
+    }
   };
 
   const handleConfirmPayment = useCallback(async () => {
@@ -191,6 +230,12 @@ export function POSCart({
       ? `Tại bàn: ${state.tableNumber}` 
       : "Mang đi (Mua tại quầy)";
 
+    const transferNote =
+      state.paymentMethod === "bank_transfer"
+        ? `${t("pos.bankTransferContent")}: ${state.transferReference}`
+        : null;
+    const finalNote = [state.orderNote, transferNote].filter(Boolean).join(" | ") || undefined;
+
     const finalOrder: Order = {
       storeId,
       orderType: state.serviceType,
@@ -201,7 +246,7 @@ export function POSCart({
       discountAmount: state.discount,
       totalAmount: state.total,
       paymentMethod: state.paymentMethod,
-      note: state.orderNote || undefined,
+      note: finalNote,
       items: orderItems
     };
 
@@ -226,6 +271,7 @@ export function POSCart({
       setCustomerPhone("");
       setServiceType("takeaway");
       setTableNumber("");
+      setTransferReference(createTransferReference());
       toast.success(t("pos.orderCreatedSuccess") || "Tạo đơn hàng thành công!");
     } catch (error: unknown) {
       toast.error(getOrderErrorMessage(error));
@@ -296,6 +342,7 @@ export function POSCart({
     });
     if (isConfirmed) {
       onClearCart();
+      setTransferReference(createTransferReference());
       toast.info(t("pos.cartClearedInfo") || "Đã xóa toàn bộ giỏ hàng!");
     }
   };
@@ -534,6 +581,17 @@ export function POSCart({
             </div>
           </div>
 
+          {paymentMethod === "bank_transfer" && (
+            <BankTransferQrPanel
+              amount={total}
+              qrUrl={bankQrUrl}
+              transferReference={transferReference}
+              compact
+              onCopy={handleCopyTransferValue}
+              t={t}
+            />
+          )}
+
           {/* Big Action Buttons */}
           <div className="grid grid-cols-3 gap-2 pt-1 border-t border-border/40">
             <Button
@@ -649,6 +707,16 @@ export function POSCart({
             </div>
           )}
 
+          {paymentMethod === "bank_transfer" && (
+            <BankTransferQrPanel
+              amount={total}
+              qrUrl={bankQrUrl}
+              transferReference={transferReference}
+              onCopy={handleCopyTransferValue}
+              t={t}
+            />
+          )}
+
           <div className="flex space-x-2 border-t border-border/40 pt-4 mt-2">
             <Button variant="outline" onClick={() => setIsCheckoutOpen(false)} className="w-1/2 rounded-lg h-10 text-xs font-semibold">
               {t("pos.posBack")}
@@ -658,11 +726,136 @@ export function POSCart({
               disabled={isSubmitting || (paymentMethod === "cod" && cashReceived < total)}
               className="w-1/2 bg-[#C8510A] hover:bg-[#B04308] text-white rounded-lg h-10 text-xs font-extrabold shadow-sm"
             >
-              {isSubmitting ? t("pos.posSubmittingOrder") : t("pos.posConfirmPayment")}
+              {isSubmitting
+                ? t("pos.posSubmittingOrder")
+                : paymentMethod === "bank_transfer"
+                  ? t("pos.posConfirmBankTransfer")
+                  : t("pos.posConfirmPayment")}
             </Button>
           </div>
         </div>
       </Modal>
+    </div>
+  );
+}
+
+function BankTransferQrPanel({
+  amount,
+  qrUrl,
+  transferReference,
+  compact = false,
+  onCopy,
+  t,
+}: {
+  amount: number;
+  qrUrl: string;
+  transferReference: string;
+  compact?: boolean;
+  onCopy: (value: string, label: string) => void;
+  t: (key: string, values?: Record<string, string | number>) => string;
+}) {
+  const qrSizeClass = compact ? "h-24 w-24" : "h-44 w-44";
+
+  return (
+    <div
+      className={`rounded-xl border border-[#C8510A]/25 bg-[#FFF8ED] text-left shadow-2xs ${
+        compact ? "p-2.5" : "p-4"
+      }`}
+    >
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-[#C8510A] shadow-2xs">
+            <QrCode className="h-4 w-4" />
+          </span>
+          <div>
+            <div className="text-xs font-black uppercase tracking-wider text-[#3A1D14]">
+              {t("pos.bankQrTitle")}
+            </div>
+            <div className="text-[10px] font-bold text-[#7B655A]">
+              {BANK_TRANSFER_CONFIG.bankShortName} / VietQR
+            </div>
+          </div>
+        </div>
+        <span className="rounded-full border border-emerald-500/25 bg-emerald-50 px-2 py-0.5 text-[9px] font-black uppercase text-emerald-700">
+          {t("pos.bankQrReady")}
+        </span>
+      </div>
+
+      <div className={`mt-3 grid gap-3 ${compact ? "grid-cols-[96px_minmax(0,1fr)]" : "grid-cols-1 sm:grid-cols-[176px_minmax(0,1fr)]"}`}>
+        <div className="rounded-xl border border-[#E5D8C8] bg-white p-2">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={qrUrl}
+            alt={t("pos.bankQrAlt")}
+            className={`${qrSizeClass} rounded-lg object-contain`}
+            loading="eager"
+          />
+        </div>
+
+        <div className="min-w-0 space-y-2">
+          <div className="rounded-lg border border-[#E5D8C8] bg-white px-3 py-2">
+            <div className="text-[9px] font-black uppercase tracking-wider text-[#7B655A]">
+              {t("pos.bankQrAmount")}
+            </div>
+            <div className="mt-0.5 text-lg font-black text-[#C8510A]">
+              {amount.toLocaleString("vi-VN")}đ
+            </div>
+          </div>
+
+          <InfoLine
+            icon={<Landmark className="h-3.5 w-3.5" />}
+            label={t("pos.bankQrAccount")}
+            value={`${BANK_TRANSFER_CONFIG.bankShortName} - ${BANK_TRANSFER_CONFIG.accountNo}`}
+            onCopy={() => onCopy(BANK_TRANSFER_CONFIG.accountNo, t("pos.bankQrAccount"))}
+          />
+
+          <InfoLine
+            icon={<ReceiptText className="h-3.5 w-3.5" />}
+            label={t("pos.bankTransferContent")}
+            value={transferReference}
+            onCopy={() => onCopy(transferReference, t("pos.bankTransferContent"))}
+          />
+        </div>
+      </div>
+
+      {!compact && (
+        <div className="mt-3 rounded-lg border border-[#E5D8C8] bg-white p-3">
+          <div className="flex items-start gap-2 text-xs font-semibold leading-relaxed text-[#7B655A]">
+            <CheckCircle2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+            <span>{t("pos.bankQrInstruction")}</span>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function InfoLine({
+  icon,
+  label,
+  value,
+  onCopy,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+  onCopy: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-2 rounded-lg border border-[#E5D8C8] bg-white px-3 py-2">
+      <span className="text-[#C8510A]">{icon}</span>
+      <div className="min-w-0 flex-1">
+        <div className="text-[9px] font-black uppercase tracking-wider text-[#7B655A]">{label}</div>
+        <div className="truncate text-xs font-black text-[#3A1D14]">{value}</div>
+      </div>
+      <button
+        type="button"
+        onClick={onCopy}
+        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-[#E5D8C8] text-[#7B655A] transition hover:border-[#C8510A]/30 hover:bg-[#F7EFE5] hover:text-[#C8510A]"
+        aria-label={label}
+      >
+        <Copy className="h-3.5 w-3.5" />
+      </button>
     </div>
   );
 }

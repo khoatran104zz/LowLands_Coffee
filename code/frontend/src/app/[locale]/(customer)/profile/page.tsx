@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { FormEvent, ReactNode } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useParams } from "next/navigation";
 import { useAuthStore } from "@/store/auth.store";
 import { updateProfile } from "@/services/auth.service";
 import { getOrderHistory } from "@/services/order.service";
@@ -21,11 +22,13 @@ import {
   Eye,
   LogOut,
   PackageCheck,
+  Printer,
   RefreshCw,
   Settings,
   Truck,
   XCircle,
 } from "lucide-react";
+import { buildOrderTrackingUrl, printOrderAsPdf } from "@/lib/order-print";
 
 const ORDER_STEPS = [
   { key: "pending", label: "Chờ xác nhận", icon: ClipboardList },
@@ -79,6 +82,8 @@ const getProgress = (status?: string) => {
 export default function ProfilePage() {
   const { t } = useTranslation();
   const router = useRouter();
+  const params = useParams();
+  const locale = (params?.locale as string) || "vi";
 
   const { user, isAuthenticated, hasHydrated, hydrateFromStorage, logout, updateUser } = useAuthStore();
 
@@ -102,8 +107,11 @@ export default function ProfilePage() {
   }, [hasHydrated, isAuthenticated, router]);
 
   useEffect(() => {
-    setFullName(user?.fullName || "");
-    setPhone(user?.phone || "");
+    const syncId = window.setTimeout(() => {
+      setFullName(user?.fullName || "");
+      setPhone(user?.phone || "");
+    }, 0);
+    return () => window.clearTimeout(syncId);
   }, [user]);
 
   const loadHistory = useCallback(async (silent = false) => {
@@ -127,20 +135,28 @@ export default function ProfilePage() {
   useEffect(() => {
     if (!isAuthenticated) return;
 
-    void loadHistory();
+    const initialLoadId = window.setTimeout(() => {
+      void loadHistory();
+    }, 0);
     const intervalId = window.setInterval(() => {
       void loadHistory(true);
     }, 30000);
 
-    return () => window.clearInterval(intervalId);
+    return () => {
+      window.clearTimeout(initialLoadId);
+      window.clearInterval(intervalId);
+    };
   }, [isAuthenticated, loadHistory]);
 
   useEffect(() => {
     if (!selectedOrder?.id) return;
-    const latest = orders.find((order) => order.id === selectedOrder.id);
-    if (latest) {
-      setSelectedOrder(latest);
-    }
+    const syncId = window.setTimeout(() => {
+      const latest = orders.find((order) => order.id === selectedOrder.id);
+      if (latest) {
+        setSelectedOrder(latest);
+      }
+    }, 0);
+    return () => window.clearTimeout(syncId);
   }, [orders, selectedOrder?.id]);
 
   const summary = useMemo(() => {
@@ -177,6 +193,20 @@ export default function ProfilePage() {
       currency: "VND",
       maximumFractionDigits: 0,
     }).format(amount);
+  };
+
+  const handlePrintOrder = (order: Order) => {
+    const opened = printOrderAsPdf(order, {
+      storeName: order.storeName,
+      trackingUrl: buildOrderTrackingUrl(order, locale),
+    });
+
+    if (opened) {
+      toast.success("Đã mở mẫu in. Chọn Save as PDF để lưu hóa đơn.");
+      return;
+    }
+
+    toast.error("Trình duyệt đang chặn cửa sổ in. Vui lòng cho phép popup rồi thử lại.");
   };
 
   if (!hasHydrated || !isAuthenticated) {
@@ -399,9 +429,20 @@ export default function ProfilePage() {
                 <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Tổng tiền</div>
                 <div className="text-xl font-black text-[#C8510A]">{formatPrice(selectedOrder.totalAmount)}</div>
               </div>
-              <Button onClick={() => setSelectedOrder(null)} className="rounded-full px-5 text-xs font-bold">
-                Đóng
-              </Button>
+              <div className="flex flex-wrap justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handlePrintOrder(selectedOrder)}
+                  className="rounded-full border-[#C8510A]/25 px-4 text-xs font-bold text-[#C8510A] hover:bg-[#F5EBE1]"
+                >
+                  <Printer className="h-3.5 w-3.5 mr-1.5" />
+                  In PDF
+                </Button>
+                <Button onClick={() => setSelectedOrder(null)} className="rounded-full px-5 text-xs font-bold">
+                  Đóng
+                </Button>
+              </div>
             </div>
           </div>
         )}

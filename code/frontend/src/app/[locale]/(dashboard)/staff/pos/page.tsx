@@ -1,9 +1,8 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import Link from "next/link";
 import { 
-  Coffee, History, LayoutDashboard, Printer, CheckCircle, Bell,
+  Coffee, History, Printer, CheckCircle, Bell,
   CupSoda, Cake, Salad, Ticket, Users, BarChart2, Settings, Grid, List, ArrowUpDown,
   ClipboardList, Clock, XCircle, ChefHat, PackageCheck
 } from "lucide-react";
@@ -24,6 +23,7 @@ import { AccountModal } from "@/components/account/AccountModal";
 import { LanguageSwitcher } from "@/components/features/layout/LanguageSwitcher";
 import { cancelOrder, completeOrder, confirmOrder, getOrders, prepareOrder, readyOrder } from "@/services/order.service";
 import { StatusBadge } from "@/components/admin/StatusBadge";
+import { buildOrderTrackingUrl, printOrderAsPdf } from "@/lib/order-print";
 
 interface ReceiptData extends Order {
   cashReceived?: number;
@@ -57,6 +57,7 @@ export default function StaffPOSPage() {
   const hydrateFromStorage = useAuthStore((state) => state.hydrateFromStorage);
   const logout = useAuthStore((state) => state.logout);
   const updateUser = useAuthStore((state) => state.updateUser);
+  const branchId = user?.branchId;
 
   const handleOpenAccountSettings = (tab: string = "profile") => {
     setDefaultAccountTab(tab);
@@ -101,10 +102,10 @@ export default function StaffPOSPage() {
   const sortDropdownRef = useRef<HTMLDivElement>(null);
 
   const loadTodayOrders = useCallback(async () => {
-    if (!user?.branchId) return;
+    if (!branchId) return;
     setIsLoadingTodayOrders(true);
     try {
-      const fetched = await getOrders({ storeId: user.branchId, page: 0, size: 100 });
+      const fetched = await getOrders({ storeId: branchId, page: 0, size: 100 });
       const todayStr = new Date().toISOString().slice(0, 10);
       const filtered = fetched.filter(
         (ord) => ord.createdAt && ord.createdAt.startsWith(todayStr)
@@ -115,17 +116,22 @@ export default function StaffPOSPage() {
     } finally {
       setIsLoadingTodayOrders(false);
     }
-  }, [user?.branchId]);
+  }, [branchId]);
 
   useEffect(() => {
-    if (isMounted && user?.branchId) {
-      void loadTodayOrders();
+    if (isMounted && branchId) {
+      const initialLoadId = window.setTimeout(() => {
+        void loadTodayOrders();
+      }, 0);
       const intervalId = window.setInterval(() => {
         void loadTodayOrders();
       }, 15000);
-      return () => window.clearInterval(intervalId);
+      return () => {
+        window.clearTimeout(initialLoadId);
+        window.clearInterval(intervalId);
+      };
     }
-  }, [isMounted, user?.branchId, loadTodayOrders]);
+  }, [branchId, isMounted, loadTodayOrders]);
 
   useEffect(() => {
     hydrateFromStorage();
@@ -169,8 +175,11 @@ export default function StaffPOSPage() {
 
   useEffect(() => {
     if (categories.length > 0 && !hasInitializedCategory) {
-      setSelectedCategoryId(null);
-      setHasInitializedCategory(true);
+      const initializeId = window.setTimeout(() => {
+        setSelectedCategoryId(null);
+        setHasInitializedCategory(true);
+      }, 0);
+      return () => window.clearTimeout(initializeId);
     }
   }, [categories, hasInitializedCategory]);
 
@@ -272,10 +281,13 @@ export default function StaffPOSPage() {
 
   useEffect(() => {
     if (!selectedIncomingOrder?.id) return;
-    const latest = todayOrders.find((order) => order.id === selectedIncomingOrder.id);
-    if (latest) {
-      setSelectedIncomingOrder(latest);
-    }
+    const syncId = window.setTimeout(() => {
+      const latest = todayOrders.find((order) => order.id === selectedIncomingOrder.id);
+      if (latest) {
+        setSelectedIncomingOrder(latest);
+      }
+    }, 0);
+    return () => window.clearTimeout(syncId);
   }, [selectedIncomingOrder?.id, todayOrders]);
 
   const updateOnlineOrderStatus = async (
@@ -491,6 +503,21 @@ export default function StaffPOSPage() {
     setIsReceiptOpen(true);
     setCart([]);
     void loadTodayOrders();
+  };
+
+  const handlePrintOrder = (order: Order) => {
+    const opened = printOrderAsPdf(order, {
+      cashierName: user?.fullName,
+      storeName: user?.branchName || order.storeName,
+      trackingUrl: buildOrderTrackingUrl(order, locale),
+    });
+
+    if (opened) {
+      toast.success("Đã mở mẫu in. Chọn Save as PDF để lưu hóa đơn.");
+      return;
+    }
+
+    toast.error("Trình duyệt đang chặn cửa sổ in. Vui lòng cho phép popup rồi thử lại.");
   };
 
   const activeCategoryName = categories.find((c) => c.id === selectedCategoryId)?.name || "Thực đơn";
@@ -970,7 +997,14 @@ export default function StaffPOSPage() {
             /* Today's Orders History View */
             <div className="bg-card border border-border/80 rounded-xl p-4 flex-grow flex flex-col min-h-0 select-none text-left bg-white">
               <h3 className="text-xs font-black text-foreground font-outfit uppercase border-b border-border/60 pb-3 mb-3.5 flex items-center justify-between tracking-wider">
-                <span>{t("pos.todayOrderHistory", { count: todayOrders.length })}</span>
+                <span className="flex items-center gap-2">
+                  {t("pos.todayOrderHistory", { count: todayOrders.length })}
+                  {isLoadingTodayOrders && (
+                    <span className="text-[9px] font-bold text-[#C8510A] normal-case tracking-normal">
+                      Đang cập nhật...
+                    </span>
+                  )}
+                </span>
                 <button
                   onClick={() => setActiveView("menu")}
                   className="text-[11px] text-[#C8510A] hover:underline font-bold"
@@ -1026,10 +1060,7 @@ export default function StaffPOSPage() {
                           {renderOrderActions(ord, true)}
                           <Button
                             size="sm"
-                            onClick={() => {
-                              setReceiptData(ord);
-                              setIsReceiptOpen(true);
-                            }}
+                            onClick={() => handlePrintOrder(ord)}
                             className="h-7 text-[10px] font-bold border border-[#C8510A] text-[#C8510A] bg-transparent hover:bg-[#C8510A] hover:text-white rounded-lg transition-colors px-2.5 flex items-center gap-1 shrink-0"
                           >
                             <Printer className="h-3.5 w-3.5" />
@@ -1147,7 +1178,18 @@ export default function StaffPOSPage() {
                 <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Tổng tiền</div>
                 <div className="text-lg font-black text-[#C8510A]">{formatCurrency(selectedIncomingOrder.totalAmount)}</div>
               </div>
-              {renderOrderActions(selectedIncomingOrder)}
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handlePrintOrder(selectedIncomingOrder)}
+                  className="h-9 rounded-lg border-[#C8510A]/25 px-3 text-xs font-bold text-[#C8510A] hover:bg-[#F5EBE1]"
+                >
+                  <Printer className="h-3.5 w-3.5 mr-1.5" />
+                  In PDF
+                </Button>
+                {renderOrderActions(selectedIncomingOrder)}
+              </div>
             </div>
           </div>
         )}
@@ -1285,9 +1327,7 @@ export default function StaffPOSPage() {
             <div className="flex space-x-2 border-t border-border/40 pt-4 mt-2">
               <Button
                 variant="outline"
-                onClick={() => {
-                  toast.success("Yêu cầu in hóa đơn đã được gửi đến máy in...");
-                }}
+                onClick={() => handlePrintOrder(receiptData)}
                 className="w-1/2 rounded-lg h-10 text-xs font-semibold flex items-center justify-center space-x-2"
               >
                 <Printer className="h-4 w-4" />

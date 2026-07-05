@@ -13,6 +13,7 @@ import {
   Clock,
   Eye,
   PackageCheck,
+  Printer,
   RefreshCw,
   Search,
   Truck,
@@ -34,6 +35,7 @@ import {
   prepareOrder,
   readyOrder,
 } from "@/services/order.service";
+import { buildOrderTrackingUrl, printOrderAsPdf } from "@/lib/order-print";
 
 type OrderFilter = "active" | "pending" | "confirmed" | "preparing" | "ready" | "completed" | "cancelled" | "all";
 type OrderAction = "confirm" | "prepare" | "ready" | "complete" | "cancel";
@@ -332,6 +334,21 @@ export default function StaffOrdersPage() {
     }
   };
 
+  const handlePrintOrder = useCallback((order: Order) => {
+    const opened = printOrderAsPdf(order, {
+      cashierName: user?.fullName,
+      storeName: user?.branchName || order.storeName,
+      trackingUrl: buildOrderTrackingUrl(order, locale),
+    });
+
+    if (opened) {
+      toast.success("Đã mở mẫu in. Chọn Save as PDF để lưu hóa đơn.");
+      return;
+    }
+
+    toast.error("Trình duyệt đang chặn cửa sổ in. Vui lòng cho phép popup rồi thử lại.");
+  }, [locale, user?.branchName, user?.fullName]);
+
   const renderOrderActions = (order: Order, compact = false) => {
     const status = normalizeStatus(order.status);
     const className = compact ? "h-8 px-2 text-[10px]" : "h-9 px-3 text-xs";
@@ -589,6 +606,15 @@ export default function StaffOrdersPage() {
                           <Button
                             type="button"
                             variant="outline"
+                            onClick={() => handlePrintOrder(order)}
+                            className="h-8 rounded-lg px-2 text-[10px] font-bold border-[#C8510A]/25 text-[#C8510A] hover:bg-[#F5EBE1]"
+                          >
+                            <Printer className="h-3.5 w-3.5 mr-1" />
+                            PDF
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
                             onClick={() => setSelectedOrder(order)}
                             className="h-8 rounded-lg px-2 text-[10px] font-bold"
                           >
@@ -692,7 +718,18 @@ export default function StaffOrdersPage() {
                 <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Trạng thái hiện tại</div>
                 <div className="mt-1 text-sm font-black text-zinc-900">{getStatusLabel(selectedOrder.status)}</div>
               </div>
-              {renderOrderActions(selectedOrder)}
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handlePrintOrder(selectedOrder)}
+                  className="h-9 rounded-lg border-[#C8510A]/25 px-3 text-xs font-bold text-[#C8510A] hover:bg-[#F5EBE1]"
+                >
+                  <Printer className="h-3.5 w-3.5 mr-1.5" />
+                  In PDF
+                </Button>
+                {renderOrderActions(selectedOrder)}
+              </div>
             </div>
           </div>
         )}
