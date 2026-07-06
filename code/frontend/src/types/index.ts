@@ -68,13 +68,21 @@ export interface Promotion {
   id: number;
   code: string;
   name: string;
-  discountType: "percentage" | "fixed_amount";
+  description?: string;
+  discountType: "Percentage" | "Fixed Amount";
   discountValue: number;
-  minOrderAmount: number;
+  minimumOrderValue?: number;
+  maximumDiscount?: number;
   startDate?: string;
   endDate?: string;
   usageLimit?: number;
-  status: string;
+  usedCount?: number;
+  status: "Draft" | "Active" | "Inactive" | "Expired";
+  applicableType: "Entire Order" | "Product" | "Category";
+  applicableProductIds?: number[];
+  applicableCategoryIds?: number[];
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface CartItem {
@@ -109,6 +117,8 @@ export interface Order {
   createdAt?: string;
   updatedAt?: string;
   storeName?: string;
+  promotionCode?: string;
+  promotionId?: number;
   payment?: {
     id: number;
     paymentMethod: string;

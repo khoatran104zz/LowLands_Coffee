@@ -24,6 +24,13 @@ import {
   updateUser,
   deleteUser,
 } from "@/services/user.service";
+import {
+  getPromotions,
+  createPromotion,
+  updatePromotion,
+  deletePromotion,
+  updatePromotionStatus,
+} from "@/services/promotion.service";
 
 export interface Employee {
   id: number;
@@ -77,6 +84,7 @@ export interface DashboardState {
   hydrateProductCatalog: (source?: "admin" | "public") => Promise<void>;
   hydrateToppings: () => Promise<void>;
   hydrateUsers: () => Promise<void>;
+  hydratePromotions: () => Promise<void>;
 
   addBranch: (branch: Omit<Store, "id">) => void;
   updateBranch: (branch: Store) => void;
@@ -101,9 +109,9 @@ export interface DashboardState {
   addOrder: (order: Omit<OrderExtended, "id" | "orderCode" | "createdAt">) => OrderExtended;
   updateOrderStatus: (id: number, status: OrderExtended["status"]) => void;
 
-  addPromotion: (promo: Omit<Promotion, "id">) => void;
-  updatePromotion: (promo: Promotion) => void;
-  deletePromotion: (id: number) => void;
+  addPromotion: (promo: Omit<Promotion, "id" | "createdAt" | "updatedAt">) => Promise<void>;
+  updatePromotion: (id: number, promo: Partial<Promotion>) => Promise<void>;
+  deletePromotion: (id: number) => Promise<void>;
 
   updateIngredientQty: (id: number, amount: number) => void;
   importStock: (id: number, quantityToAdd: number) => void;
@@ -278,6 +286,19 @@ export const useDashboardStore = create<DashboardState>()(
         }
       },
 
+      hydratePromotions: async () => {
+        if (typeof window === "undefined" || !localStorage.getItem("lowlands_token")) {
+          return;
+        }
+        try {
+          const res = await getPromotions({ page: 0, size: 1000 });
+          set({ promotions: res.content });
+        } catch (error) {
+          console.error("Failed to hydrate promotions", error);
+          set({ promotions: [] });
+        }
+      },
+
       addBranch: () => unsupported("Store API phai duoc goi qua store.service.ts."),
       updateBranch: () => unsupported("Store API phai duoc goi qua store.service.ts."),
       deleteBranch: () => unsupported("Store API phai duoc goi qua store.service.ts."),
@@ -447,9 +468,33 @@ export const useDashboardStore = create<DashboardState>()(
       addOrder: () => unsupported("Order backend chua trien khai."),
       updateOrderStatus: () => unsupported("Order backend chua trien khai."),
 
-      addPromotion: () => unsupported("Promotion backend chua trien khai."),
-      updatePromotion: () => unsupported("Promotion backend chua trien khai."),
-      deletePromotion: () => unsupported("Promotion backend chua trien khai."),
+      addPromotion: async (promo) => {
+        try {
+          await createPromotion(promo);
+          await get().hydratePromotions();
+        } catch (error) {
+          console.error("Failed to create promotion", error);
+          throw error;
+        }
+      },
+      updatePromotion: async (id, promo) => {
+        try {
+          await updatePromotion(id, promo);
+          await get().hydratePromotions();
+        } catch (error) {
+          console.error("Failed to update promotion", error);
+          throw error;
+        }
+      },
+      deletePromotion: async (id) => {
+        try {
+          await deletePromotion(id);
+          await get().hydratePromotions();
+        } catch (error) {
+          console.error("Failed to delete promotion", error);
+          throw error;
+        }
+      },
 
       updateIngredientQty: () => unsupported("Inventory phai cap nhat qua backend ledger."),
       importStock: () => unsupported("Nhap kho phai cap nhat qua Goods Receipt API."),
@@ -474,6 +519,7 @@ export const useDashboardStore = create<DashboardState>()(
       onRehydrateStorage: () => (state) => {
         void state?.hydrateProductCatalog("public");
         void state?.hydrateUsers();
+        void state?.hydratePromotions();
       },
       skipHydration: true,
     }

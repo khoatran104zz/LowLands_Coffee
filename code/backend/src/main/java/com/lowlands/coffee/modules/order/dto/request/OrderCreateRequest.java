@@ -40,4 +40,6 @@ public class OrderCreateRequest {
     @NotEmpty
     @Valid
     private List<OrderItemCreateRequest> items;
+
+    private String promotionCode;
 }

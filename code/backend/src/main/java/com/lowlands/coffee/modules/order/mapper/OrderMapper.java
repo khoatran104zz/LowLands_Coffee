@@ -35,6 +35,10 @@ public class OrderMapper {
                 .toList());
         response.setCreatedAt(order.getCreatedAt());
         response.setUpdatedAt(order.getUpdatedAt());
+        if (order.getPromotion() != null) {
+            response.setPromotionId(order.getPromotion().getId());
+            response.setPromotionCode(order.getPromotion().getCode());
+        }
         return response;
     }
 

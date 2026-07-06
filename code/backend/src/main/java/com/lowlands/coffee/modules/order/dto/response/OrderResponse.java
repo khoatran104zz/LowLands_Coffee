@@ -29,4 +29,7 @@ public class OrderResponse {
     private List<OrderItemResponse> items;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
+    private String promotionCode;
+    private Long promotionId;
 }

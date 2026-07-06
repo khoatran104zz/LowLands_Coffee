@@ -9,6 +9,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { createOrder } from "@/services/order.service";
 import { payOrder, paymentMethodMap } from "@/services/payment.service";
 import { useConfirm } from "@/hooks/useConfirm";
+import { getAvailablePromotions, validatePromotion } from "@/services/promotion.service";
 
 interface POSCartProps {
   items: CartItem[];
@@ -66,7 +67,9 @@ export function POSCart({
   const { t } = useTranslation();
   const confirm = useConfirm();
   const [promoCode, setPromoCode] = useState("");
-  const [, setAppliedPromo] = useState<Promotion | null>(null);
+  const [availablePromotions, setAvailablePromotions] = useState<Promotion[]>([]);
+  const [appliedPromo, setAppliedPromo] = useState<Promotion | null>(null);
+  const [appliedDiscount, setAppliedDiscount] = useState<number>(0);
   
   // Service configuration
   const [serviceType, setServiceType] = useState<"dine_in" | "takeaway">("takeaway");
@@ -83,7 +86,7 @@ export function POSCart({
   const [cashReceived, setCashReceived] = useState<number>(0);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
-  const promotions: Promotion[] = [];
+  const promotions = availablePromotions;
 
   // Totals calculations
   const subtotal = items.reduce((sum, item) => {
@@ -91,7 +94,7 @@ export function POSCart({
     return sum + (item.variant.price + toppingsTotal) * item.quantity;
   }, 0);
 
-  const discount = 0;
+  const discount = appliedDiscount;
 
   const total = Math.max(0, subtotal - discount);
   const changeReturned = Math.max(0, cashReceived - total);
@@ -146,20 +149,98 @@ export function POSCart({
     transferReference
   ]);
 
-  // Apply promo handler
-  const handleApplyPromo = () => {
-    if (!promoCode.trim()) return;
-    const promo = promotions.find((p) => p.code.toUpperCase() === promoCode.toUpperCase().trim() && p.status === "active");
-    
-    if (promo) {
-      if (subtotal < promo.minOrderAmount) {
-        toast.error(`Đơn hàng chưa đạt tối thiểu ${promo.minOrderAmount.toLocaleString("vi-VN")}đ`);
-      } else {
-        setAppliedPromo(promo);
-        toast.success(`Áp dụng mã giảm giá ${promo.code} thành công!`);
+  const [isLoadingPromos, setIsLoadingPromos] = useState(false);
+
+  useEffect(() => {
+    const fetchAvailable = async () => {
+      if (items.length === 0) {
+        setAvailablePromotions([]);
+        setAppliedPromo(null);
+        setAppliedDiscount(0);
+        return;
       }
-    } else {
-      toast.error("Mã giảm giá không hợp lệ hoặc đã hết hạn!");
+      setIsLoadingPromos(true);
+      try {
+        const payloadItems = items.map(item => ({
+          productId: item.product.id,
+          quantity: item.quantity
+        }));
+        const promos = await getAvailablePromotions(payloadItems, subtotal);
+        setAvailablePromotions(promos);
+
+        if (appliedPromo) {
+          const isStillAvailable = promos.some(p => p.id === appliedPromo.id);
+          if (isStillAvailable) {
+            const valRes = await validatePromotion(appliedPromo.code, payloadItems, subtotal);
+            if (valRes.valid) {
+              setAppliedDiscount(valRes.discount);
+            } else {
+              setAppliedPromo(null);
+              setAppliedDiscount(0);
+              toast.error(`Khuyến mãi ${appliedPromo.code} không còn áp dụng: ${valRes.message}`);
+            }
+          } else {
+            setAppliedPromo(null);
+            setAppliedDiscount(0);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load available promotions", err);
+      } finally {
+        setIsLoadingPromos(false);
+      }
+    };
+    void fetchAvailable();
+  }, [items, subtotal, appliedPromo?.code]);
+
+  const handleSelectPromo = async (promoCodeSelected: string) => {
+    if (!promoCodeSelected) {
+      setAppliedPromo(null);
+      setAppliedDiscount(0);
+      setPromoCode("");
+      return;
+    }
+    try {
+      const payloadItems = items.map(item => ({
+        productId: item.product.id,
+        quantity: item.quantity
+      }));
+      const valRes = await validatePromotion(promoCodeSelected, payloadItems, subtotal);
+      if (valRes.valid) {
+        const matched = availablePromotions.find(p => p.code === promoCodeSelected);
+        setAppliedPromo(matched || { code: promoCodeSelected, name: "Khuyến mãi đã chọn" } as any);
+        setAppliedDiscount(valRes.discount);
+        setPromoCode(promoCodeSelected);
+        toast.success(`Áp dụng mã giảm giá ${promoCodeSelected} thành công!`);
+      } else {
+        toast.error(`Không thể áp dụng: ${valRes.message}`);
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Lỗi khi áp dụng mã giảm giá");
+    }
+  };
+
+  // Apply promo handler
+  const handleApplyPromo = async () => {
+    if (!promoCode.trim()) return;
+    try {
+      const payloadItems = items.map(item => ({
+        productId: item.product.id,
+        quantity: item.quantity
+      }));
+      const valRes = await validatePromotion(promoCode.trim().toUpperCase(), payloadItems, subtotal);
+      if (valRes.valid) {
+        const matched = availablePromotions.find(p => p.code.toUpperCase() === promoCode.trim().toUpperCase());
+        setAppliedPromo(matched || { code: promoCode.trim().toUpperCase(), name: "Mã giảm giá đã nhập" } as any);
+        setAppliedDiscount(valRes.discount);
+        toast.success(`Áp dụng mã giảm giá ${promoCode.trim().toUpperCase()} thành công!`);
+      } else {
+        toast.error(`Mã giảm giá không hợp lệ: ${valRes.message}`);
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Lỗi khi áp dụng mã giảm giá");
     }
   };
 
@@ -248,7 +329,8 @@ export function POSCart({
       totalAmount: state.total,
       paymentMethod: state.paymentMethod,
       note: finalNote,
-      items: orderItems
+      items: orderItems,
+      promotionCode: appliedPromo?.code || undefined,
     };
 
     try {
@@ -512,24 +594,70 @@ export function POSCart({
       {/* Bill Calculations & Checkout */}
       {items.length > 0 && (
         <div className="border-t border-border/60 p-3.5 bg-muted/10 space-y-3.5 shrink-0">
-          {/* Promo code */}
-          <div className="flex space-x-2">
-            <div className="relative flex-grow">
-              <Ticket className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder={t("pos.posEnterPromo") || "Nhập mã giảm giá..."}
-                value={promoCode}
-                onChange={(e) => setPromoCode(e.target.value)}
-                className="pl-8 text-xs h-8 border-border bg-background focus-visible:ring-1 focus-visible:ring-[#C8510A]"
-              />
+          {/* Promo code area */}
+          <div className="space-y-1.5 text-left">
+            <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
+              {t("pos.promotions") || "Khuyến mãi & Mã ưu đãi"}
+            </span>
+            
+            {/* Available Promotions Dropdown */}
+            {availablePromotions.length > 0 ? (
+              <select
+                value={appliedPromo?.code || ""}
+                onChange={(e) => handleSelectPromo(e.target.value)}
+                className="w-full text-xs p-1.5 border border-border bg-background text-foreground rounded-lg focus:outline-none focus:ring-1 focus:ring-[#C8510A] font-semibold"
+              >
+                <option value="">-- Chọn mã ưu đãi có sẵn ({availablePromotions.length}) --</option>
+                {availablePromotions.map((promo) => (
+                  <option key={promo.id} value={promo.code}>
+                    {promo.code} - {promo.name} ({promo.discountType === "Percentage" ? `${promo.discountValue}%` : `${promo.discountValue.toLocaleString()}đ`})
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="text-[10px] text-muted-foreground italic px-1">
+                Không có mã giảm giá nào phù hợp với giỏ hàng hiện tại.
+              </div>
+            )}
+
+            {/* Manual input */}
+            <div className="flex gap-1.5 mt-1.5">
+              <div className="relative flex-1">
+                <Ticket className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+                <Input
+                  type="text"
+                  placeholder="Nhập mã khác..."
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value.toUpperCase())}
+                  className="pl-8 text-xs h-8 border-border bg-background focus-visible:ring-1 focus-visible:ring-[#C8510A] uppercase"
+                />
+              </div>
+              <Button
+                onClick={handleApplyPromo}
+                className="h-8 text-xs font-bold px-3 bg-[#C8510A] hover:bg-[#B04308] text-white rounded-lg"
+              >
+                Áp dụng
+              </Button>
             </div>
-            <Button
-              onClick={handleApplyPromo}
-              className="h-8 text-xs font-bold px-3 bg-[#C8510A] hover:bg-[#B04308] text-white rounded-lg"
-            >
-              {t("pos.posApply")}
-            </Button>
+            
+            {/* Display applied promo details */}
+            {appliedPromo && (
+              <div className="mt-1 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 rounded-lg p-2 flex items-center justify-between text-[11px] text-emerald-800 dark:text-emerald-300">
+                <div className="min-w-0 flex items-center">
+                  <span className="font-bold uppercase tracking-wider text-xs bg-emerald-100 dark:bg-emerald-900/40 border border-emerald-300 dark:border-emerald-800 px-1.5 py-0.5 rounded mr-1.5 font-mono">
+                    {appliedPromo.code}
+                  </span>
+                  <span className="font-semibold truncate">{appliedPromo.name}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => handleSelectPromo("")}
+                  className="text-xs font-bold text-emerald-900 hover:text-red-600 transition-colors ml-1.5 px-1 bg-emerald-100/50 hover:bg-red-50 rounded"
+                >
+                  Xóa
+                </button>
+              </div>
+            )}
           </div>
 
           {/* Ghi chú đơn hàng */}

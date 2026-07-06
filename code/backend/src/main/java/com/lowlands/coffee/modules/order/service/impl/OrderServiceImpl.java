@@ -95,6 +95,8 @@ public class OrderServiceImpl implements OrderService {
     private final StockMovementRepository stockMovementRepository;
     private final OrderCodeGenerator orderCodeGenerator;
     private final OrderMapper orderMapper;
+    private final com.lowlands.coffee.modules.promotion.service.PromotionService promotionService;
+    private final com.lowlands.coffee.modules.promotion.repository.PromotionRepository promotionRepository;
 
     public OrderServiceImpl(
             OrderRepository orderRepository,
@@ -107,7 +109,9 @@ public class OrderServiceImpl implements OrderService {
             RecipeRepository recipeRepository,
             StockMovementRepository stockMovementRepository,
             OrderCodeGenerator orderCodeGenerator,
-            OrderMapper orderMapper
+            OrderMapper orderMapper,
+            com.lowlands.coffee.modules.promotion.service.PromotionService promotionService,
+            com.lowlands.coffee.modules.promotion.repository.PromotionRepository promotionRepository
     ) {
         this.orderRepository = orderRepository;
         this.storeRepository = storeRepository;
@@ -120,6 +124,8 @@ public class OrderServiceImpl implements OrderService {
         this.stockMovementRepository = stockMovementRepository;
         this.orderCodeGenerator = orderCodeGenerator;
         this.orderMapper = orderMapper;
+        this.promotionService = promotionService;
+        this.promotionRepository = promotionRepository;
     }
 
     @Override
@@ -143,8 +149,42 @@ public class OrderServiceImpl implements OrderService {
         order.setNote(clean(request.getNote()));
         replaceItems(order, request.getItems());
         order.setSubtotal(calculateSubtotal(order));
-        order.setDiscountAmount(BigDecimal.ZERO);
-        order.setTotalAmount(order.getSubtotal());
+        
+        BigDecimal discount = BigDecimal.ZERO;
+        com.lowlands.coffee.modules.promotion.entity.PromotionEntity promotionEntity = null;
+        if (hasText(request.getPromotionCode())) {
+            com.lowlands.coffee.modules.promotion.dto.request.PromotionValidateRequest validateRequest = new com.lowlands.coffee.modules.promotion.dto.request.PromotionValidateRequest();
+            validateRequest.setPromotionCode(request.getPromotionCode());
+            validateRequest.setOrderTotal(order.getSubtotal());
+
+            List<com.lowlands.coffee.modules.promotion.dto.request.PromotionItemRequest> promoItems = new ArrayList<>();
+            for (OrderItemEntity item : order.getItems()) {
+                com.lowlands.coffee.modules.promotion.dto.request.PromotionItemRequest promoItem = new com.lowlands.coffee.modules.promotion.dto.request.PromotionItemRequest();
+                promoItem.setProductId(item.getProduct().getId());
+                promoItem.setQuantity(item.getQuantity());
+                promoItems.add(promoItem);
+            }
+            validateRequest.setItems(promoItems);
+
+            com.lowlands.coffee.modules.promotion.dto.response.PromotionValidateResponse validateResponse = promotionService.validatePromotion(validateRequest);
+            if (!validateResponse.isValid()) {
+                throw new IllegalArgumentException("Khuyến mãi không hợp lệ: " + validateResponse.getMessage());
+            }
+            discount = validateResponse.getDiscount();
+            promotionEntity = promotionRepository.findByCodeIgnoreCase(request.getPromotionCode()).orElse(null);
+
+            if (promotionEntity != null) {
+                promotionEntity.setUsedCount(promotionEntity.getUsedCount() + 1);
+                promotionRepository.save(promotionEntity);
+            }
+        }
+
+        order.setDiscountAmount(discount);
+        order.setTotalAmount(order.getSubtotal().subtract(discount));
+        if (order.getTotalAmount().compareTo(BigDecimal.ZERO) < 0) {
+            order.setTotalAmount(BigDecimal.ZERO);
+        }
+        order.setPromotion(promotionEntity);
         order.setPayment(createPayment(order, request.getPaymentMethod()));
         return orderMapper.toResponse(orderRepository.save(order));
     }

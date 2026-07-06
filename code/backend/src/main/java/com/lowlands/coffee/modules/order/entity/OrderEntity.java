@@ -87,6 +87,10 @@ public class OrderEntity {
     @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private PaymentEntity payment;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "promotion_id")
+    private com.lowlands.coffee.modules.promotion.entity.PromotionEntity promotion;
+
     @PrePersist
     void prePersist() {
         LocalDateTime now = LocalDateTime.now();
