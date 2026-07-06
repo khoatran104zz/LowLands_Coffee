@@ -12,8 +12,15 @@ import org.springframework.data.repository.query.Param;
 import java.time.LocalDateTime;
 import java.math.BigDecimal;
 import java.util.Optional;
+import java.util.List;
 
 public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSpecificationExecutor<OrderEntity> {
+
+    @Query("select o.user.id, count(o.id), coalesce(sum(o.totalAmount), 0) " +
+           "from OrderEntity o " +
+           "where o.status = :status and o.user.id is not null " +
+           "group by o.user.id")
+    List<Object[]> getCustomerOrderStatsByStatus(@Param("status") String status);
 
     boolean existsByOrderCode(String orderCode);
 

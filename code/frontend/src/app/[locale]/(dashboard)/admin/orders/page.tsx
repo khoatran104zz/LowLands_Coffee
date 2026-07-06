@@ -1,7 +1,8 @@
 "use client";
 
 import React, { useCallback, useEffect, useMemo, useState } from "react";
-import { CheckCircle2, ChefHat, PackageCheck, RefreshCw, XCircle } from "lucide-react";
+import { CheckCircle2, ChefHat, PackageCheck, Plus, XCircle } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { Order } from "@/types";
 import {
@@ -20,22 +21,8 @@ import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { useConfirm } from "@/hooks/useConfirm";
 import { useTranslation } from "@/hooks/useTranslation";
+import { useParams } from "next/navigation";
 
-const statusOptions = [
-  { value: "PENDING", label: "Pending" },
-  { value: "CONFIRMED", label: "Confirmed" },
-  { value: "PREPARING", label: "Preparing" },
-  { value: "READY", label: "Ready" },
-  { value: "COMPLETED", label: "Completed" },
-  { value: "CANCELLED", label: "Cancelled" },
-];
-
-const orderTypeOptions = [
-  { value: "DELIVERY", label: "Delivery" },
-  { value: "PICKUP", label: "Pickup" },
-  { value: "DINE_IN", label: "Dine in" },
-  { value: "TAKEAWAY", label: "Takeaway" },
-];
 
 const formatCurrency = (value: number) =>
   new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND", maximumFractionDigits: 0 }).format(value);
@@ -48,26 +35,11 @@ const formatDateTime = (value?: string) => {
   }).format(new Date(value));
 };
 
-const statusLabel = (status?: string) => {
-  const normalized = status?.toLowerCase();
-  if (normalized === "pending") return "Pending";
-  if (normalized === "confirmed") return "Confirmed";
-  if (normalized === "preparing") return "Preparing";
-  if (normalized === "ready") return "Ready";
-  if (normalized === "completed") return "Completed";
-  if (normalized === "cancelled") return "Cancelled";
-  return status || "-";
-};
-
-const orderTypeLabel = (orderType: Order["orderType"]) => {
-  if (orderType === "delivery") return "Delivery";
-  if (orderType === "pickup") return "Pickup";
-  if (orderType === "dine_in") return "Dine in";
-  return "Takeaway";
-};
-
 export default function AdminOrdersPage() {
   const { t } = useTranslation();
+  const router = useRouter();
+  const params = useParams();
+  const locale = (params?.locale as string) || "vi";
   const confirm = useConfirm();
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,6 +48,44 @@ export default function AdminOrdersPage() {
   const [statusFilter, setStatusFilter] = useState("");
   const [orderTypeFilter, setOrderTypeFilter] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  const getOrderTypeLabel = (type?: string) => {
+    const tMap: Record<string, string> = {
+      delivery: locale === "vi" ? "Giao hàng" : "Delivery",
+      pickup: locale === "vi" ? "Tự đến lấy" : "Pickup",
+      dine_in: locale === "vi" ? "Ăn tại quán" : "Dine in",
+      takeaway: locale === "vi" ? "Mang đi" : "Takeaway",
+    };
+    return type ? tMap[type.toLowerCase()] || type : "-";
+  };
+
+  const getStatusLabel = (status?: string) => {
+    const sMap: Record<string, string> = {
+      pending: t("common.statuses.pending"),
+      confirmed: locale === "vi" ? "Đã xác nhận" : "Confirmed",
+      preparing: t("common.statuses.processing"),
+      ready: locale === "vi" ? "Món sẵn sàng" : "Ready",
+      completed: t("common.statuses.completed"),
+      cancelled: t("common.statuses.cancelled"),
+    };
+    return status ? sMap[status.toLowerCase()] || status : "-";
+  };
+
+  const statusOptions = useMemo(() => [
+    { value: "PENDING", label: t("common.statuses.pending") },
+    { value: "CONFIRMED", label: locale === "vi" ? "Đã xác nhận" : "Confirmed" },
+    { value: "PREPARING", label: t("common.statuses.processing") },
+    { value: "READY", label: locale === "vi" ? "Món sẵn sàng" : "Ready" },
+    { value: "COMPLETED", label: t("common.statuses.completed") },
+    { value: "CANCELLED", label: t("common.statuses.cancelled") },
+  ], [t, locale]);
+
+  const orderTypeOptions = useMemo(() => [
+    { value: "DELIVERY", label: locale === "vi" ? "Giao hàng" : "Delivery" },
+    { value: "PICKUP", label: locale === "vi" ? "Tự đến lấy" : "Pickup" },
+    { value: "DINE_IN", label: locale === "vi" ? "Ăn tại quán" : "Dine in" },
+    { value: "TAKEAWAY", label: locale === "vi" ? "Mang đi" : "Takeaway" },
+  ], [locale]);
 
   const loadOrders = useCallback(async () => {
     setIsLoading(true);
@@ -162,15 +172,15 @@ export default function AdminOrdersPage() {
       header: t("admin.ordersPage.colCustomer"),
       render: (item) => (
         <div className="space-y-0.5">
-          <div className="font-bold text-zinc-800 dark:text-zinc-100">{item.receiverName || "Walk-in Customer"}</div>
+          <div className="font-bold text-zinc-800 dark:text-zinc-100">{item.receiverName || t("admin.ordersPage.walkInCustomer")}</div>
           <div className="text-[11px] text-muted-foreground">{item.receiverPhone || item.storeName || "-"}</div>
         </div>
       ),
     },
     {
       key: "orderType",
-      header: "Type",
-      render: (item) => orderTypeLabel(item.orderType),
+      header: t("admin.ordersPage.colType"),
+      render: (item) => getOrderTypeLabel(item.orderType),
     },
     {
       key: "totalAmount",
@@ -195,42 +205,42 @@ export default function AdminOrdersPage() {
     {
       key: "status",
       header: t("admin.ordersPage.colStatus"),
-      render: (item) => <StatusBadge status={item.status || ""} customLabel={statusLabel(item.status)} />,
+      render: (item) => <StatusBadge status={item.status || ""} customLabel={getStatusLabel(item.status)} />,
     },
   ];
 
   const actions: ExtraAction<Order>[] = [
     {
       icon: CheckCircle2,
-      title: "Confirm",
+      title: t("admin.ordersPage.actionConfirm"),
       color: "hover:text-emerald-700",
       visible: (item) => item.status === "pending",
       onClick: (item) => updateOrderStatus(item, "confirm"),
     },
     {
       icon: ChefHat,
-      title: "Prepare",
+      title: t("admin.ordersPage.actionPrepare"),
       color: "hover:text-orange-700",
       visible: (item) => item.status === "confirmed",
       onClick: (item) => updateOrderStatus(item, "prepare"),
     },
     {
       icon: PackageCheck,
-      title: "Ready",
+      title: t("admin.ordersPage.actionReady"),
       color: "hover:text-sky-700",
       visible: (item) => item.status === "preparing",
       onClick: (item) => updateOrderStatus(item, "ready"),
     },
     {
       icon: CheckCircle2,
-      title: "Complete",
+      title: t("admin.ordersPage.actionComplete"),
       color: "hover:text-emerald-700",
       visible: (item) => item.status === "ready",
       onClick: (item) => updateOrderStatus(item, "complete"),
     },
     {
       icon: XCircle,
-      title: "Cancel",
+      title: t("admin.ordersPage.actionCancel"),
       color: "hover:text-rose-700",
       visible: (item) => !["completed", "cancelled"].includes(item.status || ""),
       onClick: (item) => updateOrderStatus(item, "cancel"),
@@ -245,24 +255,26 @@ export default function AdminOrdersPage() {
             {t("admin.ordersPage.title")}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold mt-1">
-            Theo doi don hang va cap nhat trang thai truc tiep qua Backend Order API.
+            {t("admin.ordersPage.subtitle")}
           </p>
         </div>
         <Button
-          onClick={loadOrders}
-          disabled={isLoading || isUpdating}
+          onClick={() => {
+            toast.info(locale === "vi" ? "Vui lòng tạo đơn hàng mới tại màn hình Quầy bán hàng (POS)." : "Please create new orders in the POS screen.");
+            router.push(`/${locale}/staff/pos`);
+          }}
           className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg px-4 h-10 text-xs font-semibold flex items-center space-x-2 shrink-0 self-start sm:self-auto"
         >
-          <RefreshCw className="h-4 w-4" />
-          <span>Refresh</span>
+          <Plus className="h-4 w-4" />
+          <span>{t("admin.ordersPage.createButton")}</span>
         </Button>
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        <SummaryTile label="Orders" value={summary.total} />
-        <SummaryTile label="Pending" value={summary.pending} />
-        <SummaryTile label="Completed" value={summary.completed} />
-        <SummaryTile label="Revenue" value={formatCurrency(summary.revenue)} />
+        <SummaryTile label={t("admin.ordersPage.summaryTotal")} value={summary.total} />
+        <SummaryTile label={t("admin.ordersPage.summaryPending")} value={summary.pending} />
+        <SummaryTile label={t("admin.ordersPage.summaryCompleted")} value={summary.completed} />
+        <SummaryTile label={t("admin.ordersPage.summaryRevenue")} value={formatCurrency(summary.revenue)} />
       </div>
 
       <div className="flex flex-col lg:flex-row lg:items-center gap-4 bg-card border border-border/80 rounded-xl p-4 shadow-2xs">
@@ -279,7 +291,7 @@ export default function AdminOrdersPage() {
           placeholder={t("common.all")}
         />
         <Filter
-          label="Type"
+          label={t("admin.ordersPage.colType")}
           value={orderTypeFilter}
           onChange={setOrderTypeFilter}
           options={orderTypeOptions}
@@ -304,26 +316,26 @@ export default function AdminOrdersPage() {
       <FormModal
         isOpen={Boolean(selectedOrder)}
         onClose={() => setSelectedOrder(null)}
-        title={selectedOrder?.orderCode || "Order detail"}
+        title={selectedOrder ? (selectedOrder.orderCode || t("admin.ordersPage.orderDetail")) : ""}
         size="lg"
       >
         {selectedOrder && (
           <div className="space-y-5 text-left">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              <DetailTile label="Customer" value={selectedOrder.receiverName || "Walk-in Customer"} />
-              <DetailTile label="Phone" value={selectedOrder.receiverPhone || "-"} />
-              <DetailTile label="Store" value={selectedOrder.storeName || `#${selectedOrder.storeId}`} />
-              <DetailTile label="Type" value={orderTypeLabel(selectedOrder.orderType)} />
-              <DetailTile label="Created" value={formatDateTime(selectedOrder.createdAt)} />
-              <DetailTile label="Total" value={formatCurrency(selectedOrder.totalAmount)} />
-              <DetailTile label="Payment status" value={selectedOrder.payment?.paymentStatus || "UNPAID"} />
-              <DetailTile label="Payment id" value={selectedOrder.payment?.id ? `#${selectedOrder.payment.id}` : "-"} />
-              <DetailTile label="Paid at" value={formatDateTime(selectedOrder.payment?.paidAt || undefined)} />
+              <DetailTile label={t("admin.ordersPage.detailCustomer")} value={selectedOrder.receiverName || t("admin.ordersPage.walkInCustomer")} />
+              <DetailTile label={t("admin.ordersPage.detailPhone")} value={selectedOrder.receiverPhone || "-"} />
+              <DetailTile label={t("admin.ordersPage.detailStore")} value={selectedOrder.storeName || `#${selectedOrder.storeId}`} />
+              <DetailTile label={t("admin.ordersPage.detailType")} value={getOrderTypeLabel(selectedOrder.orderType)} />
+              <DetailTile label={t("admin.ordersPage.detailCreated")} value={formatDateTime(selectedOrder.createdAt)} />
+              <DetailTile label={t("admin.ordersPage.detailTotal")} value={formatCurrency(selectedOrder.totalAmount)} />
+              <DetailTile label={t("admin.ordersPage.detailPaymentStatus")} value={selectedOrder.payment?.paymentStatus || "UNPAID"} />
+              <DetailTile label={t("admin.ordersPage.detailPaymentId")} value={selectedOrder.payment?.id ? `#${selectedOrder.payment.id}` : "-"} />
+              <DetailTile label={t("admin.ordersPage.detailPaidAt")} value={formatDateTime(selectedOrder.payment?.paidAt || undefined)} />
             </div>
 
             <div className="rounded-lg border border-border/70 overflow-hidden">
               <div className="bg-amber-50/60 px-4 py-2 text-[10px] font-extrabold uppercase tracking-wider text-amber-900">
-                Items
+                {t("admin.ordersPage.detailItems")}
               </div>
               <div className="divide-y divide-border/60">
                 {selectedOrder.items.map((item, index) => (
@@ -354,22 +366,22 @@ export default function AdminOrdersPage() {
                   onClick={() => updateOrderStatus(selectedOrder, "confirm")}
                   className="h-9 text-xs bg-amber-850 hover:bg-amber-800 text-white"
                 >
-                  Confirm
+                  {t("admin.ordersPage.actionConfirm")}
                 </Button>
               )}
               {selectedOrder.status === "confirmed" && (
                 <Button disabled={isUpdating} onClick={() => updateOrderStatus(selectedOrder, "prepare")} className="h-9 text-xs">
-                  Prepare
+                  {t("admin.ordersPage.actionPrepare")}
                 </Button>
               )}
               {selectedOrder.status === "preparing" && (
                 <Button disabled={isUpdating} onClick={() => updateOrderStatus(selectedOrder, "ready")} className="h-9 text-xs">
-                  Ready
+                  {t("admin.ordersPage.actionReady")}
                 </Button>
               )}
               {selectedOrder.status === "ready" && (
                 <Button disabled={isUpdating} onClick={() => updateOrderStatus(selectedOrder, "complete")} className="h-9 text-xs">
-                  Complete
+                  {t("admin.ordersPage.actionComplete")}
                 </Button>
               )}
               {!["completed", "cancelled"].includes(selectedOrder.status || "") && (
@@ -379,7 +391,7 @@ export default function AdminOrdersPage() {
                   onClick={() => updateOrderStatus(selectedOrder, "cancel")}
                   className="h-9 text-xs text-rose-700 border-rose-200 hover:bg-rose-50"
                 >
-                  Cancel
+                  {t("admin.ordersPage.actionCancel")}
                 </Button>
               )}
             </div>
