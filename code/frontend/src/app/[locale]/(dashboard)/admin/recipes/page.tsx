@@ -80,6 +80,11 @@ export default function AdminRecipesPage() {
     );
     return flatVariants.filter((variant) => variant.status !== "inactive" && !activeRecipeVariantIds.has(variant.id));
   }, [flatVariants, recipes]);
+  const activeVariantCount = flatVariants.filter((variant) => variant.status !== "inactive").length;
+  const coveredVariantCount = Math.max(activeVariantCount - variantsWithoutActiveRecipe.length, 0);
+  const recipeCoveragePercent = activeVariantCount === 0
+    ? 100
+    : Math.round((coveredVariantCount / activeVariantCount) * 100);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -318,6 +323,20 @@ export default function AdminRecipesPage() {
           onChange={setSearchQuery}
           placeholder={t("admin.recipesPage.searchPlaceholder")}
         />
+      </div>
+
+      <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-left shadow-2xs">
+        <div className="flex items-start gap-3">
+          <BookOpen className="h-4 w-4 text-emerald-700 mt-0.5 shrink-0" />
+          <div className="min-w-0">
+            <p className="text-xs font-extrabold text-emerald-950 uppercase">
+              Recipe Coverage
+            </p>
+            <p className="text-[11px] font-semibold text-emerald-800 mt-1">
+              {coveredVariantCount} / {activeVariantCount} active variants ({recipeCoveragePercent}%)
+            </p>
+          </div>
+        </div>
       </div>
 
       {variantsWithoutActiveRecipe.length > 0 && (

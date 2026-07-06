@@ -180,6 +180,17 @@ export default function StaffPOSPage() {
     }
   }, [branchId]);
 
+  const loadProductAvailability = useCallback(async () => {
+    if (!branchId) return;
+    const availability = await getStaffProductAvailability(branchId);
+    setAvailabilityByVariantId(
+      availability.reduce<Record<number, ProductAvailability>>((acc, item) => {
+        acc[item.variantId] = item;
+        return acc;
+      }, {})
+    );
+  }, [branchId]);
+
   useEffect(() => {
     if (isMounted && branchId) {
       const initialLoadId = window.setTimeout(() => {
@@ -200,20 +211,12 @@ export default function StaffPOSPage() {
       return;
     }
 
-    void getStaffProductAvailability(branchId)
-      .then((availability) => {
-        setAvailabilityByVariantId(
-          availability.reduce<Record<number, ProductAvailability>>((acc, item) => {
-            acc[item.variantId] = item;
-            return acc;
-          }, {})
-        );
-      })
+    void loadProductAvailability()
       .catch((error) => {
         console.error("Failed to load product availability", error);
         toast.error("Không thể tải trạng thái nguyên liệu sản phẩm.");
       });
-  }, [branchId, hasHydrated, isAuthenticated, isMounted]);
+  }, [branchId, hasHydrated, isAuthenticated, isMounted, loadProductAvailability]);
 
   useEffect(() => {
     hydrateFromStorage();
@@ -404,6 +407,9 @@ export default function StaffPOSPage() {
       setSelectedIncomingOrder(updatedOrder);
       toast.success(`Đơn ${updatedOrder.orderCode || `#${updatedOrder.id}`} đã chuyển sang: ${getStatusLabel(updatedOrder.status)}`);
       await loadTodayOrders();
+      if (action === "complete") {
+        await loadProductAvailability();
+      }
     } catch (error) {
       console.error("Failed to update online order status", error);
       const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message;
@@ -585,6 +591,7 @@ export default function StaffPOSPage() {
     setIsReceiptOpen(true);
     setCart([]);
     void loadTodayOrders();
+    void loadProductAvailability();
   };
 
   const handlePrintOrder = (order: Order) => {
