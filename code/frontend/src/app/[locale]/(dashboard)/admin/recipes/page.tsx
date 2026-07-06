@@ -59,17 +59,27 @@ export default function AdminRecipesPage() {
 
   // Flat list of all product variants for mapping dropdowns
   const flatVariants = React.useMemo(() => {
-    const list: { id: number; label: string }[] = [];
+    const list: { id: number; label: string; status?: string }[] = [];
     products.forEach((p) => {
       p.variants?.forEach((v) => {
         list.push({
           id: v.id,
-          label: `${p.name} (Size ${v.size})`
+          label: `${p.name} (Size ${v.size})`,
+          status: v.status
         });
       });
     });
     return list;
   }, [products]);
+
+  const variantsWithoutActiveRecipe = React.useMemo(() => {
+    const activeRecipeVariantIds = new Set(
+      recipes
+        .filter((recipe) => recipe.status === "active")
+        .map((recipe) => recipe.productVariantId)
+    );
+    return flatVariants.filter((variant) => variant.status !== "inactive" && !activeRecipeVariantIds.has(variant.id));
+  }, [flatVariants, recipes]);
 
   const loadData = async () => {
     setIsLoading(true);
@@ -309,6 +319,24 @@ export default function AdminRecipesPage() {
           placeholder={t("admin.recipesPage.searchPlaceholder")}
         />
       </div>
+
+      {variantsWithoutActiveRecipe.length > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-left shadow-2xs">
+          <div className="flex items-start gap-3">
+            <BookOpen className="h-4 w-4 text-amber-700 mt-0.5 shrink-0" />
+            <div className="min-w-0">
+              <p className="text-xs font-extrabold text-amber-950 uppercase">
+                {variantsWithoutActiveRecipe.length} biến thể đang bán chưa có công thức active
+              </p>
+              <p className="text-[11px] font-semibold text-amber-800 mt-1">
+                POS sẽ khóa các món này khi kiểm tra tồn kho:{" "}
+                {variantsWithoutActiveRecipe.slice(0, 8).map((variant) => variant.label).join(", ")}
+                {variantsWithoutActiveRecipe.length > 8 ? "..." : ""}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Data Table */}
       {isLoading ? (

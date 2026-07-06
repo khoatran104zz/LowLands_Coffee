@@ -1,6 +1,8 @@
 package com.lowlands.coffee.common.exception;
 
 import com.lowlands.coffee.common.ApiResponse;
+import com.lowlands.coffee.modules.order.dto.response.OrderCompletionFailureResponse;
+import com.lowlands.coffee.modules.order.exception.OrderCompletionException;
 import com.lowlands.coffee.modules.storage.exception.StorageException;
 import jakarta.validation.ConstraintViolationException;
 import org.springframework.http.HttpStatus;
@@ -29,6 +31,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<ApiResponse<Void>> handleConflict(ConflictException exception) {
         return ResponseEntity.status(HttpStatus.CONFLICT).body(ApiResponse.error(exception.getMessage()));
+    }
+
+    @ExceptionHandler(OrderCompletionException.class)
+    public ResponseEntity<ApiResponse<OrderCompletionFailureResponse>> handleOrderCompletion(
+            OrderCompletionException exception
+    ) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(ApiResponse.<OrderCompletionFailureResponse>builder()
+                        .success(false)
+                        .message(exception.getMessage())
+                        .data(exception.getDetails())
+                        .build());
     }
 
     @ExceptionHandler({BadRequestException.class, ConstraintViolationException.class})

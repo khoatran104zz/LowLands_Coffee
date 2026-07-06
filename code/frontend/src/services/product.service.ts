@@ -43,6 +43,24 @@ export interface ProductRequest {
   toppingIds?: number[];
 }
 
+export interface StockShortage {
+  ingredientId: number;
+  ingredientName: string;
+  requiredQuantity: number;
+  availableQuantity: number;
+  unit: string;
+}
+
+export interface ProductAvailability {
+  productId: number;
+  productName: string;
+  variantId: number;
+  size: ProductVariant["size"];
+  available: boolean;
+  reason?: string | null;
+  shortages: StockShortage[];
+}
+
 export const getProducts = async (params?: ProductFilterParams): Promise<Product[]> => {
   const response = await axiosInstance.get<ApiResponse<Product[]>>("/products", { params });
   return response.data.data;
@@ -75,6 +93,13 @@ export const updateAdminProduct = async (id: number, data: ProductRequest): Prom
 
 export const deleteAdminProduct = async (id: number): Promise<void> => {
   await axiosInstance.delete<ApiResponse<void>>(`/admin/products/${id}`);
+};
+
+export const getStaffProductAvailability = async (storeId?: number): Promise<ProductAvailability[]> => {
+  const response = await axiosInstance.get<ApiResponse<ProductAvailability[]>>("/staff/products/availability", {
+    params: storeId ? { storeId } : undefined,
+  });
+  return response.data.data;
 };
 
 export const getAdminCategories = async (): Promise<Category[]> => {

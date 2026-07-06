@@ -6,6 +6,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useDashboardStore } from "@/store/dashboardStore";
+import { ProductAvailability } from "@/services/product.service";
 
 interface ProductCardProps {
   product: Product;
@@ -16,9 +17,10 @@ interface ProductCardProps {
     note: string
   ) => void;
   viewMode?: "grid" | "list";
+  availabilityByVariantId?: Record<number, ProductAvailability>;
 }
 
-export function ProductCard({ product, onAddToCart, viewMode = "grid" }: ProductCardProps) {
+export function ProductCard({ product, onAddToCart, viewMode = "grid", availabilityByVariantId = {} }: ProductCardProps) {
   const { t } = useTranslation();
   const getCategoryName = (name: string) => {
     switch (name.toLowerCase()) {
@@ -56,19 +58,45 @@ export function ProductCard({ product, onAddToCart, viewMode = "grid" }: Product
   
   // Base display price (usually smallest variant price)
   const displayPrice = product.variants?.[0]?.price || 0;
+  const getVariantAvailability = (variant?: ProductVariant) => {
+    if (!variant) return undefined;
+    return availabilityByVariantId[variant.id];
+  };
+  const getAvailabilityLabel = (reason?: string | null) => {
+    switch (reason) {
+      case "MISSING_RECIPE":
+        return "Chưa có công thức";
+      case "EMPTY_RECIPE":
+        return "Công thức thiếu nguyên liệu";
+      case "INSUFFICIENT_STOCK":
+        return "Không đủ nguyên liệu";
+      case "INGREDIENT_INACTIVE":
+        return "Nguyên liệu ngưng dùng";
+      case "UNIT_MISMATCH":
+        return "Sai đơn vị nguyên liệu";
+      default:
+        return t("pos.outOfStock");
+    }
+  };
+  const isVariantSellable = (variant: ProductVariant) => (
+    variant.status === "active" && getVariantAvailability(variant)?.available !== false
+  );
+  const unavailableLabel = product.variants
+    ?.map((variant) => getVariantAvailability(variant))
+    .find((availability) => availability?.available === false)?.reason;
 
   // Check if product is out of stock (inactive status or no active variants)
   const isOutOfStock = 
     product.status === "inactive" || 
     !product.variants || 
     product.variants.length === 0 ||
-    product.variants.every(v => v.status === "inactive");
+    product.variants.every(v => !isVariantSellable(v));
 
   const handleOpenConfig = () => {
     if (isOutOfStock) return;
     
     // Find first active variant to select as default
-    const firstActiveVariant = product.variants?.find(v => v.status === "active") || product.variants?.[0];
+    const firstActiveVariant = product.variants?.find(isVariantSellable) || product.variants?.[0];
     setSelectedVariant(firstActiveVariant || { id: 0, productId: product.id, size: "S", price: 0, status: "active" });
     setSelectedToppings([]);
     setNote("");
@@ -87,6 +115,7 @@ export function ProductCard({ product, onAddToCart, viewMode = "grid" }: Product
   };
 
   const handleConfirmAdd = () => {
+    if (!isVariantSellable(selectedVariant)) return;
     onAddToCart(product, selectedVariant, selectedToppings, note);
     setIsConfigOpen(false);
   };
@@ -151,7 +180,7 @@ export function ProductCard({ product, onAddToCart, viewMode = "grid" }: Product
             {isOutOfStock && (
               <div className="absolute inset-0 bg-black/40 backdrop-blur-[1px] flex items-center justify-center">
                 <span className="bg-rose-600 text-white text-[10px] font-black uppercase px-2.5 py-1 rounded shadow-md tracking-wider">
-                  {t("pos.outOfStock")}
+                  {getAvailabilityLabel(unavailableLabel)}
                 </span>
               </div>
             )}
@@ -200,7 +229,7 @@ export function ProductCard({ product, onAddToCart, viewMode = "grid" }: Product
               {isOutOfStock && (
                 <div className="absolute inset-0 bg-black/45 flex items-center justify-center">
                   <span className="text-[9px] text-white font-extrabold uppercase px-1.5 py-0.5 rounded leading-none">
-                    {t("pos.outOfStock")}
+                    {getAvailabilityLabel(unavailableLabel)}
                   </span>
                 </div>
               )}
@@ -391,7 +420,8 @@ export function ProductCard({ product, onAddToCart, viewMode = "grid" }: Product
                 </label>
                 <div className="grid grid-cols-3 gap-2">
                   {product.variants.map((v) => {
-                    const isVariantActive = v.status === "active";
+                    const variantAvailability = getVariantAvailability(v);
+                    const isVariantActive = isVariantSellable(v);
                     return (
                       <button
                         key={v.id}
@@ -400,7 +430,7 @@ export function ProductCard({ product, onAddToCart, viewMode = "grid" }: Product
                         onClick={() => setSelectedVariant(v)}
                         className={`h-11 border rounded-xl text-xs font-bold transition-all flex flex-col items-center justify-center ${
                           !isVariantActive
-                            ? "opacity-40 cursor-not-allowed border-dashed bg-muted/20 text-muted-foreground"
+                            ? "opacity-50 cursor-not-allowed border-dashed bg-muted/20 text-muted-foreground"
                             : selectedVariant.id === v.id
                               ? "border-[#C8510A] bg-[#C8510A]/5 text-[#C8510A] ring-1 ring-[#C8510A] shadow-2xs"
                               : "border-border bg-background hover:bg-zinc-50 text-zinc-700"
@@ -411,8 +441,8 @@ export function ProductCard({ product, onAddToCart, viewMode = "grid" }: Product
                           {v.price.toLocaleString("vi-VN")}đ
                         </span>
                         {!isVariantActive && (
-                          <span className="text-[8px] text-rose-500 font-extrabold mt-0.5 leading-none">
-                            {t("pos.outOfStock")}
+                          <span className="text-[8px] text-rose-500 font-extrabold mt-0.5 leading-none max-w-full truncate px-1">
+                            {getAvailabilityLabel(variantAvailability?.reason)}
                           </span>
                         )}
                       </button>
@@ -495,6 +525,7 @@ export function ProductCard({ product, onAddToCart, viewMode = "grid" }: Product
                 </Button>
                 <Button 
                   onClick={handleConfirmAdd} 
+                  disabled={!isVariantSellable(selectedVariant)}
                   className="bg-[#C8510A] hover:bg-[#B04308] text-white rounded-xl h-10 text-xs font-bold px-6 shadow-sm shadow-[#C8510A]/10 active:scale-[0.98]"
                 >
                   {t("pos.addToOrder")}

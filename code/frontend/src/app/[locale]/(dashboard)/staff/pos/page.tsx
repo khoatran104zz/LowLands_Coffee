@@ -22,6 +22,7 @@ import { AccountDropdown } from "@/components/account/AccountDropdown";
 import { AccountModal } from "@/components/account/AccountModal";
 import { LanguageSwitcher } from "@/components/features/layout/LanguageSwitcher";
 import { cancelOrder, completeOrder, confirmOrder, getOrders, prepareOrder, readyOrder } from "@/services/order.service";
+import { getStaffProductAvailability, ProductAvailability } from "@/services/product.service";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { buildOrderTrackingUrl, printOrderAsPdf } from "@/lib/order-print";
 
@@ -143,6 +144,7 @@ export default function StaffPOSPage() {
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [sortBy, setSortBy] = useState<"default" | "name" | "price-asc" | "price-desc">("default");
   const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [availabilityByVariantId, setAvailabilityByVariantId] = useState<Record<number, ProductAvailability>>({});
   const sortDropdownRef = useRef<HTMLDivElement>(null);
   const prevPendingRef = useRef<number | null>(null);
 
@@ -192,6 +194,26 @@ export default function StaffPOSPage() {
       };
     }
   }, [branchId, isMounted, loadTodayOrders]);
+
+  useEffect(() => {
+    if (!isMounted || !hasHydrated || !isAuthenticated || !branchId) {
+      return;
+    }
+
+    void getStaffProductAvailability(branchId)
+      .then((availability) => {
+        setAvailabilityByVariantId(
+          availability.reduce<Record<number, ProductAvailability>>((acc, item) => {
+            acc[item.variantId] = item;
+            return acc;
+          }, {})
+        );
+      })
+      .catch((error) => {
+        console.error("Failed to load product availability", error);
+        toast.error("Không thể tải trạng thái nguyên liệu sản phẩm.");
+      });
+  }, [branchId, hasHydrated, isAuthenticated, isMounted]);
 
   useEffect(() => {
     hydrateFromStorage();
@@ -943,6 +965,7 @@ export default function StaffPOSPage() {
                     product={p} 
                     onAddToCart={handleAddToCart} 
                     viewMode={viewMode}
+                    availabilityByVariantId={availabilityByVariantId}
                   />
                 ))}
               </div>

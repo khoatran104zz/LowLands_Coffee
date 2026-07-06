@@ -9,11 +9,14 @@ import com.lowlands.coffee.modules.inventory.repository.StockMovementRepository;
 import com.lowlands.coffee.modules.order.dto.request.OrderCancelRequest;
 import com.lowlands.coffee.modules.order.dto.request.OrderCreateRequest;
 import com.lowlands.coffee.modules.order.dto.request.OrderItemCreateRequest;
+import com.lowlands.coffee.modules.order.dto.response.OrderCompletionFailureResponse;
 import com.lowlands.coffee.modules.order.dto.response.OrderResponse;
+import com.lowlands.coffee.modules.order.dto.response.StockShortageResponse;
 import com.lowlands.coffee.modules.order.entity.OrderEntity;
 import com.lowlands.coffee.modules.order.entity.OrderItemEntity;
 import com.lowlands.coffee.modules.order.entity.OrderItemToppingEntity;
 import com.lowlands.coffee.modules.order.entity.PaymentEntity;
+import com.lowlands.coffee.modules.order.exception.OrderCompletionException;
 import com.lowlands.coffee.modules.order.mapper.OrderMapper;
 import com.lowlands.coffee.modules.order.repository.OrderRepository;
 import com.lowlands.coffee.modules.order.service.OrderService;
@@ -73,6 +76,9 @@ public class OrderServiceImpl implements OrderService {
     private static final String UNPAID = "UNPAID";
     private static final String OUT = "OUT";
     private static final String ORDER = "ORDER";
+    private static final String MISSING_RECIPE = "MISSING_RECIPE";
+    private static final String EMPTY_RECIPE = "EMPTY_RECIPE";
+    private static final String INSUFFICIENT_STOCK = "INSUFFICIENT_STOCK";
 
     private static final Set<String> ORDER_TYPES = Set.of("DELIVERY", "PICKUP", "DINE_IN", "TAKEAWAY");
     private static final Set<String> PAYMENT_METHODS = Set.of("CASH", "BANKING", "MOMO", "CARD");
@@ -398,14 +404,30 @@ public class OrderServiceImpl implements OrderService {
         if (requirements.isEmpty()) {
             throw new ConflictException("Order has no ingredient requirements");
         }
+        List<StockShortageResponse> shortages = new ArrayList<>();
         for (IngredientRequirement requirement : requirements.values()) {
             BigDecimal currentStock = stockMovementRepository.calculateCurrentStock(
                     order.getStore().getId(),
                     requirement.ingredient().getId()
             );
             if (currentStock.compareTo(requirement.quantity()) < 0) {
-                throw new ConflictException("Insufficient stock for ingredient " + requirement.ingredient().getName());
+                shortages.add(StockShortageResponse.builder()
+                        .ingredientId(requirement.ingredient().getId())
+                        .ingredientName(requirement.ingredient().getName())
+                        .requiredQuantity(requirement.quantity())
+                        .availableQuantity(currentStock)
+                        .unit(requirement.unit())
+                        .build());
             }
+        }
+        if (!shortages.isEmpty()) {
+            throw new OrderCompletionException(
+                    "Khong the hoan tat don: khong du nguyen lieu trong kho.",
+                    OrderCompletionFailureResponse.builder()
+                            .reason(INSUFFICIENT_STOCK)
+                            .shortages(shortages)
+                            .build()
+            );
         }
         return requirements.values().stream()
                 .map(requirement -> createOutMovement(order, actor, requirement))
@@ -416,9 +438,17 @@ public class OrderServiceImpl implements OrderService {
         Map<Long, IngredientRequirement> requirements = new LinkedHashMap<>();
         for (OrderItemEntity item : order.getItems()) {
             RecipeEntity recipe = recipeRepository.findByProductVariant_IdAndStatus(item.getProductVariant().getId(), ACTIVE)
-                    .orElseThrow(() -> new ConflictException("Active recipe is missing for " + item.getProductName() + " " + item.getSize()));
+                    .orElseThrow(() -> new OrderCompletionException(
+                            "Khong the hoan tat don: san pham " + item.getProductName()
+                                    + " size " + item.getSize() + " chua co cong thuc pha che.",
+                            completionFailure(MISSING_RECIPE, item, List.of())
+                    ));
             if (recipe.getIngredients().isEmpty()) {
-                throw new ConflictException("Recipe has no ingredients for " + item.getProductName() + " " + item.getSize());
+                throw new OrderCompletionException(
+                        "Khong the hoan tat don: cong thuc cua san pham " + item.getProductName()
+                                + " size " + item.getSize() + " chua co nguyen lieu.",
+                        completionFailure(EMPTY_RECIPE, item, List.of())
+                );
             }
             for (RecipeIngredientEntity recipeIngredient : recipe.getIngredients()) {
                 IngredientEntity ingredient = recipeIngredient.getIngredient();
@@ -448,6 +478,21 @@ public class OrderServiceImpl implements OrderService {
             }
         }
         return requirements;
+    }
+
+    private OrderCompletionFailureResponse completionFailure(
+            String reason,
+            OrderItemEntity item,
+            List<StockShortageResponse> shortages
+    ) {
+        return OrderCompletionFailureResponse.builder()
+                .reason(reason)
+                .productId(item.getProduct().getId())
+                .productName(item.getProductName())
+                .variantId(item.getProductVariant().getId())
+                .size(item.getSize())
+                .shortages(shortages)
+                .build();
     }
 
     private StockMovementEntity createOutMovement(
