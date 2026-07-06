@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useParams } from "next/navigation";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useForm, useWatch } from "react-hook-form";
@@ -9,7 +9,8 @@ import * as zod from "zod";
 import { useCartStore } from "@/store/cart.store";
 import { useAuthStore } from "@/store/auth.store";
 import { createOrder } from "@/services/order.service";
-import { Order, OrderItemInput } from "@/types";
+import { getStores } from "@/services/store.service";
+import { Order, OrderItemInput, Store } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -178,8 +179,30 @@ export default function CheckoutPage() {
     clearCart,
     orderType,
     selectedStoreId,
+    setSelectedStoreId,
   } = useCartStore();
   const { isAuthenticated, user } = useAuthStore();
+
+  const [stores, setStores] = useState<Store[]>([]);
+  const [formStoreId, setFormStoreId] = useState<number>(selectedStoreId || 1);
+
+  useEffect(() => {
+    const fetchStores = async () => {
+      try {
+        const data = await getStores();
+        const active = data.filter((s) => s.status === "active");
+        setStores(active);
+        if (active.length > 0) {
+          const defaultStore = active.find((s) => s.id === selectedStoreId) || active[0];
+          setFormStoreId(defaultStore.id);
+          setSelectedStoreId(defaultStore.id);
+        }
+      } catch (error) {
+        console.error("Failed to fetch stores", error);
+      }
+    };
+    void fetchStores();
+  }, [selectedStoreId, setSelectedStoreId]);
 
   const formSchema = zod.object({
     receiverName: zod.string().min(1, { message: t("product.checkout.validation.nameRequired") }),
@@ -307,7 +330,7 @@ export default function CheckoutPage() {
     setSubmitting(true);
 
     const orderData: Order = {
-      storeId: selectedStoreId || 1,
+      storeId: formStoreId,
       orderType,
       receiverName: data.receiverName,
       receiverPhone: data.receiverPhone,
@@ -475,6 +498,30 @@ export default function CheckoutPage() {
               </div>
 
               <div className="mt-5 space-y-3 text-sm">
+                <div className="flex flex-col gap-1.5 pb-2">
+                  <label className="text-xs font-black uppercase tracking-wide text-[#7B655A]">
+                    Chọn chi nhánh nhận đơn <span className="text-[#C8510A]">*</span>
+                  </label>
+                  <select
+                    value={formStoreId}
+                    onChange={(e) => {
+                      const val = Number(e.target.value);
+                      setFormStoreId(val);
+                      setSelectedStoreId(val);
+                    }}
+                    className="h-11 w-full rounded-xl border border-[#E5D8C8] bg-[#FFFCF8] px-3 text-sm font-semibold text-[#3A1D14] outline-none transition focus:border-[#C69A5B] focus:ring-3 focus:ring-[#C69A5B]/20"
+                  >
+                    {stores.length === 0 ? (
+                      <option value={1}>Đang tải danh sách chi nhánh...</option>
+                    ) : (
+                      stores.map((s) => (
+                        <option key={s.id} value={s.id}>
+                          {s.name} - {s.address}
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </div>
                 <div className="flex items-start gap-2">
                   <MapPin className="mt-0.5 h-4 w-4 text-[#C8510A]" />
                   <div>

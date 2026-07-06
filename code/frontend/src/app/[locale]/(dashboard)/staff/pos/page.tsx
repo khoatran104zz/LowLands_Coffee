@@ -36,6 +36,32 @@ interface ReceiptData extends Order {
 type ReceiptItem = Order["items"][number];
 type ReceiptTopping = ReceiptItem["toppings"][number];
 
+const playNotificationSound = () => {
+  if (typeof window === "undefined") return;
+  try {
+    const AudioContextClass = window.AudioContext || (window as any).webkitAudioContext;
+    if (!AudioContextClass) return;
+    const context = new AudioContextClass();
+    const osc = context.createOscillator();
+    const gain = context.createGain();
+    
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(587.33, context.currentTime); // D5 note
+    osc.frequency.setValueAtTime(880, context.currentTime + 0.15); // A5 note
+    
+    gain.gain.setValueAtTime(0.1, context.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, context.currentTime + 0.4);
+    
+    osc.connect(gain);
+    gain.connect(context.destination);
+    
+    osc.start();
+    osc.stop(context.currentTime + 0.4);
+  } catch (e) {
+    console.error("Failed to play notification sound", e);
+  }
+};
+
 export default function StaffPOSPage() {
   const { t } = useTranslation();
   const getCategoryName = useCallback((name: string) => {
@@ -118,6 +144,7 @@ export default function StaffPOSPage() {
   const [sortBy, setSortBy] = useState<"default" | "name" | "price-asc" | "price-desc">("default");
   const [showSortDropdown, setShowSortDropdown] = useState(false);
   const sortDropdownRef = useRef<HTMLDivElement>(null);
+  const prevPendingRef = useRef<number | null>(null);
 
   const loadTodayOrders = useCallback(async () => {
     if (!branchId) return;
@@ -129,6 +156,21 @@ export default function StaffPOSPage() {
         (ord) => ord.createdAt && ord.createdAt.startsWith(todayStr)
       );
       setTodayOrders(filtered);
+
+      const pendingCount = filtered.filter(
+        (ord) =>
+          ord.status === "pending" &&
+          (ord.orderType === "delivery" || ord.orderType === "pickup")
+      ).length;
+
+      if (prevPendingRef.current !== null && pendingCount > prevPendingRef.current) {
+        toast.info("Có đơn hàng trực tuyến mới cần xử lý!", {
+          description: `Bạn có ${pendingCount} đơn hàng chờ xác nhận.`,
+          duration: 8000,
+        });
+        playNotificationSound();
+      }
+      prevPendingRef.current = pendingCount;
     } catch (error) {
       console.error("Failed to load today's orders", error);
     } finally {
