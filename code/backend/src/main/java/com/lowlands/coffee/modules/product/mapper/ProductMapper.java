@@ -8,6 +8,7 @@ import com.lowlands.coffee.modules.product.entity.ToppingEntity;
 import org.springframework.stereotype.Component;
 
 import java.util.Comparator;
+import java.util.List;
 
 @Component
 public class ProductMapper {
@@ -58,6 +59,10 @@ public class ProductMapper {
                 .sorted(Comparator.comparing(ToppingEntity::getId))
                 .map(toppingMapper::toResponse)
                 .toList());
+        response.setComboProductIds(entity.getComboItems() != null ? entity.getComboItems().stream()
+                .map(ProductEntity::getId)
+                .sorted()
+                .toList() : List.of());
         return response;
     }
 

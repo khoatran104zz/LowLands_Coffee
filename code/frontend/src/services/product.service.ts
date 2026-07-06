@@ -41,6 +41,7 @@ export interface ProductRequest {
   status?: string;
   variants: ProductVariantRequest[];
   toppingIds?: number[];
+  comboProductIds?: number[];
 }
 
 export interface StockShortage {

@@ -1,15 +1,11 @@
 "use client";
 
-import { useState } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useConfirm } from "@/hooks/useConfirm";
 import { useCartStore } from "@/store/cart.store";
-import { getPromotions } from "@/services/promotion.service";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Link, useRouter } from "@/i18n/navigation";
-import { toast } from "sonner";
-import { Trash2, Plus, Minus, ShoppingBag, ArrowRight, Ticket, AlertCircle } from "lucide-react";
+import { Trash2, Plus, Minus, ShoppingBag, ArrowRight } from "lucide-react";
 import Image from "next/image";
 
 export default function CartPage() {
@@ -19,17 +15,10 @@ export default function CartPage() {
 
   const {
     items,
-    appliedPromotion,
     updateQuantity,
     removeItem,
-    applyPromotion,
     getSubtotal,
-    getDiscountAmount,
-    getTotalAmount,
   } = useCartStore();
-
-  const [promoCode, setPromoCode] = useState("");
-  const [promoLoading, setPromoLoading] = useState(false);
 
   // Format currency
   const formatPrice = (amount: number) => {
@@ -37,36 +26,6 @@ export default function CartPage() {
       style: "currency",
       currency: "VND",
     }).format(amount);
-  };
-
-  // Attempt to apply promotion from the backend API database
-  const handleApplyPromo = async () => {
-    if (!promoCode.trim()) return;
-
-    setPromoLoading(true);
-    try {
-      const promotionsList = await getPromotions();
-      const matchedPromo = promotionsList.find(
-        (p) => p.code.toLowerCase() === promoCode.toLowerCase() && p.status === "active"
-      );
-
-      if (matchedPromo) {
-        applyPromotion(matchedPromo);
-        toast.success(t("product.cart.promoSuccess"));
-      } else {
-        toast.error(t("product.cart.promoInvalid"));
-      }
-    } catch {
-      console.warn("Failed to apply promotion (API Offline).");
-      toast.error("Không thể kết nối API khuyến mãi. Vui lòng khởi động backend Spring Boot.");
-    } finally {
-      setPromoLoading(false);
-    }
-  };
-
-  const handleRemovePromo = () => {
-    applyPromotion(null);
-    setPromoCode("");
   };
 
   if (items.length === 0) {
@@ -226,53 +185,9 @@ export default function CartPage() {
                   <span className="font-semibold text-foreground">{formatPrice(getSubtotal())}</span>
                 </div>
 
-                {appliedPromotion && (
-                  <div className="flex justify-between items-center text-accent">
-                    <div className="flex items-center gap-1 font-medium">
-                      <Ticket className="h-4 w-4" />
-                      <span>{appliedPromotion.code}</span>
-                    </div>
-                    <span className="font-bold">-{formatPrice(getDiscountAmount())}</span>
-                  </div>
-                )}
-
                 <div className="flex justify-between items-center border-t border-border/60 pt-3 text-base font-extrabold text-primary">
                   <span>{t("product.cart.total")}</span>
-                  <span className="text-lg font-black">{formatPrice(getTotalAmount())}</span>
-                </div>
-              </div>
-
-              {/* Promo Code Input Form */}
-              <div className="flex flex-col gap-2 pt-2 border-t border-border/60">
-                <label className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
-                  {t("product.cart.promoCode")}
-                </label>
-                <div className="flex gap-2">
-                  <Input
-                    placeholder="MÃ GIẢM GIÁ"
-                    value={promoCode}
-                    onChange={(e) => setPromoCode(e.target.value)}
-                    disabled={!!appliedPromotion || promoLoading}
-                    className="h-9 uppercase text-xs"
-                  />
-                  {appliedPromotion ? (
-                    <Button
-                      variant="destructive"
-                      onClick={handleRemovePromo}
-                      className="h-9 px-3 text-xs"
-                    >
-                      Xóa
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      onClick={handleApplyPromo}
-                      disabled={promoLoading || !promoCode}
-                      className="h-9 px-4 text-xs font-bold"
-                    >
-                      {t("product.cart.applyPromo")}
-                    </Button>
-                  )}
+                  <span className="text-lg font-black">{formatPrice(getSubtotal())}</span>
                 </div>
               </div>
 
@@ -284,17 +199,6 @@ export default function CartPage() {
                 <span>{t("product.cart.checkout")}</span>
                 <ArrowRight className="h-4 w-4" />
               </Button>
-            </div>
-
-            {/* API Connection Indicator */}
-            <div className="flex items-start gap-2.5 rounded-xl border border-accent/15 bg-accent/5 p-4 text-left text-xs">
-              <AlertCircle className="h-5 w-5 text-accent shrink-0 mt-0.5" />
-              <div className="flex flex-col gap-1">
-                <span className="font-bold text-primary">Kiểm thử Khuyến Mãi</span>
-                <p className="text-muted-foreground leading-relaxed">
-                  Để áp dụng các mã giảm giá được cấu hình trong database, vui lòng đảm bảo API backend đã được khởi chạy.
-                </p>
-              </div>
             </div>
 
           </div>

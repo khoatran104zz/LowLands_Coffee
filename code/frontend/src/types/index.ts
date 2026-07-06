@@ -46,6 +46,7 @@ export interface Product {
   updatedAt?: string;
   variants?: ProductVariant[];
   toppings?: Topping[];
+  comboProductIds?: number[];
 }
 
 export interface ProductVariant {

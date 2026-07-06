@@ -20,6 +20,7 @@ public class FlywayConfig {
         return Flyway.configure()
                 .dataSource(dataSource)
                 .locations(locations.split(","))
+                .ignoreMigrationPatterns("*:missing")
                 .load();
     }
 

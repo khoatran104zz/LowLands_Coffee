@@ -135,7 +135,7 @@ export function Header() {
         {/* Action Controls - Right on Desktop */}
         <div className="hidden lg:flex items-center gap-2.5 xl:gap-3.5">
           {/* ĐẶT HÀNG Button */}
-          <Link href="/menu">
+          <Link href="/menu?view=all">
             <Button variant="default" size="sm" className="rounded-full font-extrabold text-xs px-3.5 py-1.5 uppercase tracking-wider bg-accent text-accent-foreground hover:bg-accent/90 shadow-sm transition-all">
               {t("common.order")}
             </Button>

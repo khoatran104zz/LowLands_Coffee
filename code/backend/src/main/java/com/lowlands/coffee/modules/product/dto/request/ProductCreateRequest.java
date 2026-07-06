@@ -36,4 +36,6 @@ public class ProductCreateRequest {
     private List<ProductVariantCreateRequest> variants;
 
     private List<Long> toppingIds;
+
+    private List<Long> comboProductIds;
 }

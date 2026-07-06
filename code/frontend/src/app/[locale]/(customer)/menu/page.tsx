@@ -132,6 +132,8 @@ function MenuPageInner() {
       case "other":
       case "khác":
         return t("common.other");
+      case "combo":
+        return t("common.combo");
       default:
         return name;
     }
@@ -141,7 +143,8 @@ function MenuPageInner() {
     const match = categories.find(
       (c) => c.name.toLowerCase() === name.toLowerCase() || 
              (name === "coffee" && c.name.toLowerCase() === "cà phê") ||
-             (name === "other" && c.name.toLowerCase() === "khác")
+             (name === "other" && c.name.toLowerCase() === "khác") ||
+             (name === "combo" && c.name.toLowerCase() === "combo")
     );
     return match ? match.id : null;
   };

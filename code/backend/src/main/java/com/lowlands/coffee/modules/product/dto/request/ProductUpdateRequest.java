@@ -37,4 +37,6 @@ public class ProductUpdateRequest {
     private List<ProductVariantUpdateRequest> variants;
 
     private List<Long> toppingIds;
+
+    private List<Long> comboProductIds;
 }
