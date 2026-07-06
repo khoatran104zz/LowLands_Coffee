@@ -268,7 +268,7 @@ export default function CheckoutPage() {
     deliveryAddress: zod.string().min(1, { message: t("product.checkout.validation.addressRequired") }),
     note: zod.string().optional(),
     saveInfo: zod.boolean().optional(),
-    acceptPolicy: zod.boolean().refine(Boolean, { message: "Vui lòng đồng ý chính sách bảo mật." }),
+    acceptPolicy: zod.boolean().refine(Boolean, { message: t("product.checkout.acceptPolicyError") }),
     paymentMethod: zod.enum(PAYMENT_METHOD_VALUES),
   });
 
@@ -591,7 +591,7 @@ export default function CheckoutPage() {
             {t("product.checkout.title")}
           </h1>
           <p className="text-sm font-semibold text-[#7B655A]">
-            Hoàn tất thông tin, chọn VNPay/ngân hàng hoặc ví điện tử sandbox để gửi đơn đến nhân viên.
+            {t("product.checkout.description")}
           </p>
         </div>
 
@@ -600,13 +600,13 @@ export default function CheckoutPage() {
             <section className="rounded-2xl border border-[#E5D8C8] bg-white p-5 shadow-sm md:p-6">
               <div className="flex items-center gap-2 border-b border-[#E9DED1] pb-4">
                 <Truck className="h-5 w-5 text-[#C69A5B]" />
-                <h2 className="text-xl font-black text-[#3A1D14]">Thông tin nhận hàng</h2>
+                <h2 className="text-xl font-black text-[#3A1D14]">{t("product.checkout.shippingInfo")}</h2>
               </div>
 
               <div className="mt-5 space-y-3 text-sm">
                 <div className="flex flex-col gap-1.5 pb-2">
                   <label className="text-xs font-black uppercase tracking-wide text-[#7B655A]">
-                    Chọn chi nhánh nhận đơn <span className="text-[#C8510A]">*</span>
+                    {t("product.checkout.selectBranch")} <span className="text-[#C8510A]">*</span>
                   </label>
                   <select
                     value={formStoreId}
@@ -618,7 +618,7 @@ export default function CheckoutPage() {
                     className="h-11 w-full rounded-xl border border-[#E5D8C8] bg-[#FFFCF8] px-3 text-sm font-semibold text-[#3A1D14] outline-none transition focus:border-[#C69A5B] focus:ring-3 focus:ring-[#C69A5B]/20"
                   >
                     {stores.length === 0 ? (
-                      <option value={1}>Đang tải danh sách chi nhánh...</option>
+                      <option value={1}>{t("product.checkout.loadingBranches")}</option>
                     ) : (
                       stores.map((s) => (
                         <option key={s.id} value={s.id}>
@@ -633,7 +633,7 @@ export default function CheckoutPage() {
                   <div>
                     <p className="font-black text-[#3A1D14]">{deliveryLabel}</p>
                     <p className="mt-1 font-semibold text-[#7B655A]">
-                      Nhân viên Lowlands sẽ xác nhận đơn trước khi chuẩn bị.
+                      {t("product.checkout.staffConfirm")}
                     </p>
                   </div>
                 </div>
@@ -641,19 +641,19 @@ export default function CheckoutPage() {
                 <div className="rounded-xl bg-[#F7EFE5] px-4 py-3">
                   <div className="flex items-center gap-2 text-sm font-black text-[#3A1D14]">
                     <Timer className="h-4 w-4 text-[#C8510A]" />
-                    Thời gian nhận dự kiến
+                    {t("product.checkout.estimatedTime")}
                   </div>
                   <p className="mt-1 text-sm font-black text-[#C8510A]">{estimatedReceiveTime}</p>
                 </div>
 
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-black uppercase tracking-wide text-[#7B655A]">
-                    Hướng dẫn cho nhân viên
+                    {t("product.checkout.noteLabel")}
                   </label>
                   <textarea
                     {...register("note")}
                     className="min-h-[86px] w-full resize-none rounded-xl border border-[#E5D8C8] bg-[#FFFCF8] p-3 text-sm font-semibold text-[#3A1D14] outline-none transition focus:border-[#C69A5B] focus:ring-3 focus:ring-[#C69A5B]/20"
-                    placeholder="Ví dụ: ít đường, nhiều đá, gọi trước khi giao..."
+                    placeholder={t("product.checkout.notePlaceholder")}
                   />
                 </div>
               </div>
@@ -662,18 +662,18 @@ export default function CheckoutPage() {
             <section className="rounded-2xl border border-[#E5D8C8] bg-white p-5 shadow-sm md:p-6">
               <div className="flex items-center gap-2 border-b border-[#E9DED1] pb-4">
                 <UserRound className="h-5 w-5 text-[#C69A5B]" />
-                <h2 className="text-xl font-black text-[#3A1D14]">Thông tin của bạn</h2>
+                <h2 className="text-xl font-black text-[#3A1D14]">{t("product.checkout.yourInfo")}</h2>
               </div>
 
               <div className="mt-5 grid grid-cols-1 gap-4 md:grid-cols-2">
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-black uppercase tracking-wide text-[#7B655A]">
-                    Họ và tên <span className="text-[#C8510A]">*</span>
+                    {t("product.checkout.fullNameLabel")} <span className="text-[#C8510A]">*</span>
                   </label>
                   <Input
                     {...register("receiverName")}
                     className="h-11 rounded-xl border-[#E5D8C8] bg-[#FFFCF8] text-sm font-semibold"
-                    placeholder="Nguyễn Văn A"
+                    placeholder={t("product.checkout.fullNamePlaceholder")}
                   />
                   {errors.receiverName && (
                     <span className="text-xs font-semibold text-destructive">{errors.receiverName.message}</span>
@@ -682,12 +682,12 @@ export default function CheckoutPage() {
 
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-black uppercase tracking-wide text-[#7B655A]">
-                    Số điện thoại <span className="text-[#C8510A]">*</span>
+                    {t("product.checkout.phoneLabel")} <span className="text-[#C8510A]">*</span>
                   </label>
                   <Input
                     {...register("receiverPhone")}
                     className="h-11 rounded-xl border-[#E5D8C8] bg-[#FFFCF8] text-sm font-semibold"
-                    placeholder="0901234567"
+                    placeholder={t("product.checkout.phonePlaceholder")}
                   />
                   {errors.receiverPhone && (
                     <span className="text-xs font-semibold text-destructive">{errors.receiverPhone.message}</span>
@@ -696,12 +696,12 @@ export default function CheckoutPage() {
 
                 <div className="flex flex-col gap-1.5 md:col-span-2">
                   <label className="text-xs font-black uppercase tracking-wide text-[#7B655A]">
-                    Địa chỉ chi tiết <span className="text-[#C8510A]">*</span>
+                    {t("product.checkout.addressLabel")} <span className="text-[#C8510A]">*</span>
                   </label>
                   <Input
                     {...register("deliveryAddress")}
                     className="h-11 rounded-xl border-[#E5D8C8] bg-[#FFFCF8] text-sm font-semibold"
-                    placeholder="Số nhà, tên đường, phường/xã, quận/huyện..."
+                    placeholder={t("product.checkout.addressPlaceholder")}
                   />
                   {errors.deliveryAddress && (
                     <span className="text-xs font-semibold text-destructive">{errors.deliveryAddress.message}</span>
@@ -712,12 +712,12 @@ export default function CheckoutPage() {
               <div className="mt-5 space-y-3 text-sm font-semibold text-[#3A1D14]">
                 <label className="flex items-start gap-3">
                   <input type="checkbox" {...register("saveInfo")} className="mt-1 accent-[#C8510A]" />
-                  <span>Dùng thông tin này cho những lần đặt hàng sau.</span>
+                  <span>{t("product.checkout.saveInfo")}</span>
                 </label>
                 <label className="flex items-start gap-3">
                   <input type="checkbox" {...register("acceptPolicy")} className="mt-1 accent-[#C8510A]" />
                   <span>
-                    Tôi đồng ý để Lowlands Coffee sử dụng thông tin cá nhân cho mục đích xử lý đơn hàng.
+                    {t("product.checkout.acceptPolicy")}
                     <span className="font-black text-[#C8510A]"> *</span>
                   </span>
                 </label>
@@ -730,7 +730,7 @@ export default function CheckoutPage() {
             <section className="rounded-2xl border border-[#E5D8C8] bg-white p-5 shadow-sm md:p-6">
               <div className="flex items-center gap-2 border-b border-[#E9DED1] pb-4">
                 <WalletCards className="h-5 w-5 text-[#C69A5B]" />
-                <h2 className="text-xl font-black text-[#3A1D14]">Phương thức thanh toán</h2>
+                <h2 className="text-xl font-black text-[#3A1D14]">{t("product.checkout.paymentMethod")}</h2>
               </div>
 
               <div className="mt-5 space-y-3">
@@ -774,7 +774,7 @@ export default function CheckoutPage() {
                 <div className="mt-5 rounded-xl border border-[#E5D8C8] bg-[#FFFCF8] p-4">
                   <div className="flex items-center gap-2 text-sm font-black text-[#3A1D14]">
                     <Landmark className="h-4 w-4 text-[#C8510A]" />
-                    Chọn ngân hàng sandbox
+                    {t("product.checkout.selectBank")}
                   </div>
                   <div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4">
                     {BANK_OPTIONS.map((bank) => {
@@ -806,7 +806,7 @@ export default function CheckoutPage() {
                 className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-[#C69A5B]/40 bg-[#8EA096] px-5 text-sm font-black text-white hover:bg-[#7F9188]"
               >
                 <ArrowLeft className="h-4 w-4" />
-                Quay lại
+                {t("product.checkout.back")}
               </Link>
               <Button
                 type="submit"
@@ -820,7 +820,7 @@ export default function CheckoutPage() {
                   </>
                 ) : (
                   <>
-                    Đặt hàng
+                    {t("product.checkout.placeOrderBtn")}
                     <ArrowRight className="h-4 w-4" />
                   </>
                 )}
@@ -832,9 +832,9 @@ export default function CheckoutPage() {
             <section className="rounded-2xl border border-[#E5D8C8] bg-white p-5 shadow-sm">
               <div className="flex items-center gap-2">
                 <TicketPercent className="h-5 w-5 text-[#C69A5B]" />
-                <h2 className="text-base font-black text-[#3A1D14]">Voucher / Khuyến mãi</h2>
+                <h2 className="text-base font-black text-[#3A1D14]">{t("product.checkout.voucherTitle")}</h2>
               </div>
-              <p className="mt-1 text-xs font-semibold text-[#7B655A]">Chọn từ các mã ưu đãi có sẵn hoặc nhập mã của bạn.</p>
+              <p className="mt-1 text-xs font-semibold text-[#7B655A]">{t("product.checkout.voucherSubtitle")}</p>
               
               {/* Dropdown list */}
               <div className="mt-3">
@@ -844,7 +844,7 @@ export default function CheckoutPage() {
                     onChange={(e) => handleSelectPromo(e.target.value)}
                     className="w-full rounded-xl border border-[#E5D8C8] bg-[#FFFCF8] p-2.5 text-xs font-bold text-[#3A1D14] outline-none focus:border-[#C69A5B]"
                   >
-                    <option value="">-- Chọn mã ưu đãi có sẵn ({availablePromotions.length}) --</option>
+                    <option value="">{t("product.checkout.selectVoucherPlaceholder")}</option>
                     {availablePromotions.map((promo) => (
                       <option key={promo.id} value={promo.code}>
                         {promo.code} - {promo.name} ({promo.discountType === "Percentage" ? `${promo.discountValue}%` : `${formatPrice(promo.discountValue)}`})
@@ -853,7 +853,7 @@ export default function CheckoutPage() {
                   </select>
                 ) : (
                   <div className="text-xs italic text-[#7B655A] px-1">
-                    Không có mã giảm giá nào phù hợp với giỏ hàng hiện tại.
+                    {t("product.checkout.noVoucher")}
                   </div>
                 )}
               </div>
@@ -864,14 +864,14 @@ export default function CheckoutPage() {
                   value={voucherCode}
                   onChange={(event) => setVoucherCode(event.target.value.toUpperCase())}
                   className="min-w-0 flex-1 bg-transparent px-3 text-sm font-semibold text-[#3A1D14] outline-none uppercase"
-                  placeholder="MÃ GIẢM GIÁ KHÁC..."
+                  placeholder={t("product.checkout.manualVoucherPlaceholder")}
                 />
                 <button
                   type="button"
                   onClick={handleApplyVoucher}
                   className="bg-[#C8510A] px-4 py-2 text-sm font-black text-white hover:bg-[#A94309]"
                 >
-                  Áp dụng
+                  {t("product.checkout.apply")}
                 </button>
               </div>
 
@@ -895,7 +895,7 @@ export default function CheckoutPage() {
                     onClick={() => handleSelectPromo("")}
                     className="text-xs font-bold text-emerald-900 hover:text-red-600 transition-colors ml-1.5 px-1.5 py-0.5 bg-emerald-100/50 hover:bg-red-50 rounded"
                   >
-                    Xóa
+                    {t("product.checkout.deleteVoucher")}
                   </button>
                 </div>
               )}
@@ -904,7 +904,7 @@ export default function CheckoutPage() {
             <section className="rounded-2xl border border-[#E5D8C8] bg-white p-5 shadow-sm">
               <div className="flex items-center gap-2 border-b border-[#E9DED1] pb-4">
                 <ReceiptText className="h-5 w-5 text-[#C69A5B]" />
-                <h2 className="text-xl font-black text-[#3A1D14]">Đơn hàng của bạn</h2>
+                <h2 className="text-xl font-black text-[#3A1D14]">{t("product.checkout.orderSummary")}</h2>
               </div>
 
               <div className="max-h-[260px] space-y-4 overflow-y-auto py-4 pr-1">
@@ -920,7 +920,7 @@ export default function CheckoutPage() {
                         <p className="font-black text-[#3A1D14]">
                           {item.product.name} <span className="font-semibold text-[#7B655A]">x{item.quantity}</span>
                         </p>
-                        <p className="mt-0.5 text-xs font-semibold text-[#7B655A]">Size {item.variant.size}</p>
+                        <p className="mt-0.5 text-xs font-semibold text-[#7B655A]">{t("product.menu.size")} {item.variant.size}</p>
                         {item.toppings.length > 0 && (
                           <p className="mt-0.5 truncate text-xs font-semibold text-[#9A7A65]">
                             + {item.toppings.map((topping) => `${topping.topping.name} x${topping.quantity}`).join(", ")}
@@ -929,7 +929,7 @@ export default function CheckoutPage() {
                         {appliedPromotion && isItemEligibleForPromo(item, appliedPromotion) && (
                           <div className="mt-1">
                             <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-600 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-md">
-                              ✓ Được giảm giá
+                              ✓ {t("product.checkout.eligibleDiscount")}
                             </span>
                           </div>
                         )}
@@ -941,12 +941,12 @@ export default function CheckoutPage() {
               </div>
 
               <div className="space-y-2 border-t border-[#E9DED1] pt-4 text-sm font-semibold">
-                <SummaryRow label="Tạm tính" value={formatPrice(subtotal)} />
-                <SummaryRow label="Giảm giá" value={discountAmount > 0 ? `-${formatPrice(discountAmount)}` : formatPrice(0)} />
-                <SummaryRow label="Phí giao hàng" value={formatPrice(0)} />
-                <SummaryRow label="Phụ thu" value={formatPrice(0)} />
+                <SummaryRow label={t("product.checkout.subtotal")} value={formatPrice(subtotal)} />
+                <SummaryRow label={t("product.checkout.discount")} value={discountAmount > 0 ? `-${formatPrice(discountAmount)}` : formatPrice(0)} />
+                <SummaryRow label={t("product.checkout.shippingFee")} value={formatPrice(0)} />
+                <SummaryRow label={t("product.checkout.surcharge")} value={formatPrice(0)} />
                 <div className="mt-4 flex items-center justify-between border-t border-[#E9DED1] pt-4 text-xl font-black text-[#3A1D14]">
-                  <span>Tổng tiền</span>
+                  <span>{t("product.checkout.totalAmount")}</span>
                   <span className="text-[#C8510A]">{formatPrice(totalAmount)}</span>
                 </div>
               </div>
@@ -954,10 +954,10 @@ export default function CheckoutPage() {
               <div className="mt-4 rounded-xl border border-[#E5D8C8] bg-[#FBF7F0] p-3 text-xs font-semibold text-[#7B655A]">
                 <div className="flex items-center gap-2 font-black text-[#3A1D14]">
                   <ShieldCheck className="h-4 w-4 text-[#C8510A]" />
-                  Thanh toán sandbox
+                  {t("product.checkout.sandboxTitle")}
                 </div>
                 <p className="mt-1">
-                  VNPay/ngân hàng/ví điện tử được mô phỏng để kiểm thử đồ án. Giao dịch không trừ tiền thật.
+                  {t("product.checkout.sandboxDesc")}
                 </p>
               </div>
             </section>
