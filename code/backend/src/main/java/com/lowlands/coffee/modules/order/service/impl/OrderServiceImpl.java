@@ -422,7 +422,7 @@ public class OrderServiceImpl implements OrderService {
         }
         if (!shortages.isEmpty()) {
             throw new OrderCompletionException(
-                    "Khong the hoan tat don: khong du nguyen lieu trong kho.",
+                    "Không đủ nguyên liệu để hoàn tất đơn.",
                     OrderCompletionFailureResponse.builder()
                             .reason(INSUFFICIENT_STOCK)
                             .shortages(shortages)
@@ -439,14 +439,14 @@ public class OrderServiceImpl implements OrderService {
         for (OrderItemEntity item : order.getItems()) {
             RecipeEntity recipe = recipeRepository.findByProductVariant_IdAndStatus(item.getProductVariant().getId(), ACTIVE)
                     .orElseThrow(() -> new OrderCompletionException(
-                            "Khong the hoan tat don: san pham " + item.getProductName()
-                                    + " size " + item.getSize() + " chua co cong thuc pha che.",
+                            "Không thể hoàn tất đơn: sản phẩm " + item.getProductName()
+                                    + " size " + item.getSize() + " chưa có công thức.",
                             completionFailure(MISSING_RECIPE, item, List.of())
                     ));
             if (recipe.getIngredients().isEmpty()) {
                 throw new OrderCompletionException(
-                        "Khong the hoan tat don: cong thuc cua san pham " + item.getProductName()
-                                + " size " + item.getSize() + " chua co nguyen lieu.",
+                        "Không thể hoàn tất đơn: công thức của " + item.getProductName()
+                                + " size " + item.getSize() + " chưa có nguyên liệu.",
                         completionFailure(EMPTY_RECIPE, item, List.of())
                 );
             }
