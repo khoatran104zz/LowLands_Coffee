@@ -82,10 +82,11 @@ describe("Cart Zustand Store", () => {
       id: 1,
       code: "DEMO10",
       name: "10% Off",
-      discountType: "percentage",
+      discountType: "Percentage",
       discountValue: 10,
-      minOrderAmount: 40000,
-      status: "active",
+      minimumOrderValue: 40000,
+      status: "Active",
+      applicableType: "Entire Order",
     };
 
     store.applyPromotion(mockPromo);

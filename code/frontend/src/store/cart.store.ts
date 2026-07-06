@@ -126,12 +126,15 @@ export const useCartStore = create<CartState>((set, get) => ({
     const { appliedPromotion } = get();
     const subtotal = get().getSubtotal();
     
-    if (!appliedPromotion || subtotal < Number(appliedPromotion.minOrderAmount)) {
+    if (!appliedPromotion || subtotal < Number(appliedPromotion.minimumOrderValue || 0)) {
       return 0;
     }
 
-    if (appliedPromotion.discountType === "percentage") {
+    if (appliedPromotion.discountType === "Percentage") {
       const discount = (subtotal * Number(appliedPromotion.discountValue)) / 100;
+      if (appliedPromotion.maximumDiscount) {
+        return Math.min(discount, Number(appliedPromotion.maximumDiscount), subtotal);
+      }
       return Math.min(discount, subtotal); // Discount cannot exceed subtotal
     } else {
       return Math.min(Number(appliedPromotion.discountValue), subtotal);
