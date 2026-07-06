@@ -1,0 +1,13 @@
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: lowlands-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: lowlands_admin
+      MINIO_ROOT_PASSWORD: Lowlands@123456
+    volumes:
+      - ./data/minio:/data
+    command: server /data --console-address ":9001"

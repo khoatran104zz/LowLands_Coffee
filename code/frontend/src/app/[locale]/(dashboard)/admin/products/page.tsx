@@ -1,8 +1,8 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { AlertCircle, Plus } from "lucide-react";
-import { Product, Category, ProductVariant } from "@/types";
+import { AlertCircle, ImageUp, Loader2, Plus } from "lucide-react";
+import { Product, ProductVariant } from "@/types";
 import { useDashboardStore } from "@/store/dashboardStore";
 import { DataTable, Column } from "@/components/admin/DataTable";
 import { SearchBar } from "@/components/admin/SearchBar";
@@ -11,6 +11,7 @@ import { FormModal } from "@/components/admin/FormModal";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { uploadProductImage } from "@/services/storage.service";
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useConfirm } from "@/hooks/useConfirm";
@@ -43,6 +44,9 @@ export default function AdminProductsPage() {
   const [formDesc, setFormDesc] = useState("");
   const [formCategoryId, setFormCategoryId] = useState("");
   const [formImageUrl, setFormImageUrl] = useState("");
+  const [imagePreviewUrl, setImagePreviewUrl] = useState("");
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [imageUploadError, setImageUploadError] = useState("");
   const [formStatus, setFormStatus] = useState("active");
   
   // Prices for variants
@@ -121,6 +125,8 @@ export default function AdminProductsPage() {
     setFormDesc("");
     setFormCategoryId(categories[0]?.id ? String(categories[0].id) : "");
     setFormImageUrl("");
+    setImagePreviewUrl("");
+    setImageUploadError("");
     setFormStatus("active");
     setPriceS(29000);
     setPriceM(35000);
@@ -134,6 +140,8 @@ export default function AdminProductsPage() {
     setFormDesc(product.description || "");
     setFormCategoryId(String(product.categoryId));
     setFormImageUrl(product.imageUrl || "");
+    setImagePreviewUrl(product.imageUrl || "");
+    setImageUploadError("");
     setFormStatus(product.status);
     
     // Read prices from variants
@@ -146,6 +154,32 @@ export default function AdminProductsPage() {
     setPriceL(lVar ? lVar.price : 0);
     
     setIsFormOpen(true);
+  };
+
+  const handleImageFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const localPreviewUrl = URL.createObjectURL(file);
+    setImagePreviewUrl(localPreviewUrl);
+    setImageUploadError("");
+    setIsUploadingImage(true);
+
+    try {
+      const uploaded = await uploadProductImage(file);
+      setFormImageUrl(uploaded.url);
+      setImagePreviewUrl(uploaded.url);
+      toast.success(t("admin.productsPage.uploadSuccess"));
+    } catch (error) {
+      console.error("Failed to upload product image", error);
+      setImagePreviewUrl(formImageUrl);
+      setImageUploadError(t("admin.productsPage.uploadError"));
+      toast.error(t("admin.productsPage.uploadErrorShort"));
+    } finally {
+      URL.revokeObjectURL(localPreviewUrl);
+      setIsUploadingImage(false);
+      event.target.value = "";
+    }
   };
 
   const handleOpenDelete = async (product: Product) => {
@@ -170,6 +204,14 @@ export default function AdminProductsPage() {
     e.preventDefault();
     if (!formName.trim() || !formCategoryId) {
       toast.error(t("admin.productsPage.errorValidation"));
+      return;
+    }
+    if (!formImageUrl.trim()) {
+      toast.error(t("admin.productsPage.errorImageRequired"));
+      return;
+    }
+    if (isUploadingImage) {
+      toast.error(t("admin.productsPage.errorImageUploading"));
       return;
     }
 
@@ -233,7 +275,7 @@ export default function AdminProductsPage() {
           categoryId: parseInt(formCategoryId),
           name: formName.trim(),
           description: formDesc.trim(),
-          imageUrl: formImageUrl.trim() || "https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&q=80&w=600",
+          imageUrl: formImageUrl.trim(),
           status: formStatus,
           variants,
           toppings: targetToppings
@@ -244,7 +286,7 @@ export default function AdminProductsPage() {
           categoryId: parseInt(formCategoryId),
           name: formName.trim(),
           description: formDesc.trim(),
-          imageUrl: formImageUrl.trim() || "https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&q=80&w=600",
+          imageUrl: formImageUrl.trim(),
           status: formStatus,
           variants,
           toppings: targetToppings
@@ -361,10 +403,41 @@ export default function AdminProductsPage() {
 
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.productsPage.labelImageUrl")}</label>
+            <div className="flex items-start gap-3 rounded-lg border border-border bg-muted/20 p-3">
+              <div className="h-20 w-20 overflow-hidden rounded-lg border border-border/60 bg-background flex items-center justify-center shrink-0">
+                {imagePreviewUrl ? (
+                  <img src={imagePreviewUrl} alt={formName || "Product image preview"} className="h-full w-full object-cover" />
+                ) : (
+                  <ImageUp className="h-6 w-6 text-muted-foreground" />
+                )}
+              </div>
+              <div className="min-w-0 flex-1 space-y-2">
+                <Input
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp"
+                  onChange={handleImageFileChange}
+                  disabled={isUploadingImage}
+                  className="h-10 text-xs border-border bg-background"
+                />
+                {isUploadingImage && (
+                  <div className="flex items-center gap-2 text-[11px] font-semibold text-amber-800">
+                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                    <span>{t("admin.productsPage.uploadingImage")}</span>
+                  </div>
+                )}
+                {imageUploadError && (
+                  <p className="text-[11px] font-semibold text-destructive">{imageUploadError}</p>
+                )}
+              </div>
+            </div>
             <Input
               value={formImageUrl}
-              onChange={(e) => setFormImageUrl(e.target.value)}
-              placeholder="https://images.unsplash.com/..."
+              onChange={(e) => {
+                setFormImageUrl(e.target.value);
+                setImagePreviewUrl(e.target.value);
+                setImageUploadError("");
+              }}
+              placeholder="https://storage.example.com/lowlands/products/..."
               className="h-10 text-xs border-border bg-background"
             />
           </div>
@@ -428,6 +501,7 @@ export default function AdminProductsPage() {
             </Button>
             <Button
               type="submit"
+              disabled={isUploadingImage}
               className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg h-10 text-xs font-semibold px-4"
             >
               {t("common.save")}
