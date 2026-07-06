@@ -20,6 +20,23 @@ interface ProductCardProps {
 
 export function ProductCard({ product, onAddToCart, viewMode = "grid" }: ProductCardProps) {
   const { t } = useTranslation();
+  const getCategoryName = (name: string) => {
+    switch (name.toLowerCase()) {
+      case "coffee":
+      case "cà phê":
+        return t("common.coffee");
+      case "tea":
+      case "trà":
+        return t("common.tea");
+      case "freeze":
+        return t("common.freeze");
+      case "other":
+      case "khác":
+        return t("common.other");
+      default:
+        return name;
+    }
+  };
   const categories = useDashboardStore((state) => state.categories);
   const categoryName = categories.find((c) => c.id === product.categoryId)?.name || "Coffee & Tea";
   const [isConfigOpen, setIsConfigOpen] = useState(false);
@@ -32,11 +49,9 @@ export function ProductCard({ product, onAddToCart, viewMode = "grid" }: Product
   const [note, setNote] = useState("");
 
   const hasVariants = product.variants && product.variants.length > 1;
-  const globalToppings = useDashboardStore((state) => state.toppings);
-  const isFoodOrCake = ["Bánh ngọt", "Đồ ăn nhanh", "Pastries", "Fast Food", "Cake", "Food"].includes(categoryName);
-  const displayToppingsList = (product.toppings && product.toppings.length > 0)
-    ? product.toppings
-    : (!isFoodOrCake ? globalToppings : []);
+  const catLower = categoryName.toLowerCase();
+  const isToppingCategory = ["coffee", "tea", "freeze", "cà phê", "trà"].some(cat => catLower.includes(cat));
+  const displayToppingsList = isToppingCategory ? (product.toppings || []) : [];
   const hasToppings = displayToppingsList.length > 0;
   
   // Base display price (usually smallest variant price)
@@ -195,7 +210,7 @@ export function ProductCard({ product, onAddToCart, viewMode = "grid" }: Product
             <div className="flex flex-col min-w-0 text-left">
               <div className="flex items-center gap-2">
                 <span className="text-[9px] font-bold text-[#C8510A] uppercase tracking-wider">
-                  {categoryName}
+                  {getCategoryName(categoryName)}
                 </span>
                 {/* Badges */}
                 {!isOutOfStock && product.id % 6 === 0 && (
@@ -357,7 +372,7 @@ export function ProductCard({ product, onAddToCart, viewMode = "grid" }: Product
               )}
               <div className="text-left flex-grow min-w-0">
                 <span className="text-[9px] font-black uppercase text-[#C8510A] bg-[#C8510A]/10 px-2 py-0.5 rounded-md border border-[#C8510A]/10 tracking-wider inline-block">
-                  {categoryName}
+                  {getCategoryName(categoryName)}
                 </span>
                 <h3 className="font-outfit font-black text-base text-zinc-950 mt-1 leading-tight truncate">{product.name}</h3>
                 {product.description && (

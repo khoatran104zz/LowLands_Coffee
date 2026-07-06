@@ -38,6 +38,24 @@ type ReceiptTopping = ReceiptItem["toppings"][number];
 
 export default function StaffPOSPage() {
   const { t } = useTranslation();
+  const getCategoryName = useCallback((name: string) => {
+    switch (name.toLowerCase()) {
+      case "coffee":
+      case "cà phê":
+        return t("common.coffee");
+      case "tea":
+      case "trà":
+        return t("common.tea");
+      case "freeze":
+        return t("common.freeze");
+      case "other":
+      case "khác":
+        return t("common.other");
+      default:
+        return name;
+    }
+  }, [t]);
+
   const confirm = useConfirm();
   const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
@@ -520,7 +538,7 @@ export default function StaffPOSPage() {
     toast.error("Trình duyệt đang chặn cửa sổ in. Vui lòng cho phép popup rồi thử lại.");
   };
 
-  const activeCategoryName = categories.find((c) => c.id === selectedCategoryId)?.name || "Thực đơn";
+  const activeCategoryName = categories.find((c) => c.id === selectedCategoryId)?.name || t("common.menu");
 
   return (
     <div className="flex flex-col gap-3 h-[calc(100vh-2rem)] select-none bg-[#FAF8F5] p-3 rounded-2xl border border-border/40 shadow-xs">
@@ -669,7 +687,7 @@ export default function StaffPOSPage() {
                   }`}
                 >
                   <IconComponent className="h-3.5 w-3.5 shrink-0" />
-                  <span className="truncate">{cat.name}</span>
+                  <span className="truncate">{getCategoryName(cat.name)}</span>
                 </button>
               );
             })}
@@ -734,7 +752,7 @@ export default function StaffPOSPage() {
               {/* Header bar displaying active category name + count */}
               <div className="bg-card border border-border/80 rounded-xl px-3.5 py-2 mb-2.5 flex items-center justify-between shadow-2xs bg-white shrink-0">
                 <h2 className="text-xs font-black text-foreground font-outfit uppercase select-none text-left tracking-wider">
-                  {selectedCategoryId === null ? t("pos.allCategories") : activeCategoryName.toUpperCase()}
+                  {selectedCategoryId === null ? t("pos.allCategories") : getCategoryName(activeCategoryName).toUpperCase()}
                 </h2>
                 
                 <div className="flex items-center space-x-1.5 shrink-0">

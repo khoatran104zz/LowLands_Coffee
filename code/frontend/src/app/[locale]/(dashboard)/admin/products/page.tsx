@@ -27,6 +27,7 @@ export default function AdminProductsPage() {
   // Store data
   const products = useDashboardStore((state) => state.products);
   const categories = useDashboardStore((state) => state.categories);
+  const toppings = useDashboardStore((state) => state.toppings);
   const productCatalogError = useDashboardStore((state) => state.productCatalogError);
   const hydrateProductCatalog = useDashboardStore((state) => state.hydrateProductCatalog);
   const addProduct = useDashboardStore((state) => state.addProduct);
@@ -208,6 +209,13 @@ export default function AdminProductsPage() {
       });
     }
 
+    const selectedCategory = categories.find((c) => c.id === parseInt(formCategoryId));
+    const catNameLower = selectedCategory?.name?.toLowerCase() || "";
+    const isToppingCategory = ["coffee", "tea", "freeze", "cà phê", "trà"].some(cat => catNameLower.includes(cat));
+    
+    // Auto-map all active toppings for target categories
+    const targetToppings = isToppingCategory ? toppings.filter(t => t.status === "active") : [];
+
     try {
       if (editingProduct) {
         if (editingProduct.status === "active" && formStatus === "inactive") {
@@ -228,7 +236,7 @@ export default function AdminProductsPage() {
           imageUrl: formImageUrl.trim() || "https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&q=80&w=600",
           status: formStatus,
           variants,
-          toppings: editingProduct.toppings
+          toppings: targetToppings
         });
         toast.success(t("admin.productsPage.successUpdate"));
       } else {
@@ -239,7 +247,7 @@ export default function AdminProductsPage() {
           imageUrl: formImageUrl.trim() || "https://images.unsplash.com/photo-1541167760496-1628856ab772?auto=format&fit=crop&q=80&w=600",
           status: formStatus,
           variants,
-          toppings: []
+          toppings: targetToppings
         });
         toast.success(t("admin.productsPage.successCreate"));
       }
