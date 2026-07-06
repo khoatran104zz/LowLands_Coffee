@@ -77,6 +77,7 @@ export interface BackendOrderResponse {
       quantity: number;
       totalPrice: number;
     }[];
+  }[];
   createdAt: string;
   updatedAt?: string;
   promotionCode?: string;
@@ -160,6 +161,7 @@ export const toFrontendOrder = (order: BackendOrderResponse): Order => ({
       quantity: topping.quantity,
       totalPrice: Number(topping.totalPrice),
     })),
+  })),
   createdAt: order.createdAt,
   updatedAt: order.updatedAt,
   promotionCode: order.promotionCode,
