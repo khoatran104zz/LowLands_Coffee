@@ -41,6 +41,7 @@ export interface ProductRequest {
   status?: string;
   variants: ProductVariantRequest[];
   toppingIds?: number[];
+  comboProductIds?: number[];
 }
 
 export const getProducts = async (params?: ProductFilterParams): Promise<Product[]> => {

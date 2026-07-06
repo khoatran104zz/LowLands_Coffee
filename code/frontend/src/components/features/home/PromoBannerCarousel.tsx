@@ -30,7 +30,7 @@ export function PromoBannerCarousel() {
       subtitle: t("landing.promo1.subtitle"),
       desc: t("landing.promo1.desc"),
       ctaText: t("landing.promo1.ctaText"),
-      link: "/menu",
+      link: "/menu?view=all",
       bgClass: "bg-[#2D1A19] text-white border-y border-[#C5A880]/20",
       style: {
         background: "radial-gradient(circle at 80% 50%, rgba(197, 168, 128, 0.15), transparent 60%), #2A1815"

@@ -125,6 +125,7 @@ const toProductRequest = (product: Omit<Product, "id"> | Product, includeTopping
       status: variant.status,
     })) ?? [],
     toppingIds: includeToppings ? product.toppings?.map((topping) => topping.id) : [],
+    comboProductIds: product.comboProductIds,
   };
 };
 

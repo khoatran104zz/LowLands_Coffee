@@ -53,6 +53,7 @@ export default function AdminProductsPage() {
   const [priceS, setPriceS] = useState<number>(0);
   const [priceM, setPriceM] = useState<number>(0);
   const [priceL, setPriceL] = useState<number>(0);
+  const [formComboProductIds, setFormComboProductIds] = useState<number[]>([]);
 
   useEffect(() => {
     setIsMounted(true);
@@ -66,6 +67,10 @@ export default function AdminProductsPage() {
     if (!categoryFilter) return true;
     return p.categoryId === parseInt(categoryFilter);
   });
+
+  const comboCategory = categories.find((c) => c.name.toLowerCase() === "combo");
+  const isComboSelected = parseInt(formCategoryId) === comboCategory?.id;
+  const nonComboProducts = products.filter((p) => p.categoryId !== comboCategory?.id);
 
   // Category filter dropdown options
   const categoryFilterOptions = categories.map((c) => ({
@@ -131,6 +136,7 @@ export default function AdminProductsPage() {
     setPriceS(29000);
     setPriceM(35000);
     setPriceL(39000);
+    setFormComboProductIds([]);
     setIsFormOpen(true);
   };
 
@@ -152,6 +158,7 @@ export default function AdminProductsPage() {
     setPriceS(sVar ? sVar.price : 0);
     setPriceM(mVar ? mVar.price : 0);
     setPriceL(lVar ? lVar.price : 0);
+    setFormComboProductIds(product.comboProductIds || []);
     
     setIsFormOpen(true);
   };
@@ -215,6 +222,14 @@ export default function AdminProductsPage() {
       return;
     }
 
+    const selectedCategory = categories.find((c) => c.id === parseInt(formCategoryId));
+    const isCombo = selectedCategory?.name?.toLowerCase() === "combo";
+
+    if (isCombo && formComboProductIds.length === 0) {
+      toast.error("Vui lòng chọn ít nhất một sản phẩm đi kèm cho Combo.");
+      return;
+    }
+
     // Build variants matching database IDs for updates
     const variants: ProductVariant[] = [];
     const findExistingVariantId = (size: "S" | "M" | "L") => {
@@ -223,16 +238,7 @@ export default function AdminProductsPage() {
       return found ? found.id : undefined;
     };
 
-    if (priceS > 0) {
-      variants.push({
-        id: findExistingVariantId("S") as any,
-        productId: editingProduct?.id || 0,
-        size: "S",
-        price: priceS,
-        status: "active",
-      });
-    }
-    if (priceM > 0) {
+    if (isCombo) {
       variants.push({
         id: findExistingVariantId("M") as any,
         productId: editingProduct?.id || 0,
@@ -240,18 +246,36 @@ export default function AdminProductsPage() {
         price: priceM,
         status: "active",
       });
-    }
-    if (priceL > 0) {
-      variants.push({
-        id: findExistingVariantId("L") as any,
-        productId: editingProduct?.id || 0,
-        size: "L",
-        price: priceL,
-        status: "active",
-      });
+    } else {
+      if (priceS > 0) {
+        variants.push({
+          id: findExistingVariantId("S") as any,
+          productId: editingProduct?.id || 0,
+          size: "S",
+          price: priceS,
+          status: "active",
+        });
+      }
+      if (priceM > 0) {
+        variants.push({
+          id: findExistingVariantId("M") as any,
+          productId: editingProduct?.id || 0,
+          size: "M",
+          price: priceM,
+          status: "active",
+        });
+      }
+      if (priceL > 0) {
+        variants.push({
+          id: findExistingVariantId("L") as any,
+          productId: editingProduct?.id || 0,
+          size: "L",
+          price: priceL,
+          status: "active",
+        });
+      }
     }
 
-    const selectedCategory = categories.find((c) => c.id === parseInt(formCategoryId));
     const catNameLower = selectedCategory?.name?.toLowerCase() || "";
     const isToppingCategory = ["coffee", "tea", "freeze", "cà phê", "trà"].some(cat => catNameLower.includes(cat));
     
@@ -278,7 +302,8 @@ export default function AdminProductsPage() {
           imageUrl: formImageUrl.trim(),
           status: formStatus,
           variants,
-          toppings: targetToppings
+          toppings: targetToppings,
+          comboProductIds: isCombo ? formComboProductIds : [],
         });
         toast.success(t("admin.productsPage.successUpdate"));
       } else {
@@ -289,7 +314,8 @@ export default function AdminProductsPage() {
           imageUrl: formImageUrl.trim(),
           status: formStatus,
           variants,
-          toppings: targetToppings
+          toppings: targetToppings,
+          comboProductIds: isCombo ? formComboProductIds : [],
         });
         toast.success(t("admin.productsPage.successCreate"));
       }
@@ -445,38 +471,85 @@ export default function AdminProductsPage() {
           {/* Pricing settings */}
           <div className="bg-muted/30 border border-border/40 rounded-lg p-3 space-y-2">
             <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
-              {t("admin.productsPage.pricingLabel")}
+              {isComboSelected ? "Giá Combo" : t("admin.productsPage.pricingLabel")}
             </span>
-            <div className="grid grid-cols-3 gap-2">
-              <div className="space-y-1 text-left">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase">Size S</label>
-                <Input
-                  type="number"
-                  value={priceS || ""}
-                  onChange={(e) => setPriceS(parseFloat(e.target.value) || 0)}
-                  className="h-9 text-xs border-border bg-background"
-                />
+            {!isComboSelected ? (
+              <div className="grid grid-cols-3 gap-2">
+                <div className="space-y-1 text-left">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase">Size S</label>
+                  <Input
+                    type="number"
+                    value={priceS || ""}
+                    onChange={(e) => setPriceS(parseFloat(e.target.value) || 0)}
+                    className="h-9 text-xs border-border bg-background"
+                  />
+                </div>
+                <div className="space-y-1 text-left">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase">Size M</label>
+                  <Input
+                    type="number"
+                    value={priceM || ""}
+                    onChange={(e) => setPriceM(parseFloat(e.target.value) || 0)}
+                    className="h-9 text-xs border-border bg-background"
+                  />
+                </div>
+                <div className="space-y-1 text-left">
+                  <label className="text-[10px] font-bold text-muted-foreground uppercase">Size L</label>
+                  <Input
+                    type="number"
+                    value={priceL || ""}
+                    onChange={(e) => setPriceL(parseFloat(e.target.value) || 0)}
+                    className="h-9 text-xs border-border bg-background"
+                  />
+                </div>
               </div>
+            ) : (
               <div className="space-y-1 text-left">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase">Size M</label>
+                <label className="text-[10px] font-bold text-muted-foreground uppercase">Giá Combo (đặt cho Size M)</label>
                 <Input
                   type="number"
                   value={priceM || ""}
-                  onChange={(e) => setPriceM(parseFloat(e.target.value) || 0)}
+                  onChange={(e) => {
+                    setPriceM(parseFloat(e.target.value) || 0);
+                    setPriceS(0);
+                    setPriceL(0);
+                  }}
                   className="h-9 text-xs border-border bg-background"
                 />
               </div>
-              <div className="space-y-1 text-left">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase">Size L</label>
-                <Input
-                  type="number"
-                  value={priceL || ""}
-                  onChange={(e) => setPriceL(parseFloat(e.target.value) || 0)}
-                  className="h-9 text-xs border-border bg-background"
-                />
+            )}
+          </div>
+
+          {/* Combo items list selection */}
+          {isComboSelected && (
+            <div className="bg-muted/30 border border-border/40 rounded-lg p-3 space-y-2">
+              <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider block">
+                Sản phẩm đi kèm trong Combo (chọn ít nhất 1 sản phẩm)
+              </span>
+              <div className="max-h-36 overflow-y-auto border border-border bg-background rounded-lg p-2.5 space-y-2">
+                {nonComboProducts.map((p) => {
+                  const isChecked = formComboProductIds.includes(p.id);
+                  return (
+                    <label key={p.id} className="flex items-center gap-2 text-xs font-semibold text-foreground cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={() => {
+                          if (isChecked) {
+                            setFormComboProductIds(formComboProductIds.filter(id => id !== p.id));
+                          } else {
+                            setFormComboProductIds([...formComboProductIds, p.id]);
+                          }
+                        }}
+                        className="rounded border-border text-amber-850 focus:ring-amber-800"
+                      />
+                      <span>{p.name}</span>
+                    </label>
+                  );
+                })}
               </div>
             </div>
-          </div>
+          )}
 
           <div className="space-y-1.5">
             <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.productsPage.labelStatus")}</label>

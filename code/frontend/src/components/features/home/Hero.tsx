@@ -192,7 +192,7 @@ export function Hero() {
               className="flex flex-wrap gap-4 pt-2"
             >
               {/* Primary: Order Now */}
-              <Link href="/menu">
+              <Link href="/menu?view=all">
                 <motion.div
                   whileHover={{ scale: 1.03, y: -2 }}
                   whileTap={{ scale: 0.97 }}

@@ -5,7 +5,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import Image from "next/image";
 import { toast } from "sonner";
 import { AlertCircle, ArrowLeft, Minus, Plus, ShoppingBag } from "lucide-react";
-import { getProductById } from "@/services/product.service";
+import { getProductById, getProducts } from "@/services/product.service";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useCartStore } from "@/store/cart.store";
 import { Product, ProductVariant, Topping } from "@/types";
@@ -32,6 +32,7 @@ export default function ProductDetailPage({ params }: Props) {
   const [note, setNote] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [allProducts, setAllProducts] = useState<Product[]>([]);
 
   const addItemToCart = useCartStore((state) => state.addItem);
 
@@ -40,8 +41,12 @@ export default function ProductDetailPage({ params }: Props) {
       setLoading(true);
       setError(null);
       try {
-        const data = await getProductById(productId);
+        const [data, productsList] = await Promise.all([
+          getProductById(productId),
+          getProducts(),
+        ]);
         setProduct(data);
+        setAllProducts(productsList || []);
         setSelectedVariant(data.variants?.[0] ?? null);
         setSelectedToppings(data.toppings?.map((topping) => ({ topping, quantity: 0 })) ?? []);
       } catch (loadError) {
@@ -182,30 +187,60 @@ export default function ProductDetailPage({ params }: Props) {
                 </div>
               )}
 
+              {product.comboProductIds && product.comboProductIds.length > 0 && (
+                <div className="w-full bg-secondary/10 border border-border/40 rounded-xl p-4">
+                  <h4 className="text-xs uppercase font-bold tracking-wider text-accent mb-2">
+                    Combo bao gồm:
+                  </h4>
+                  <ul className="list-disc list-inside text-sm text-foreground space-y-1.5">
+                    {allProducts
+                      .filter((p) => product.comboProductIds?.includes(p.id))
+                      .map((cp) => (
+                        <li key={cp.id} className="font-semibold">
+                          {cp.name}
+                        </li>
+                      ))}
+                  </ul>
+                </div>
+              )}
+
               {product.variants && product.variants.length > 0 && (
                 <div className="w-full">
-                  <h4 className="text-xs uppercase font-bold tracking-wider text-muted-foreground mb-3">
-                    {t("product.menu.size")} ({t("product.sizeS")} / {t("product.sizeM")} / {t("product.sizeL")})
-                  </h4>
-                  <div className="flex gap-4">
-                    {product.variants.map((variant) => {
-                      const isSelected = selectedVariant?.id === variant.id;
-                      return (
-                        <button
-                          key={variant.id}
-                          onClick={() => setSelectedVariant(variant)}
-                          className={`flex-grow sm:flex-grow-0 min-w-[100px] border rounded-xl py-3 px-4 flex flex-col items-center justify-center gap-1 transition-all ${
-                            isSelected
-                              ? "border-primary bg-primary/5 text-primary font-bold shadow-sm"
-                              : "border-border hover:border-primary/50 text-foreground"
-                          }`}
-                        >
-                          <span className="text-xs font-bold uppercase">Size {variant.size}</span>
-                          <span className="text-xs font-semibold opacity-80">{formatPrice(Number(variant.price))}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                  {product.comboProductIds && product.comboProductIds.length > 0 ? (
+                    <div>
+                      <h4 className="text-xs uppercase font-bold tracking-wider text-muted-foreground mb-1.5">
+                        Giá Combo
+                      </h4>
+                      <span className="text-2xl font-black text-accent">
+                        {selectedVariant && formatPrice(Number(selectedVariant.price))}
+                      </span>
+                    </div>
+                  ) : (
+                    <>
+                      <h4 className="text-xs uppercase font-bold tracking-wider text-muted-foreground mb-3">
+                        {t("product.menu.size")} ({t("product.sizeS")} / {t("product.sizeM")} / {t("product.sizeL")})
+                      </h4>
+                      <div className="flex gap-4">
+                        {product.variants.map((variant) => {
+                          const isSelected = selectedVariant?.id === variant.id;
+                          return (
+                            <button
+                              key={variant.id}
+                              onClick={() => setSelectedVariant(variant)}
+                              className={`flex-grow sm:flex-grow-0 min-w-[100px] border rounded-xl py-3 px-4 flex flex-col items-center justify-center gap-1 transition-all ${
+                                isSelected
+                                  ? "border-primary bg-primary/5 text-primary font-bold shadow-sm"
+                                  : "border-border hover:border-primary/50 text-foreground"
+                              }`}
+                            >
+                              <span className="text-xs font-bold uppercase">Size {variant.size}</span>
+                              <span className="text-xs font-semibold opacity-80">{formatPrice(Number(variant.price))}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 

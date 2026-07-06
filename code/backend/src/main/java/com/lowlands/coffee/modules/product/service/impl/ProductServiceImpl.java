@@ -123,6 +123,10 @@ public class ProductServiceImpl implements ProductService {
         product.setStatus(status);
         request.getVariants().forEach(variant -> addVariant(product, variant));
         toppings.forEach(topping -> addTopping(product, topping));
+        if (request.getComboProductIds() != null && !request.getComboProductIds().isEmpty()) {
+            List<ProductEntity> comboItems = productRepository.findAllById(request.getComboProductIds());
+            product.setComboItems(new HashSet<>(comboItems));
+        }
         return productMapper.toResponse(productRepository.save(product));
     }
 
@@ -142,6 +146,14 @@ public class ProductServiceImpl implements ProductService {
 
         syncVariants(product, request.getVariants());
         syncToppings(product, toppings);
+        if (request.getComboProductIds() != null) {
+            if (request.getComboProductIds().isEmpty()) {
+                product.getComboItems().clear();
+            } else {
+                List<ProductEntity> comboItems = productRepository.findAllById(request.getComboProductIds());
+                product.setComboItems(new HashSet<>(comboItems));
+            }
+        }
         return productMapper.toResponse(productRepository.save(product));
     }
 
