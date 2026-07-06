@@ -95,7 +95,13 @@
     "successUpdate": "Cập nhật sản phẩm thành công!",
     "successDelete": "Xóa sản phẩm thành công!",
     "errorSave": "Không thể lưu sản phẩm qua Backend API.",
-    "errorDelete": "Không thể xóa sản phẩm qua Backend API."
+    "errorDelete": "Không thể xóa sản phẩm qua Backend API.",
+    "uploadSuccess": "Tải ảnh sản phẩm thành công.",
+    "uploadError": "Không thể tải ảnh sản phẩm. Vui lòng thử lại hoặc nhập URL ảnh thủ công.",
+    "uploadErrorShort": "Không thể tải ảnh sản phẩm.",
+    "uploadingImage": "Đang tải ảnh lên storage...",
+    "errorImageRequired": "Vui lòng tải ảnh sản phẩm hoặc nhập URL ảnh.",
+    "errorImageUploading": "Vui lòng đợi tải ảnh hoàn tất trước khi lưu."
   },
   "toppingsPage": {
     "subtitle": "Thiết lập danh mục các loại thạch, trân châu, kem béo đi kèm cho thức uống.",

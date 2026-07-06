@@ -95,7 +95,13 @@
     "successUpdate": "Product updated successfully!",
     "successDelete": "Product deleted successfully!",
     "errorSave": "Cannot save product via Backend API.",
-    "errorDelete": "Cannot delete product via Backend API."
+    "errorDelete": "Cannot delete product via Backend API.",
+    "uploadSuccess": "Product image uploaded successfully.",
+    "uploadError": "Unable to upload product image. Please try again or enter an image URL manually.",
+    "uploadErrorShort": "Unable to upload product image.",
+    "uploadingImage": "Uploading image to storage...",
+    "errorImageRequired": "Please upload a product image or enter an image URL.",
+    "errorImageUploading": "Please wait until the image upload finishes before saving."
   },
   "toppingsPage": {
     "subtitle": "Set up lists of jelly, boba, and heavy cream options accompanying drinks.",

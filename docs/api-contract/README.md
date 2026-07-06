@@ -19,6 +19,7 @@ Old API contract documents are reference only. Backend code, frontend code, data
 - `role-api.md` - role administration.
 - `permission-api.md` - permission administration.
 - `dashboard-api.md` - admin and manager dashboard summaries.
+- `storage-api.md` - backend-owned media upload endpoints.
 
 ## Naming Convention
 
