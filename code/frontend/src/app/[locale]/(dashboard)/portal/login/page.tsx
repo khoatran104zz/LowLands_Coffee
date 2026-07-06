@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { useRouter, useParams } from "next/navigation";
 import { useTranslation } from "@/hooks/useTranslation";
 import { toast } from "sonner";
-import { ShieldAlert, LogIn, Lock, Mail } from "lucide-react";
+import { ShieldAlert, LogIn, Lock, Mail, Eye, EyeOff } from "lucide-react";
 import Image from "next/image";
 
 export default function PortalLoginPage() {
@@ -22,6 +22,7 @@ export default function PortalLoginPage() {
   const login = useAuthStore((state) => state.login);
   const logout = useAuthStore((state) => state.logout);
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const { t } = useTranslation();
 
   const formSchema = zod.object({
@@ -130,11 +131,18 @@ export default function PortalLoginPage() {
                 <Lock className="h-4 w-4" />
               </span>
               <Input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 {...register("password")}
                 placeholder="••••••"
-                className="bg-zinc-950 border-zinc-800 text-zinc-100 placeholder-zinc-600 pl-10 focus:border-amber-500 focus:ring-amber-500/20 h-11 text-sm rounded-xl"
+                className="bg-zinc-950 border-zinc-800 text-zinc-100 placeholder-zinc-600 pl-10 pr-10 focus:border-amber-500 focus:ring-amber-500/20 h-11 text-sm rounded-xl"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 flex items-center pr-3.5 text-zinc-500 hover:text-zinc-300 transition-colors cursor-pointer"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
             </div>
             {errors.password && (
               <span className="text-xs text-rose-500 font-semibold">{t(errors.password.message || "")}</span>
