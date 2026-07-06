@@ -46,7 +46,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -72,8 +71,6 @@ public class OrderServiceImpl implements OrderService {
     private static final String COMPLETED = "COMPLETED";
     private static final String CANCELLED = "CANCELLED";
     private static final String UNPAID = "UNPAID";
-    private static final String PAID = "PAID";
-    private static final String CASH = "CASH";
     private static final String OUT = "OUT";
     private static final String ORDER = "ORDER";
 
@@ -284,13 +281,6 @@ public class OrderServiceImpl implements OrderService {
 
         List<StockMovementEntity> movements = createOrderStockMovements(order, actor);
         order.setStatus(COMPLETED);
-        PaymentEntity payment = order.getPayment();
-        if (payment != null) {
-            payment.setPaymentStatus(PAID);
-            if (payment.getPaidAt() == null) {
-                payment.setPaidAt(LocalDateTime.now());
-            }
-        }
         stockMovementRepository.saveAll(movements);
         return orderMapper.toResponse(orderRepository.save(order));
     }
@@ -482,12 +472,7 @@ public class OrderServiceImpl implements OrderService {
         PaymentEntity payment = new PaymentEntity();
         payment.setOrder(order);
         payment.setPaymentMethod(normalizeAllowed(paymentMethod, PAYMENT_METHODS, "Unsupported payment method"));
-        if (CASH.equals(payment.getPaymentMethod())) {
-            payment.setPaymentStatus(UNPAID);
-        } else {
-            payment.setPaymentStatus(PAID);
-            payment.setPaidAt(LocalDateTime.now());
-        }
+        payment.setPaymentStatus(UNPAID);
         payment.setAmount(order.getTotalAmount());
         return payment;
     }

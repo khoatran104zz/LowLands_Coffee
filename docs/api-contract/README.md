@@ -20,6 +20,7 @@ Old API contract documents are reference only. Backend code, frontend code, data
 - `permission-api.md` - permission administration.
 - `dashboard-api.md` - admin and manager dashboard summaries.
 - `storage-api.md` - backend-owned media upload endpoints.
+- `payment-api.md` - Payment V1 APIs for pay, lookup, refund, and fail actions.
 
 ## Naming Convention
 

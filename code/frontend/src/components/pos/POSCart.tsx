@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useTranslation";
 import { createOrder } from "@/services/order.service";
+import { payOrder, paymentMethodMap } from "@/services/payment.service";
 import { useConfirm } from "@/hooks/useConfirm";
 
 interface POSCartProps {
@@ -253,9 +254,29 @@ export function POSCart({
     try {
       setIsSubmitting(true);
       const savedOrder = await createOrder(finalOrder);
-      const backendTotal = savedOrder.totalAmount ?? state.total;
-      onCheckoutSuccess({
+      if (!savedOrder.id) {
+        throw new Error("Backend did not return order id for payment.");
+      }
+      const paidPayment = await payOrder(
+        savedOrder.id,
+        paymentMethodMap[state.paymentMethod],
+        finalNote
+      );
+      const paidOrder: Order = {
         ...savedOrder,
+        paymentMethod: state.paymentMethod,
+        payment: {
+          id: paidPayment.id,
+          paymentMethod: paidPayment.paymentMethod,
+          paymentStatus: paidPayment.paymentStatus,
+          amount: Number(paidPayment.amount),
+          paidAt: paidPayment.paidAt,
+          createdAt: paidPayment.createdAt,
+        },
+      };
+      const backendTotal = paidOrder.totalAmount ?? state.total;
+      onCheckoutSuccess({
+        ...paidOrder,
         cashReceived: state.paymentMethod === "cod" ? state.cashReceived : backendTotal,
         changeReturned: state.paymentMethod === "cod" ? Math.max(0, state.cashReceived - backendTotal) : 0,
         vat: 0,

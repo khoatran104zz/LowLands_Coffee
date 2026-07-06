@@ -316,6 +316,9 @@ export default function AdminOrdersPage() {
               <DetailTile label="Type" value={orderTypeLabel(selectedOrder.orderType)} />
               <DetailTile label="Created" value={formatDateTime(selectedOrder.createdAt)} />
               <DetailTile label="Total" value={formatCurrency(selectedOrder.totalAmount)} />
+              <DetailTile label="Payment status" value={selectedOrder.payment?.paymentStatus || "UNPAID"} />
+              <DetailTile label="Payment id" value={selectedOrder.payment?.id ? `#${selectedOrder.payment.id}` : "-"} />
+              <DetailTile label="Paid at" value={formatDateTime(selectedOrder.payment?.paidAt || undefined)} />
             </div>
 
             <div className="rounded-lg border border-border/70 overflow-hidden">

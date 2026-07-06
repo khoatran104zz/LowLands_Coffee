@@ -119,6 +119,18 @@ export default function ManagerOrdersPage() {
       header: t("manager.orders.colStatus"), 
       render: (item) => <StatusBadge status={item.status || "pending"} /> 
     },
+    {
+      key: "paymentMethod",
+      header: t("manager.orders.modalPayment"),
+      render: (item) => (
+        <div className="space-y-0.5">
+          <span className="font-bold">{getPaymentMethodLabel(item.paymentMethod)}</span>
+          <div className="text-[10px] font-black uppercase text-muted-foreground">
+            {item.payment?.paymentStatus || "UNPAID"}
+          </div>
+        </div>
+      ),
+    },
     { 
       key: "createdAt", 
       header: t("manager.orders.colTime"), 
@@ -257,7 +269,7 @@ export default function ManagerOrdersPage() {
                 <div className="flex items-center space-x-1.5">
                   <span className="font-semibold text-zinc-500">{t("manager.orders.modalPayment")}</span>
                   <span className="font-bold text-zinc-700 dark:text-zinc-300">
-                    {getPaymentMethodLabel(selectedOrder.paymentMethod)}
+                    {getPaymentMethodLabel(selectedOrder.paymentMethod)} / {selectedOrder.payment?.paymentStatus || "UNPAID"}
                   </span>
                 </div>
                 <div className="flex items-center space-x-1.5">
