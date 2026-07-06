@@ -14,6 +14,8 @@ public class PaymentResponse {
     private String paymentMethod;
     private String paymentStatus;
     private BigDecimal amount;
+    private String transactionId;
+    private String paymentGateway;
     private LocalDateTime paidAt;
     private LocalDateTime createdAt;
 }

@@ -7,8 +7,10 @@ interface CartState {
   appliedDiscountAmount: number;
   orderType: "delivery" | "pickup";
   selectedStoreId: number | null;
+  hasHydrated: boolean;
   
   // Actions
+  hydrateFromStorage: () => void;
   addItem: (
     product: Product,
     variant: ProductVariant,
@@ -49,6 +51,31 @@ export const useCartStore = create<CartState>((set, get) => ({
   appliedDiscountAmount: 0,
   orderType: "delivery",
   selectedStoreId: null,
+  hasHydrated: false,
+
+  hydrateFromStorage: () => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const savedCart = localStorage.getItem("lowlands_cart");
+    if (savedCart) {
+      try {
+        const parsed = JSON.parse(savedCart);
+        set({
+          items: parsed.items || [],
+          appliedPromotion: parsed.appliedPromotion || null,
+          appliedDiscountAmount: parsed.appliedDiscountAmount || 0,
+          orderType: parsed.orderType || "delivery",
+          selectedStoreId: parsed.selectedStoreId || null,
+          hasHydrated: true,
+        });
+      } catch {
+        localStorage.removeItem("lowlands_cart");
+      }
+    } else {
+      set({ hasHydrated: true });
+    }
+  },
 
   addItem: (product, variant, quantity, toppings, note) => {
     const itemId = generateCartItemId(variant.id, toppings);
@@ -162,3 +189,18 @@ export const useCartStore = create<CartState>((set, get) => ({
     return Math.max(0, subtotal - discount);
   },
 }));
+
+if (typeof window !== "undefined") {
+  useCartStore.subscribe((state) => {
+    localStorage.setItem(
+      "lowlands_cart",
+      JSON.stringify({
+        items: state.items,
+        appliedPromotion: state.appliedPromotion,
+        appliedDiscountAmount: state.appliedDiscountAmount,
+        orderType: state.orderType,
+        selectedStoreId: state.selectedStoreId,
+      })
+    );
+  });
+}

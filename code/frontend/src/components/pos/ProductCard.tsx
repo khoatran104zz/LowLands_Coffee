@@ -206,7 +206,7 @@ export function ProductCard({ product, onAddToCart, viewMode = "grid", availabil
       ) : (
         <div 
           onClick={isOutOfStock ? undefined : handleOpenConfig}
-          className={`group bg-white rounded-xl border border-border/85 p-3.5 shadow-2xs hover:shadow-md hover:border-[#C8510A]/35 hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-200 flex items-center justify-between select-none ${
+          className={`group bg-white rounded-xl border border-border/85 px-4 h-[88px] shadow-2xs hover:shadow-md hover:border-[#C8510A]/35 hover:-translate-y-0.5 active:scale-[0.99] transition-all duration-200 flex items-center justify-between select-none ${
             isOutOfStock 
               ? "opacity-60 cursor-not-allowed font-medium" 
               : "cursor-pointer"
@@ -214,7 +214,7 @@ export function ProductCard({ product, onAddToCart, viewMode = "grid", availabil
         >
           <div className="flex items-center gap-4 min-w-0 flex-grow pr-4">
             {/* Image */}
-            <div className="w-16 h-16 rounded-xl overflow-hidden bg-muted/40 relative shrink-0 border border-border/40">
+            <div className="w-14 h-14 rounded-xl overflow-hidden bg-muted/40 relative shrink-0 border border-border/40">
               {product.imageUrl ? (
                 <img
                   src={product.imageUrl}
@@ -228,15 +228,15 @@ export function ProductCard({ product, onAddToCart, viewMode = "grid", availabil
               )}
               {isOutOfStock && (
                 <div className="absolute inset-0 bg-black/45 flex items-center justify-center">
-                  <span className="text-[9px] text-white font-extrabold uppercase px-1.5 py-0.5 rounded leading-none">
+                  <span className="text-[9px] text-white font-extrabold uppercase px-1.5 py-0.5 rounded leading-none text-center">
                     {getAvailabilityLabel(unavailableLabel)}
                   </span>
                 </div>
               )}
             </div>
-
+ 
             {/* Details */}
-            <div className="flex flex-col min-w-0 text-left">
+            <div className="flex flex-col min-w-0 text-left justify-center">
               <div className="flex items-center gap-2">
                 <span className="text-[9px] font-bold text-[#C8510A] uppercase tracking-wider">
                   {getCategoryName(categoryName)}
@@ -253,17 +253,21 @@ export function ProductCard({ product, onAddToCart, viewMode = "grid", availabil
                   </span>
                 )}
               </div>
-              <h4 className="text-xs font-bold text-zinc-950 leading-snug mt-1 truncate group-hover:text-[#C8510A] transition-colors">
+              <h4 className="text-xs font-bold text-zinc-950 leading-snug mt-0.5 truncate group-hover:text-[#C8510A] transition-colors">
                 {product.name}
               </h4>
-              {product.description && (
-                <p className="text-[10px] text-zinc-500 line-clamp-1 leading-normal mt-1 font-medium">
+              {product.description ? (
+                <p className="text-[10px] text-zinc-500 line-clamp-1 leading-normal mt-0.5 font-medium">
                   {product.description}
+                </p>
+              ) : (
+                <p className="text-[10px] text-transparent select-none line-clamp-1 leading-normal mt-0.5 font-medium">
+                  &nbsp;
                 </p>
               )}
             </div>
           </div>
-
+ 
           {/* Price & Action */}
           <div className="flex items-center gap-4 shrink-0">
             <span className="text-sm font-black text-[#C8510A] whitespace-nowrap">

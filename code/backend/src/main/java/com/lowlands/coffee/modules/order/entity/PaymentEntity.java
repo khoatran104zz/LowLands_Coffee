@@ -42,6 +42,12 @@ public class PaymentEntity {
     @Column(name = "paid_at")
     private LocalDateTime paidAt;
 
+    @Column(name = "transaction_id", length = 100)
+    private String transactionId;
+
+    @Column(name = "payment_gateway", length = 50)
+    private String paymentGateway;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 

@@ -79,6 +79,8 @@ public class OrderMapper {
         response.setPaymentMethod(payment.getPaymentMethod());
         response.setPaymentStatus(payment.getPaymentStatus());
         response.setAmount(payment.getAmount());
+        response.setTransactionId(payment.getTransactionId());
+        response.setPaymentGateway(payment.getPaymentGateway());
         response.setPaidAt(payment.getPaidAt());
         response.setCreatedAt(payment.getCreatedAt());
         return response;

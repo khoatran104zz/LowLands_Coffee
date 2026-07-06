@@ -26,6 +26,8 @@ import java.math.BigDecimal;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
+import java.util.HashMap;
 
 @Service
 @Transactional(readOnly = true)
@@ -64,20 +66,30 @@ public class ProductAvailabilityServiceImpl implements ProductAvailabilityServic
         UserEntity actor = userRepository.findByEmail(actorEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found"));
         Long scopedStoreId = resolveStoreId(storeId, actor);
+        
+        List<Object[]> balances = stockMovementRepository.calculateStockBalancesByStoreId(scopedStoreId);
+        Map<Long, BigDecimal> stockMap = new HashMap<>();
+        for (Object[] row : balances) {
+            if (row != null && row.length > 7 && row[2] instanceof Long && row[7] instanceof BigDecimal) {
+                stockMap.put((Long) row[2], (BigDecimal) row[7]);
+            }
+        }
+
         return productRepository.findAllWithDetails().stream()
                 .filter(product -> isActive(product.getStatus()))
                 .filter(product -> product.getCategory() != null && isActive(product.getCategory().getStatus()))
                 .flatMap(product -> product.getVariants().stream()
                         .filter(variant -> isActive(variant.getStatus()))
                         .sorted(Comparator.comparing(ProductVariantEntity::getId))
-                        .map(variant -> toAvailability(product, variant, scopedStoreId)))
+                        .map(variant -> toAvailability(product, variant, scopedStoreId, stockMap)))
                 .toList();
     }
 
     private ProductAvailabilityResponse toAvailability(
             ProductEntity product,
             ProductVariantEntity variant,
-            Long storeId
+            Long storeId,
+            Map<Long, BigDecimal> stockMap
     ) {
         RecipeEntity recipe = recipeRepository.findByProductVariant_IdAndStatus(variant.getId(), ACTIVE).orElse(null);
         if (recipe == null) {
@@ -99,10 +111,8 @@ public class ProductAvailabilityServiceImpl implements ProductAvailabilityServic
 
         List<StockShortageResponse> shortages = recipe.getIngredients().stream()
                 .map(recipeIngredient -> {
-                    BigDecimal currentStock = stockMovementRepository.calculateCurrentStock(
-                            storeId,
-                            recipeIngredient.getIngredient().getId()
-                    );
+                    Long ingredientId = recipeIngredient.getIngredient().getId();
+                    BigDecimal currentStock = stockMap.getOrDefault(ingredientId, BigDecimal.ZERO);
                     if (currentStock.compareTo(recipeIngredient.getQuantity()) >= 0) {
                         return null;
                     }
