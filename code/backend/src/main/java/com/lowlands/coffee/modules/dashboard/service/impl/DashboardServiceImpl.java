@@ -60,8 +60,8 @@ public class DashboardServiceImpl implements DashboardService {
                 .totalUsers(userRepository.count())
                 .totalStores(storeRepository.count())
                 .totalProducts(productRepository.count())
-                .totalOrders(0)
-                .totalRevenue(BigDecimal.ZERO)
+                .totalOrders(orderRepository.count())
+                .totalRevenue(orderRepository.sumTotalRevenueByStatus("COMPLETED"))
                 .build();
     }
 

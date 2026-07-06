@@ -37,6 +37,9 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
     @Query("select o from OrderEntity o where o.id = :id")
     Optional<OrderEntity> findByIdForUpdate(@Param("id") Long id);
 
+    @Query("select coalesce(sum(o.totalAmount), 0) from OrderEntity o where o.status = :status")
+    BigDecimal sumTotalRevenueByStatus(@Param("status") String status);
+
     long countByStoreId(Long storeId);
 
     long countByStoreIdAndCreatedAtBetween(Long storeId, LocalDateTime start, LocalDateTime end);
