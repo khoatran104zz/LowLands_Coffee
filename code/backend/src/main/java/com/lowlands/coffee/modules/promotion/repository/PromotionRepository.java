@@ -17,9 +17,9 @@ public interface PromotionRepository extends JpaRepository<PromotionEntity, Long
     List<PromotionEntity> findAllByStatusIgnoreCase(String status);
 
     @Query("SELECT p FROM PromotionEntity p WHERE " +
-           "(:status IS NULL OR LOWER(p.status) = LOWER(:status)) AND " +
-           "(:applicableType IS NULL OR LOWER(p.applicableType) = LOWER(:applicableType)) AND " +
-           "(:search IS NULL OR LOWER(p.code) LIKE LOWER(CONCAT('%', :search, '%')) OR LOWER(p.name) LIKE LOWER(CONCAT('%', :search, '%')))")
+           "(cast(:status as string) IS NULL OR LOWER(p.status) = LOWER(cast(:status as string))) AND " +
+           "(cast(:applicableType as string) IS NULL OR LOWER(p.applicableType) = LOWER(cast(:applicableType as string))) AND " +
+           "(cast(:search as string) IS NULL OR LOWER(p.code) LIKE LOWER(CONCAT('%', cast(:search as string), '%')) OR LOWER(p.name) LIKE LOWER(CONCAT('%', cast(:search as string), '%')))")
     Page<PromotionEntity> findAllFiltered(
             @Param("status") String status,
             @Param("applicableType") String applicableType,

@@ -10,7 +10,8 @@ import { useCartStore } from "@/store/cart.store";
 import { useAuthStore } from "@/store/auth.store";
 import { createOrder } from "@/services/order.service";
 import { getStores } from "@/services/store.service";
-import { Order, OrderItemInput, Store } from "@/types";
+import { Order, OrderItemInput, Store, Promotion } from "@/types";
+import { getAvailablePromotions, validatePromotion } from "@/services/promotion.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -165,6 +166,18 @@ const generateTransactionCode = () => `LLPAY${Date.now().toString().slice(-9)}`;
 const getPaymentLabel = (paymentMethod: CheckoutPaymentMethod) =>
   PAYMENT_OPTIONS.find((option) => option.id === paymentMethod)?.title || "Thanh toán";
 
+const isItemEligibleForPromo = (item: any, promo: Promotion | null): boolean => {
+  if (!promo) return false;
+  if (promo.applicableType === "Entire Order") return true;
+  if (promo.applicableType === "Product") {
+    return promo.applicableProductIds?.includes(item.product.id) || false;
+  }
+  if (promo.applicableType === "Category") {
+    return promo.applicableCategoryIds?.includes(item.product.categoryId) || false;
+  }
+  return false;
+};
+
 export default function CheckoutPage() {
   const { t } = useTranslation();
   const router = useRouter();
@@ -180,6 +193,8 @@ export default function CheckoutPage() {
     orderType,
     selectedStoreId,
     setSelectedStoreId,
+    appliedPromotion,
+    applyPromotion,
   } = useCartStore();
   const { isAuthenticated, user } = useAuthStore();
 
@@ -204,6 +219,47 @@ export default function CheckoutPage() {
     void fetchStores();
   }, [selectedStoreId, setSelectedStoreId]);
 
+  // Fetch available promotions on customer checkout page
+  useEffect(() => {
+    const fetchAvailable = async () => {
+      if (items.length === 0) {
+        setAvailablePromotions([]);
+        applyPromotion(null);
+        return;
+      }
+      setIsLoadingPromos(true);
+      try {
+        const payloadItems = items.map((item) => ({
+          productId: item.product.id,
+          quantity: item.quantity,
+        }));
+        const currentSubtotal = getSubtotal();
+        const promos = await getAvailablePromotions(payloadItems, currentSubtotal);
+        setAvailablePromotions(promos);
+
+        if (appliedPromotion) {
+          const isStillAvailable = promos.some((p) => p.id === appliedPromotion.id);
+          if (isStillAvailable) {
+            const valRes = await validatePromotion(appliedPromotion.code, payloadItems, currentSubtotal);
+            if (!valRes.valid) {
+              applyPromotion(null);
+              toast.error(`Khuyến mãi ${appliedPromotion.code} không còn áp dụng: ${valRes.message}`);
+            } else {
+              applyPromotion(appliedPromotion, valRes.discount);
+            }
+          } else {
+            applyPromotion(null);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load available promotions", err);
+      } finally {
+        setIsLoadingPromos(false);
+      }
+    };
+    void fetchAvailable();
+  }, [items, appliedPromotion?.code, applyPromotion, getSubtotal]);
+
   const formSchema = zod.object({
     receiverName: zod.string().min(1, { message: t("product.checkout.validation.nameRequired") }),
     receiverPhone: zod
@@ -223,6 +279,8 @@ export default function CheckoutPage() {
   const [submitting, setSubmitting] = useState(false);
   const [voucherCode, setVoucherCode] = useState("");
   const [voucherMessage, setVoucherMessage] = useState<string | null>(null);
+  const [availablePromotions, setAvailablePromotions] = useState<Promotion[]>([]);
+  const [isLoadingPromos, setIsLoadingPromos] = useState(false);
   const [selectedBankId, setSelectedBankId] = useState(BANK_OPTIONS[0].id);
   const [isGatewayOpen, setIsGatewayOpen] = useState(false);
   const [gatewayStep, setGatewayStep] = useState<GatewayStep>("review");
@@ -341,6 +399,7 @@ export default function CheckoutPage() {
       note: buildOrderNote(data.note, receipt),
       items: buildOrderItems(),
       paymentMethod: toBackendPaymentMethod(data.paymentMethod),
+      promotionCode: appliedPromotion?.code || undefined,
     };
 
     try {
@@ -404,17 +463,64 @@ export default function CheckoutPage() {
     }
   };
 
-  const handleApplyVoucher = () => {
+  const handleSelectPromo = async (promoCodeSelected: string) => {
+    if (!promoCodeSelected) {
+      applyPromotion(null);
+      setVoucherCode("");
+      setVoucherMessage(null);
+      return;
+    }
+    try {
+      const payloadItems = items.map((item) => ({
+        productId: item.product.id,
+        quantity: item.quantity,
+      }));
+      const valRes = await validatePromotion(promoCodeSelected, payloadItems, subtotal);
+      if (valRes.valid) {
+        const matched = availablePromotions.find((p) => p.code === promoCodeSelected);
+        applyPromotion(
+          matched || ({ code: promoCodeSelected, name: "Khuyến mãi đã chọn", discountType: valRes.discount > 0 ? "Fixed Amount" : "Percentage", discountValue: valRes.discount } as any),
+          valRes.discount
+        );
+        setVoucherCode(promoCodeSelected);
+        setVoucherMessage(null);
+        toast.success(`Áp dụng mã giảm giá ${promoCodeSelected} thành công!`);
+      } else {
+        toast.error(`Không thể áp dụng: ${valRes.message}`);
+      }
+    } catch (err: any) {
+      console.error(err);
+      toast.error("Lỗi khi áp dụng mã giảm giá");
+    }
+  };
+
+  const handleApplyVoucher = async () => {
     const normalized = voucherCode.trim().toUpperCase();
     if (!normalized) {
       setVoucherMessage("Nhập mã khuyến mãi để kiểm tra.");
       return;
     }
-    setVoucherMessage(
-      normalized === "LOWLANDS"
-        ? "Mã LOWLANDS đang ở chế độ demo. Backend hiện chưa ghi giảm giá vào đơn."
-        : "Mã giảm giá không hợp lệ."
-    );
+    try {
+      const payloadItems = items.map((item) => ({
+        productId: item.product.id,
+        quantity: item.quantity,
+      }));
+      const valRes = await validatePromotion(normalized, payloadItems, subtotal);
+      if (valRes.valid) {
+        const matched = availablePromotions.find((p) => p.code === normalized);
+        applyPromotion(
+          matched || ({ code: normalized, name: "Mã giảm giá đã nhập", discountType: "Fixed Amount", discountValue: valRes.discount } as any),
+          valRes.discount
+        );
+        setVoucherMessage(null);
+        toast.success(`Áp dụng mã giảm giá ${normalized} thành công!`);
+      } else {
+        setVoucherMessage(`Mã giảm giá không hợp lệ: ${valRes.message}`);
+      }
+    } catch (err: any) {
+      console.error(err);
+      setVoucherMessage(err.response?.data?.message || "Lỗi khi áp dụng mã giảm giá");
+    }
   };
 
   const handleOrderSuccessClose = () => {
@@ -726,15 +832,39 @@ export default function CheckoutPage() {
             <section className="rounded-2xl border border-[#E5D8C8] bg-white p-5 shadow-sm">
               <div className="flex items-center gap-2">
                 <TicketPercent className="h-5 w-5 text-[#C69A5B]" />
-                <h2 className="text-base font-black text-[#3A1D14]">Voucher / Code</h2>
+                <h2 className="text-base font-black text-[#3A1D14]">Voucher / Khuyến mãi</h2>
               </div>
-              <p className="mt-1 text-sm font-semibold text-[#7B655A]">Nhập mã khuyến mãi của bạn tại đây.</p>
+              <p className="mt-1 text-xs font-semibold text-[#7B655A]">Chọn từ các mã ưu đãi có sẵn hoặc nhập mã của bạn.</p>
+              
+              {/* Dropdown list */}
+              <div className="mt-3">
+                {availablePromotions.length > 0 ? (
+                  <select
+                    value={appliedPromotion?.code || ""}
+                    onChange={(e) => handleSelectPromo(e.target.value)}
+                    className="w-full rounded-xl border border-[#E5D8C8] bg-[#FFFCF8] p-2.5 text-xs font-bold text-[#3A1D14] outline-none focus:border-[#C69A5B]"
+                  >
+                    <option value="">-- Chọn mã ưu đãi có sẵn ({availablePromotions.length}) --</option>
+                    {availablePromotions.map((promo) => (
+                      <option key={promo.id} value={promo.code}>
+                        {promo.code} - {promo.name} ({promo.discountType === "Percentage" ? `${promo.discountValue}%` : `${formatPrice(promo.discountValue)}`})
+                      </option>
+                    ))}
+                  </select>
+                ) : (
+                  <div className="text-xs italic text-[#7B655A] px-1">
+                    Không có mã giảm giá nào phù hợp với giỏ hàng hiện tại.
+                  </div>
+                )}
+              </div>
+
+              {/* Manual input code */}
               <div className="mt-3 flex overflow-hidden rounded-xl border border-[#E5D8C8] bg-[#FFFCF8]">
                 <input
                   value={voucherCode}
-                  onChange={(event) => setVoucherCode(event.target.value)}
-                  className="min-w-0 flex-1 bg-transparent px-3 text-sm font-semibold text-[#3A1D14] outline-none"
-                  placeholder="LOWLANDS"
+                  onChange={(event) => setVoucherCode(event.target.value.toUpperCase())}
+                  className="min-w-0 flex-1 bg-transparent px-3 text-sm font-semibold text-[#3A1D14] outline-none uppercase"
+                  placeholder="MÃ GIẢM GIÁ KHÁC..."
                 />
                 <button
                   type="button"
@@ -744,9 +874,29 @@ export default function CheckoutPage() {
                   Áp dụng
                 </button>
               </div>
+
               {voucherMessage && (
-                <div className="mt-3 rounded-xl border border-[#EBCFC2] bg-[#FFF1EC] px-3 py-2 text-sm font-bold text-[#C8510A]">
+                <div className="mt-3 rounded-xl border border-[#EBCFC2] bg-[#FFF1EC] px-3 py-2 text-xs font-bold text-[#C8510A]">
                   {voucherMessage}
+                </div>
+              )}
+
+              {/* Applied promo display */}
+              {appliedPromotion && (
+                <div className="mt-3 bg-emerald-50 dark:bg-emerald-950/20 border border-emerald-200 dark:border-emerald-800/40 rounded-xl p-2.5 flex items-center justify-between text-xs text-emerald-800 dark:text-emerald-300 font-semibold">
+                  <div className="min-w-0 flex items-center">
+                    <span className="font-bold uppercase tracking-wider text-[10px] bg-emerald-100 dark:bg-emerald-900/40 border border-emerald-300 dark:border-emerald-800 px-1.5 py-0.5 rounded mr-1.5 font-mono">
+                      {appliedPromotion.code}
+                    </span>
+                    <span className="truncate">{appliedPromotion.name}</span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectPromo("")}
+                    className="text-xs font-bold text-emerald-900 hover:text-red-600 transition-colors ml-1.5 px-1.5 py-0.5 bg-emerald-100/50 hover:bg-red-50 rounded"
+                  >
+                    Xóa
+                  </button>
                 </div>
               )}
             </section>
@@ -775,6 +925,13 @@ export default function CheckoutPage() {
                           <p className="mt-0.5 truncate text-xs font-semibold text-[#9A7A65]">
                             + {item.toppings.map((topping) => `${topping.topping.name} x${topping.quantity}`).join(", ")}
                           </p>
+                        )}
+                        {appliedPromotion && isItemEligibleForPromo(item, appliedPromotion) && (
+                          <div className="mt-1">
+                            <span className="inline-flex items-center gap-1 text-[10px] font-black text-emerald-600 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded-md">
+                              ✓ Được giảm giá
+                            </span>
+                          </div>
                         )}
                       </div>
                       <span className="shrink-0 font-black text-[#3A1D14]">{formatPrice(itemPrice)}</span>

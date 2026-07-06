@@ -36,6 +36,18 @@ const getOrderErrorMessage = (error: unknown) => {
   return error instanceof Error ? error.message : "Không thể tạo đơn hàng qua backend.";
 };
 
+const isItemEligibleForPromo = (item: CartItem, promo: Promotion | null): boolean => {
+  if (!promo) return false;
+  if (promo.applicableType === "Entire Order") return true;
+  if (promo.applicableType === "Product") {
+    return promo.applicableProductIds?.includes(item.product.id) || false;
+  }
+  if (promo.applicableType === "Category") {
+    return promo.applicableCategoryIds?.includes(item.product.categoryId) || false;
+  }
+  return false;
+};
+
 const BANK_TRANSFER_CONFIG = {
   bankBin: "970422",
   bankName: "MB Bank",
@@ -551,6 +563,11 @@ export function POSCart({
                   {item.note && (
                     <span className="text-[9px] text-[#C8510A] italic block mt-0.5 leading-none">
                       {item.note}
+                    </span>
+                  )}
+                  {appliedPromo && isItemEligibleForPromo(item, appliedPromo) && (
+                    <span className="inline-flex items-center gap-0.5 mt-1 text-[8px] font-black text-emerald-600 bg-emerald-50 border border-emerald-200 px-1 py-0.2 rounded">
+                      ✓ Giảm giá
                     </span>
                   )}
                 </div>

@@ -4,6 +4,7 @@ import { CartItem, Product, ProductVariant, Topping, Promotion } from "@/types";
 interface CartState {
   items: CartItem[];
   appliedPromotion: Promotion | null;
+  appliedDiscountAmount: number;
   orderType: "delivery" | "pickup";
   selectedStoreId: number | null;
   
@@ -17,7 +18,8 @@ interface CartState {
   ) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
   removeItem: (itemId: string) => void;
-  applyPromotion: (promo: Promotion | null) => void;
+  applyPromotion: (promo: Promotion | null, discountAmount?: number) => void;
+  setAppliedDiscountAmount: (amount: number) => void;
   setOrderType: (type: "delivery" | "pickup") => void;
   setSelectedStoreId: (storeId: number | null) => void;
   clearCart: () => void;
@@ -44,6 +46,7 @@ const generateCartItemId = (
 export const useCartStore = create<CartState>((set, get) => ({
   items: [],
   appliedPromotion: null,
+  appliedDiscountAmount: 0,
   orderType: "delivery",
   selectedStoreId: null,
 
@@ -94,8 +97,35 @@ export const useCartStore = create<CartState>((set, get) => ({
     }));
   },
 
-  applyPromotion: (promo) => {
-    set({ appliedPromotion: promo });
+  applyPromotion: (promo, discountAmount) => {
+    if (!promo) {
+      set({ appliedPromotion: null, appliedDiscountAmount: 0 });
+      return;
+    }
+    
+    if (discountAmount !== undefined) {
+      set({ appliedPromotion: promo, appliedDiscountAmount: discountAmount });
+      return;
+    }
+    
+    // Fallback client-side calculation if discountAmount is not provided
+    const subtotal = get().getSubtotal();
+    let calculatedDiscount = 0;
+    if (subtotal >= Number(promo.minimumOrderValue || 0)) {
+      if (promo.discountType === "Percentage") {
+        const discount = (subtotal * Number(promo.discountValue)) / 100;
+        calculatedDiscount = promo.maximumDiscount 
+          ? Math.min(discount, Number(promo.maximumDiscount), subtotal)
+          : Math.min(discount, subtotal);
+      } else {
+        calculatedDiscount = Math.min(Number(promo.discountValue), subtotal);
+      }
+    }
+    set({ appliedPromotion: promo, appliedDiscountAmount: calculatedDiscount });
+  },
+
+  setAppliedDiscountAmount: (amount) => {
+    set({ appliedDiscountAmount: amount });
   },
 
   setOrderType: (type) => {
@@ -107,7 +137,7 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
 
   clearCart: () => {
-    set({ items: [], appliedPromotion: null });
+    set({ items: [], appliedPromotion: null, appliedDiscountAmount: 0 });
   },
 
   getSubtotal: () => {
@@ -123,22 +153,7 @@ export const useCartStore = create<CartState>((set, get) => ({
   },
 
   getDiscountAmount: () => {
-    const { appliedPromotion } = get();
-    const subtotal = get().getSubtotal();
-    
-    if (!appliedPromotion || subtotal < Number(appliedPromotion.minimumOrderValue || 0)) {
-      return 0;
-    }
-
-    if (appliedPromotion.discountType === "Percentage") {
-      const discount = (subtotal * Number(appliedPromotion.discountValue)) / 100;
-      if (appliedPromotion.maximumDiscount) {
-        return Math.min(discount, Number(appliedPromotion.maximumDiscount), subtotal);
-      }
-      return Math.min(discount, subtotal); // Discount cannot exceed subtotal
-    } else {
-      return Math.min(Number(appliedPromotion.discountValue), subtotal);
-    }
+    return get().appliedDiscountAmount;
   },
 
   getTotalAmount: () => {
