@@ -50,7 +50,6 @@ import { buildOrderTrackingUrl, printOrderAsPdf } from "@/lib/order-print";
 
 const PAYMENT_METHOD_VALUES = [
   "cod",
-  "momo",
   "vnpay",
 ] as const;
 
@@ -78,12 +77,6 @@ const PAYMENT_OPTIONS: {
     badge: "COD",
   },
   {
-    id: "momo",
-    title: "MoMo",
-    subtitle: "Ví điện tử MoMo Sandbox.",
-    badge: "MOMO",
-  },
-  {
     id: "vnpay",
     title: "VNPay",
     subtitle: "Cổng thanh toán VNPay Sandbox.",
@@ -108,13 +101,11 @@ const LOWLANDS_TRANSFER_ACCOUNT = {
 };
 
 const ONLINE_PAYMENT_METHODS = new Set<CheckoutPaymentMethod>([
-  "momo",
   "vnpay",
 ]);
 
 const toBackendPaymentMethod = (paymentMethod: CheckoutPaymentMethod): Order["paymentMethod"] => {
   if (paymentMethod === "cod") return "cod";
-  if (paymentMethod === "momo") return "e_wallet";
   return "bank_transfer";
 };
 
@@ -406,7 +397,7 @@ export default function CheckoutPage() {
   const onSubmit = async (data: FormData) => {
     if (items.length === 0) return;
 
-    if (data.paymentMethod === "momo" || data.paymentMethod === "vnpay") {
+    if (data.paymentMethod === "vnpay") {
       setSubmitting(true);
       const orderData: Order = {
         storeId: formStoreId,
@@ -427,9 +418,7 @@ export default function CheckoutPage() {
         const savedOrder = await createOrder(orderData);
         toast.info("Đang tạo liên kết thanh toán...");
         
-        const createPaymentPath = data.paymentMethod === "momo" 
-          ? "/payment/momo/create" 
-          : "/payment/vnpay/create";
+        const createPaymentPath = "/payment/vnpay/create";
           
         const paymentRes = await axiosInstance.post<{ data: { redirectUrl?: string; payUrl?: string; paymentUrl?: string } }>(
           createPaymentPath,
@@ -1270,14 +1259,7 @@ function PaymentBrandMark({
     );
   }
 
-  if (method === "momo") {
-    return (
-      <span className="flex items-center gap-1.5 text-[#A52A2A]">
-        <Smartphone className={iconClass} />
-        <span className={`${textClass} font-black`}>{badge}</span>
-      </span>
-    );
-  }
+  // MoMo option removed
 
   const methodStr = method as string;
   if (methodStr === "vnpay_qr") {
