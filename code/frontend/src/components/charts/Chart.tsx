@@ -406,3 +406,49 @@ export function PieChart({ data, height = 200, className }: PieChartProps) {
     </div>
   );
 }
+
+// --- Horizontal Bar Chart Component ---
+interface HorizontalBarChartProps {
+  data: ChartDataItem[];
+  unit?: string;
+  className?: string;
+}
+
+export function HorizontalBarChart({ data, unit = "", className }: HorizontalBarChartProps) {
+  if (!data || data.length === 0) return null;
+
+  const maxVal = Math.max(...data.map((d) => d.value), 1);
+  const colors = [
+    "bg-amber-900",
+    "bg-amber-800",
+    "bg-amber-700",
+    "bg-amber-600",
+    "bg-amber-500"
+  ];
+
+  return (
+    <div className={cn("w-full bg-card rounded-xl border border-border/80 p-5 shadow-xs space-y-4", className)}>
+      {data.map((item, idx) => {
+        const percentage = (item.value / maxVal) * 100;
+        const colorClass = colors[idx % colors.length];
+
+        return (
+          <div key={idx} className="space-y-1 text-left">
+            <div className="flex justify-between text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              <span className="truncate max-w-[70%]">{item.label}</span>
+              <span className="shrink-0 font-extrabold text-zinc-900 dark:text-zinc-100">
+                {item.value.toLocaleString("vi-VN")} {unit}
+              </span>
+            </div>
+            <div className="w-full bg-zinc-100 dark:bg-zinc-800 h-2.5 rounded-full overflow-hidden">
+              <div
+                className={cn("h-full rounded-full transition-all duration-500 ease-out", colorClass)}
+                style={{ width: `${percentage}%` }}
+              />
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
