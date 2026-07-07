@@ -69,7 +69,6 @@ export function Sidebar({ locale, isCollapsed, onToggleCollapse, onCloseMobile }
       id: "reports",
       title: t("common.sidebar.groups.reports"),
       items: [
-        { href: `/${locale}/manager/revenue`, label: t("common.sidebar.revenue"), icon: Coins },
         { href: `/${locale}/manager/reports`, label: t("common.sidebar.statisticalReports"), icon: LineChart }
       ]
     }

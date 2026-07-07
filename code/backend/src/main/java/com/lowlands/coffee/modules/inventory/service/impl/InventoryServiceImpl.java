@@ -28,6 +28,7 @@ import com.lowlands.coffee.modules.supplier.entity.SupplierEntity;
 import com.lowlands.coffee.modules.supplier.repository.SupplierRepository;
 import com.lowlands.coffee.modules.user.entity.UserEntity;
 import com.lowlands.coffee.modules.user.repository.UserRepository;
+import com.lowlands.coffee.modules.notification.service.NotificationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +56,7 @@ public class InventoryServiceImpl implements InventoryService {
     private final UserRepository userRepository;
     private final IngredientRepository ingredientRepository;
     private final InventoryMapper inventoryMapper;
+    private final NotificationService notificationService;
 
     public InventoryServiceImpl(
             GoodsReceiptRepository goodsReceiptRepository,
@@ -63,7 +65,8 @@ public class InventoryServiceImpl implements InventoryService {
             StoreRepository storeRepository,
             UserRepository userRepository,
             IngredientRepository ingredientRepository,
-            InventoryMapper inventoryMapper
+            InventoryMapper inventoryMapper,
+            NotificationService notificationService
     ) {
         this.goodsReceiptRepository = goodsReceiptRepository;
         this.stockMovementRepository = stockMovementRepository;
@@ -72,6 +75,7 @@ public class InventoryServiceImpl implements InventoryService {
         this.userRepository = userRepository;
         this.ingredientRepository = ingredientRepository;
         this.inventoryMapper = inventoryMapper;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -143,7 +147,21 @@ public class InventoryServiceImpl implements InventoryService {
         receipt.setNote(clean(request.getNote()));
         replaceReceiptItems(receipt, request.getItems());
         receipt.setTotalAmount(calculateTotal(receipt));
-        return inventoryMapper.toGoodsReceiptResponse(goodsReceiptRepository.save(receipt));
+        GoodsReceiptResponse response = inventoryMapper.toGoodsReceiptResponse(goodsReceiptRepository.save(receipt));
+
+        // Notify Admins!
+        notificationService.createNotification(
+                "Yêu cầu nhập kho mới",
+                "Quản lý chi nhánh " + receipt.getStore().getName() + " đã tạo yêu cầu nhập kho mới " + receiptCode + ".",
+                "IMPORT_REQUEST",
+                receipt.getCreatedBy().getFullName(),
+                null,
+                "ADMIN",
+                null,
+                "/admin/import-notes"
+        );
+
+        return response;
     }
 
     @Override
@@ -208,6 +226,19 @@ public class InventoryServiceImpl implements InventoryService {
         savedReceipt.getItems().forEach(item -> stockMovementRepository.save(
                 createReceiptMovement(savedReceipt, item)
         ));
+
+        // Notify the Manager who requested it!
+        notificationService.createNotification(
+                "Yêu cầu nhập kho được duyệt",
+                "Yêu cầu nhập kho " + savedReceipt.getReceiptCode() + " đã được Admin phê duyệt thành công.",
+                "IMPORT_APPROVED",
+                "Admin Hệ thống",
+                savedReceipt.getCreatedBy().getId(),
+                null,
+                null,
+                "/manager/inventory/import-notes"
+        );
+
         return inventoryMapper.toGoodsReceiptResponse(savedReceipt);
     }
 

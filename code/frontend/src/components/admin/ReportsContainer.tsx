@@ -12,6 +12,9 @@ import { getOrders } from "@/services/order.service";
 import { getStores } from "@/services/store.service";
 import { getGoodsReceipts, GoodsReceipt } from "@/services/goods-receipt.service";
 import { getStockBalances, getStockMovements, StockBalance, StockMovement } from "@/services/inventory.service";
+import { getManagerOrders } from "@/services/manager-order.service";
+import { getManagerGoodsReceipts } from "@/services/manager-goods-receipt.service";
+import { getManagerStockBalances, getManagerStockMovements } from "@/services/manager-inventory.service";
 import { Order, Store } from "@/types";
 import { StatsCard } from "@/components/admin/StatsCard";
 import { ChartCard } from "@/components/admin/ChartCard";
@@ -31,7 +34,10 @@ export function ReportsContainer({ isAdmin }: ReportsContainerProps) {
 
   // --- Date Helpers ---
   const getFormattedDate = (date: Date) => {
-    return date.toISOString().split("T")[0];
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
   };
 
   const getQuickRangeDates = (range: string): { start: string; end: string } => {
@@ -115,11 +121,11 @@ export function ReportsContainer({ isAdmin }: ReportsContainerProps) {
     setIsLoading(true);
     try {
       const [ordersData, storesData, receiptsData, balancesData, movementsData] = await Promise.all([
-        getOrders({ page: 0, size: 2000 }),
-        getStores().catch(() => [] as Store[]),
-        getGoodsReceipts().catch(() => [] as GoodsReceipt[]),
-        getStockBalances().catch(() => [] as StockBalance[]),
-        getStockMovements().catch(() => [] as StockMovement[]),
+        isAdmin ? getOrders({ page: 0, size: 2000 }) : getManagerOrders({ page: 0, size: 2000 }),
+        isAdmin ? getStores().catch(() => [] as Store[]) : Promise.resolve([] as Store[]),
+        isAdmin ? getGoodsReceipts().catch(() => [] as GoodsReceipt[]) : getManagerGoodsReceipts().catch(() => [] as GoodsReceipt[]),
+        isAdmin ? getStockBalances().catch(() => [] as StockBalance[]) : getManagerStockBalances().catch(() => [] as StockBalance[]),
+        isAdmin ? getStockMovements().catch(() => [] as StockMovement[]) : getManagerStockMovements().catch(() => [] as StockMovement[]),
       ]);
 
       setOrders(ordersData);
@@ -146,6 +152,7 @@ export function ReportsContainer({ isAdmin }: ReportsContainerProps) {
       const range = getQuickRangeDates(value);
       setStartDate(range.start);
       setEndDate(range.end);
+      setFilters(f => ({ ...f, startDate: range.start, endDate: range.end }));
     }
   };
 
@@ -284,7 +291,7 @@ export function ReportsContainer({ isAdmin }: ReportsContainerProps) {
 
   // --- Sub-View: 1. REVENUE ---
   const revenueMetrics = useMemo(() => {
-    const completed = filteredOrders.filter((o) => (o.status || "").toUpperCase() === "COMPLETED");
+    const completed = filteredOrders.filter((o) => (o.status || "").toUpperCase() === "COMPLETED" && (o.payment?.paymentStatus || "").toUpperCase() === "PAID");
     const cancelled = filteredOrders.filter((o) => (o.status || "").toUpperCase() === "CANCELLED");
     
     const totalRev = completed.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
@@ -306,7 +313,7 @@ export function ReportsContainer({ isAdmin }: ReportsContainerProps) {
     const dailyRev: Record<string, number> = {};
     
     filteredOrders
-      .filter((o) => (o.status || "").toUpperCase() === "COMPLETED")
+      .filter((o) => (o.status || "").toUpperCase() === "COMPLETED" && (o.payment?.paymentStatus || "").toUpperCase() === "PAID")
       .forEach((o) => {
         const day = o.createdAt ? o.createdAt.split("T")[0].substring(5) : "Unknown"; 
         dailyRev[day] = (dailyRev[day] || 0) + (o.totalAmount || 0);
@@ -334,7 +341,8 @@ export function ReportsContainer({ isAdmin }: ReportsContainerProps) {
 
       groups[key].orders += 1;
       const status = (o.status || "").toUpperCase();
-      if (status === "COMPLETED") {
+      const isPaid = (o.payment?.paymentStatus || "").toUpperCase() === "PAID";
+      if (status === "COMPLETED" && isPaid) {
         groups[key].revenue += o.totalAmount || 0;
         groups[key].completed += 1;
       } else if (status === "CANCELLED") {
@@ -448,7 +456,7 @@ export function ReportsContainer({ isAdmin }: ReportsContainerProps) {
 
   // --- Sub-View: 4. PAYMENT ---
   const paymentTableData = useMemo(() => {
-    const completed = filteredOrders.filter((o) => (o.status || "").toUpperCase() === "COMPLETED");
+    const completed = filteredOrders.filter((o) => (o.status || "").toUpperCase() === "COMPLETED" && (o.payment?.paymentStatus || "").toUpperCase() === "PAID");
     const methods: Record<string, { paymentMethod: string; orderCount: number; revenue: number }> = {};
 
     completed.forEach((o) => {
@@ -751,8 +759,10 @@ export function ReportsContainer({ isAdmin }: ReportsContainerProps) {
               type="date"
               value={startDate}
               onChange={(e) => {
-                setStartDate(e.target.value);
+                const val = e.target.value;
+                setStartDate(val);
                 setQuickRange("custom");
+                setFilters(f => ({ ...f, startDate: val }));
               }}
               className="h-10 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 text-xs font-semibold text-zinc-700 dark:text-zinc-300 outline-none focus:border-amber-800"
             />
@@ -765,8 +775,10 @@ export function ReportsContainer({ isAdmin }: ReportsContainerProps) {
               type="date"
               value={endDate}
               onChange={(e) => {
-                setEndDate(e.target.value);
+                const val = e.target.value;
+                setEndDate(val);
                 setQuickRange("custom");
+                setFilters(f => ({ ...f, endDate: val }));
               }}
               className="h-10 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 text-xs font-semibold text-zinc-700 dark:text-zinc-300 outline-none focus:border-amber-800"
             />
@@ -778,7 +790,11 @@ export function ReportsContainer({ isAdmin }: ReportsContainerProps) {
               <label className="text-[10px] font-black uppercase text-zinc-400 dark:text-zinc-555">{t("admin.reports.store")}</label>
               <select
                 value={selectedStoreId}
-                onChange={(e) => setSelectedStoreId(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setSelectedStoreId(val);
+                  setFilters(f => ({ ...f, storeId: val }));
+                }}
                 className="h-10 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 text-xs font-semibold text-zinc-700 dark:text-zinc-300 outline-none focus:border-amber-800"
               >
                 <option value="">{locale === "vi" ? "Tất cả chi nhánh" : "All Branches"}</option>
@@ -806,7 +822,11 @@ export function ReportsContainer({ isAdmin }: ReportsContainerProps) {
             <label className="text-[10px] font-black uppercase text-zinc-400 dark:text-zinc-555">{t("admin.reports.paymentMethod")}</label>
             <select
               value={paymentMethod}
-              onChange={(e) => setPaymentMethod(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setPaymentMethod(val);
+                setFilters(f => ({ ...f, paymentMethod: val }));
+              }}
               className="h-10 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 text-xs font-semibold text-zinc-700 dark:text-zinc-300 outline-none focus:border-amber-800"
             >
               <option value="">{locale === "vi" ? "Tất cả phương thức" : "All Methods"}</option>
@@ -821,7 +841,11 @@ export function ReportsContainer({ isAdmin }: ReportsContainerProps) {
             <label className="text-[10px] font-black uppercase text-zinc-400 dark:text-zinc-555">{t("admin.reports.orderStatus")}</label>
             <select
               value={orderStatus}
-              onChange={(e) => setOrderStatus(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setOrderStatus(val);
+                setFilters(f => ({ ...f, orderStatus: val }));
+              }}
               className="h-10 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 text-xs font-semibold text-zinc-700 dark:text-zinc-300 outline-none focus:border-amber-800"
             >
               <option value="">{locale === "vi" ? "Tất cả trạng thái" : "All Statuses"}</option>
@@ -840,7 +864,11 @@ export function ReportsContainer({ isAdmin }: ReportsContainerProps) {
               <input
                 type="text"
                 value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value;
+                  setKeyword(val);
+                  setFilters(f => ({ ...f, keyword: val }));
+                }}
                 placeholder={t("admin.reports.searchKeywordPlaceholder")}
                 className="h-10 w-full rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 pl-9 pr-3 text-xs font-semibold text-zinc-700 dark:text-zinc-300 outline-none focus:border-amber-800"
               />
