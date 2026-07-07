@@ -161,20 +161,30 @@ export default function CheckoutPage() {
     setSelectedStoreId,
     appliedPromotion,
     applyPromotion,
+    hasHydrated,
   } = useCartStore();
   const { isAuthenticated, user } = useAuthStore();
 
   const [stores, setStores] = useState<Store[]>([]);
   const [formStoreId, setFormStoreId] = useState<number>(selectedStoreId || 1);
 
+  // Sync formStoreId when store hydrates
   useEffect(() => {
+    if (hasHydrated && selectedStoreId) {
+      setFormStoreId(selectedStoreId);
+    }
+  }, [hasHydrated, selectedStoreId]);
+
+  useEffect(() => {
+    if (!hasHydrated) return;
     const fetchStores = async () => {
       try {
         const data = await getStores();
         const active = data.filter((s) => s.status === "active");
         setStores(active);
         if (active.length > 0) {
-          const defaultStore = active.find((s) => s.id === selectedStoreId) || active[0];
+          const currentStoreId = useCartStore.getState().selectedStoreId;
+          const defaultStore = active.find((s) => s.id === currentStoreId) || active[0];
           setFormStoreId(defaultStore.id);
           setSelectedStoreId(defaultStore.id);
         }
@@ -183,10 +193,11 @@ export default function CheckoutPage() {
       }
     };
     void fetchStores();
-  }, [selectedStoreId, setSelectedStoreId]);
+  }, [hasHydrated, setSelectedStoreId]);
 
   // Fetch available promotions on customer checkout page
   useEffect(() => {
+    if (!hasHydrated) return;
     const fetchAvailable = async () => {
       if (items.length === 0) {
         setAvailablePromotions([]);
@@ -224,7 +235,7 @@ export default function CheckoutPage() {
       }
     };
     void fetchAvailable();
-  }, [items, appliedPromotion?.code, applyPromotion, getSubtotal]);
+  }, [hasHydrated, items, appliedPromotion?.code, applyPromotion, getSubtotal]);
 
   const formSchema = zod.object({
     receiverName: zod.string().min(1, { message: t("product.checkout.validation.nameRequired") }),
@@ -565,6 +576,15 @@ export default function CheckoutPage() {
     toast.error("Trình duyệt đang chặn cửa sổ in. Vui lòng cho phép popup rồi thử lại.");
   };
 
+  if (!hasHydrated) {
+    return (
+      <div className="py-20 min-h-[60vh] bg-background flex flex-col items-center justify-center text-center gap-6">
+        <Loader2 className="h-16 w-16 animate-spin text-[#C8510A]" />
+        <h2 className="font-heading font-extrabold text-xl text-[#3A1D14]">Đang tải giỏ hàng...</h2>
+      </div>
+    );
+  }
+
   if (items.length === 0 && !createdOrder) {
     return (
       <div className="py-20 min-h-[60vh] bg-background flex flex-col items-center justify-center text-center gap-6">
@@ -659,7 +679,7 @@ export default function CheckoutPage() {
                   </label>
                   <textarea
                     {...register("note")}
-                    className="min-h-[86px] w-full resize-none rounded-xl border border-[#E5D8C8] bg-[#FFFCF8] p-3 text-sm font-semibold text-[#3A1D14] outline-none transition focus:border-[#C69A5B] focus:ring-3 focus:ring-[#C69A5B]/20"
+                    className="min-h-[86px] w-full resize-none rounded-xl border border-[#E5D8C8] bg-[#FFFCF8] p-3 text-sm font-semibold text-[#3A1D14] outline-none transition focus:border-[#C69A5B] focus:ring-3 focus:ring-[#C69A5B]/20 placeholder:font-normal placeholder:text-muted-foreground/60"
                     placeholder={t("product.checkout.notePlaceholder")}
                   />
                 </div>
@@ -679,7 +699,7 @@ export default function CheckoutPage() {
                   </label>
                   <Input
                     {...register("receiverName")}
-                    className="h-11 rounded-xl border-[#E5D8C8] bg-[#FFFCF8] text-sm font-semibold"
+                    className="h-11 rounded-xl border-[#E5D8C8] bg-[#FFFCF8] text-sm font-semibold placeholder:font-normal placeholder:text-muted-foreground/60"
                     placeholder={t("product.checkout.fullNamePlaceholder")}
                   />
                   {errors.receiverName && (
@@ -693,7 +713,7 @@ export default function CheckoutPage() {
                   </label>
                   <Input
                     {...register("receiverPhone")}
-                    className="h-11 rounded-xl border-[#E5D8C8] bg-[#FFFCF8] text-sm font-semibold"
+                    className="h-11 rounded-xl border-[#E5D8C8] bg-[#FFFCF8] text-sm font-semibold placeholder:font-normal placeholder:text-muted-foreground/60"
                     placeholder={t("product.checkout.phonePlaceholder")}
                   />
                   {errors.receiverPhone && (
@@ -707,7 +727,7 @@ export default function CheckoutPage() {
                   </label>
                   <Input
                     {...register("deliveryAddress")}
-                    className="h-11 rounded-xl border-[#E5D8C8] bg-[#FFFCF8] text-sm font-semibold"
+                    className="h-11 rounded-xl border-[#E5D8C8] bg-[#FFFCF8] text-sm font-semibold placeholder:font-normal placeholder:text-muted-foreground/60"
                     placeholder={t("product.checkout.addressPlaceholder")}
                   />
                   {errors.deliveryAddress && (
@@ -870,7 +890,7 @@ export default function CheckoutPage() {
                 <input
                   value={voucherCode}
                   onChange={(event) => setVoucherCode(event.target.value.toUpperCase())}
-                  className="min-w-0 flex-1 bg-transparent px-3 text-sm font-semibold text-[#3A1D14] outline-none uppercase"
+                  className="min-w-0 flex-1 bg-transparent px-3 text-sm font-semibold text-[#3A1D14] outline-none uppercase placeholder:font-normal placeholder:text-muted-foreground/60"
                   placeholder={t("product.checkout.manualVoucherPlaceholder")}
                 />
                 <button
@@ -1079,7 +1099,7 @@ export default function CheckoutPage() {
                         <Input
                           value={otpCode}
                           onChange={(event) => setOtpCode(event.target.value)}
-                          className="mt-2 h-12 rounded-xl border-[#C69A5B] text-center text-lg font-black tracking-[0.35em]"
+                          className="mt-2 h-12 rounded-xl border-[#C69A5B] text-center text-lg font-black tracking-[0.35em] placeholder:font-normal placeholder:text-muted-foreground/60 placeholder:tracking-normal placeholder:text-sm"
                           maxLength={6}
                           placeholder="123456"
                         />
