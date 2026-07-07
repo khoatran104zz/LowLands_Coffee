@@ -171,9 +171,16 @@ public class SandboxPaymentServiceImpl implements SandboxPaymentService {
         String orderCode = order.getOrderCode();
         long amount = order.getTotalAmount().multiply(new BigDecimal(100)).setScale(0, BigDecimal.ROUND_HALF_UP).longValue();
         String orderInfo = "Thanh toan don hang Lowlands Coffee " + orderCode;
-        String clientIp = (ipAddress == null || ipAddress.isBlank()) ? "127.0.0.1" : ipAddress;
+        
+        String clientIp = (ipAddress == null || ipAddress.isBlank()) ? "127.0.0.1" : ipAddress.trim();
+        if (clientIp.contains(",")) {
+            clientIp = clientIp.split(",")[0].trim();
+        }
+        if (clientIp.equals("0:0:0:0:0:0:0:1") || clientIp.equals("::1")) {
+            clientIp = "127.0.0.1";
+        }
 
-        String createDate = ZonedDateTime.now(ZoneId.of("Etc/GMT-7"))
+        String createDate = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"))
                 .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
 
         Map<String, String> vnpParams = new TreeMap<>();
@@ -191,24 +198,32 @@ public class SandboxPaymentServiceImpl implements SandboxPaymentService {
         vnpParams.put("vnp_CreateDate", createDate);
 
         // Build query string and hash data
+        Map<String, String> nonParams = new TreeMap<>();
+        for (Map.Entry<String, String> entry : vnpParams.entrySet()) {
+            if (entry.getValue() != null && !entry.getValue().isEmpty()) {
+                nonParams.put(entry.getKey(), entry.getValue());
+            }
+        }
+
         StringBuilder hashData = new StringBuilder();
         StringBuilder query = new StringBuilder();
-        Iterator<Map.Entry<String, String>> itr = vnpParams.entrySet().iterator();
+        Iterator<Map.Entry<String, String>> itr = nonParams.entrySet().iterator();
         while (itr.hasNext()) {
             Map.Entry<String, String> entry = itr.next();
             String key = entry.getKey();
             String value = entry.getValue();
-            if (value != null && !value.isEmpty()) {
-                // Hashing uses alphabetical ordering of URL-encoded fields
-                String encodedKey = URLEncoder.encode(key, StandardCharsets.US_ASCII);
-                String encodedValue = URLEncoder.encode(value, StandardCharsets.US_ASCII).replace("+", "%20");
-                
-                hashData.append(key).append("=").append(encodedValue);
-                query.append(encodedKey).append("=").append(encodedValue);
-                if (itr.hasNext()) {
-                    hashData.append("&");
-                    query.append("&");
-                }
+
+            // Build hashData (No URL encoding)
+            hashData.append(key).append("=").append(value);
+
+            // Build query (With URL encoding using UTF-8, keeping + for spaces)
+            String encodedKey = URLEncoder.encode(key, StandardCharsets.UTF_8);
+            String encodedValue = URLEncoder.encode(value, StandardCharsets.UTF_8);
+            query.append(encodedKey).append("=").append(encodedValue);
+
+            if (itr.hasNext()) {
+                hashData.append("&");
+                query.append("&");
             }
         }
 
@@ -386,17 +401,25 @@ public class SandboxPaymentServiceImpl implements SandboxPaymentService {
         sortedParams.remove("vnp_SecureHash");
         sortedParams.remove("vnp_SecureHashType");
 
+        // Filter out null or empty parameters
+        Map<String, String> nonParams = new TreeMap<>();
+        for (Map.Entry<String, String> entry : sortedParams.entrySet()) {
+            if (entry.getValue() != null && !entry.getValue().isEmpty()) {
+                nonParams.put(entry.getKey(), entry.getValue());
+            }
+        }
+
         StringBuilder hashData = new StringBuilder();
-        Iterator<Map.Entry<String, String>> itr = sortedParams.entrySet().iterator();
+        Iterator<Map.Entry<String, String>> itr = nonParams.entrySet().iterator();
         while (itr.hasNext()) {
             Map.Entry<String, String> entry = itr.next();
             String key = entry.getKey();
             String value = entry.getValue();
-            if (value != null && !value.isEmpty()) {
-                hashData.append(key).append("=").append(URLEncoder.encode(value, StandardCharsets.US_ASCII).replace("+", "%20"));
-                if (itr.hasNext()) {
-                    hashData.append("&");
-                }
+
+            // Build hashData (No URL encoding)
+            hashData.append(key).append("=").append(value);
+            if (itr.hasNext()) {
+                hashData.append("&");
             }
         }
 
