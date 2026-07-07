@@ -61,6 +61,7 @@ export function Header() {
 
   useEffect(() => {
     useAuthStore.getState().hydrateFromStorage();
+    useCartStore.getState().hydrateFromStorage();
     setIsMounted(true);
   }, []);
   

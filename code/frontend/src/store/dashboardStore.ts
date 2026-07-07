@@ -24,6 +24,7 @@ import {
   updateUser,
   deleteUser,
 } from "@/services/user.service";
+import { getOrders } from "@/services/order.service";
 import {
   getPromotions,
   createPromotion,
@@ -105,6 +106,7 @@ export interface DashboardState {
   addEmployee: (employee: Omit<Employee, "id"> & { password?: string }) => Promise<void>;
   updateEmployee: (employee: Employee) => Promise<void>;
   deleteEmployee: (id: number) => Promise<void>;
+  updateCustomer: (id: number, updated: { fullName: string; email: string; phone: string; status: "active" | "inactive"; roleId: number }) => Promise<void>;
 
   addOrder: (order: Omit<OrderExtended, "id" | "orderCode" | "createdAt">) => OrderExtended;
   updateOrderStatus: (id: number, status: OrderExtended["status"]) => void;
@@ -275,8 +277,8 @@ export const useDashboardStore = create<DashboardState>()(
               ...user,
               phone: user.phone || "",
               status: user.status?.toUpperCase() === "ACTIVE" ? "active" : "inactive",
-              orderCount: 0,
-              totalSpent: 0,
+              orderCount: (user as any).orderCount || 0,
+              totalSpent: (user as any).totalSpent || 0,
             }));
 
           set({ employees, customers });
@@ -461,6 +463,21 @@ export const useDashboardStore = create<DashboardState>()(
           await get().hydrateUsers();
         } catch (error) {
           console.error("Failed to delete employee", error);
+          throw error;
+        }
+      },
+      updateCustomer: async (id, updated) => {
+        try {
+          await updateUser(id, {
+            fullName: updated.fullName,
+            email: updated.email,
+            phone: updated.phone,
+            roleId: updated.roleId,
+            status: updated.status === "active" ? "ACTIVE" : "INACTIVE"
+          });
+          await get().hydrateUsers();
+        } catch (error) {
+          console.error("Failed to update customer", error);
           throw error;
         }
       },

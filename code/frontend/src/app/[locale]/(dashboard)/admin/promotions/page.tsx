@@ -15,9 +15,12 @@ import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useConfirm } from "@/hooks/useConfirm";
+import { useParams } from "next/navigation";
 
 export default function AdminPromotionsPage() {
   const { t } = useTranslation();
+  const params = useParams();
+  const locale = (params?.locale as string) || "vi";
   const confirm = useConfirm();
   const [isMounted, setIsMounted] = useState(false);
 
@@ -143,18 +146,18 @@ export default function AdminPromotionsPage() {
 
   const handleOpenDelete = async (promo: Promotion) => {
     const isConfirmed = await confirm({
-      title: "Xác nhận xóa khuyến mãi",
-      message: `Bạn có chắc chắn muốn xóa mã khuyến mãi "${promo.code}"?`,
+      title: t("admin.promotionsPage.confirmDeleteTitle"),
+      message: t("admin.promotionsPage.confirmDeleteMsg").replace("{code}", promo.code),
       confirmText: t("common.delete"),
       cancelText: t("common.cancel")
     });
     if (isConfirmed) {
       try {
         await deletePromotion(promo.id);
-        toast.success("Xóa khuyến mãi thành công");
+        toast.success(t("admin.promotionsPage.msgSuccessDelete"));
       } catch (err) {
         console.error(err);
-        toast.error("Không thể xóa khuyến mãi");
+        toast.error(t("admin.promotionsPage.msgErrorDelete"));
       }
     }
   };
@@ -164,37 +167,41 @@ export default function AdminPromotionsPage() {
     try {
       await updatePromotionStatus(promo.id, nextStatus);
       await hydratePromotions();
-      toast.success(`Đã chuyển trạng thái mã ${promo.code} sang ${nextStatus}`);
+      toast.success(
+        t("admin.promotionsPage.msgSuccessStatusToggle")
+          .replace("{code}", promo.code)
+          .replace("{status}", nextStatus)
+      );
     } catch (err) {
       console.error(err);
-      toast.error("Không thể thay đổi trạng thái khuyến mãi");
+      toast.error(t("admin.promotionsPage.msgErrorStatusToggle"));
     }
   };
 
   const handleSavePromo = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formCode.trim() || !formName.trim()) {
-      toast.error("Vui lòng điền đầy đủ mã và tên khuyến mãi");
+      toast.error(t("admin.promotionsPage.validationRequired"));
       return;
     }
 
     if (formDiscountValue <= 0) {
-      toast.error("Giá trị giảm giá phải lớn hơn 0");
+      toast.error(t("admin.promotionsPage.validationDiscountValue"));
       return;
     }
 
     if (formDiscountType === "Percentage" && formDiscountValue > 100) {
-      toast.error("Tỷ lệ giảm giá (%) không được lớn hơn 100");
+      toast.error(t("admin.promotionsPage.validationPercentage"));
       return;
     }
 
     if (formApplicableType === "Product" && selectedProductIds.length === 0) {
-      toast.error("Vui lòng chọn ít nhất một sản phẩm áp dụng");
+      toast.error(t("admin.promotionsPage.validationProductRequired"));
       return;
     }
 
     if (formApplicableType === "Category" && selectedCategoryIds.length === 0) {
-      toast.error("Vui lòng chọn ít nhất một danh mục áp dụng");
+      toast.error(t("admin.promotionsPage.validationCategoryRequired"));
       return;
     }
 
@@ -222,15 +229,15 @@ export default function AdminPromotionsPage() {
     try {
       if (editingPromo) {
         await updatePromotion(editingPromo.id, payload);
-        toast.success("Cập nhật khuyến mãi thành công");
+        toast.success(t("admin.promotionsPage.msgSuccessUpdate"));
       } else {
         await addPromotion(payload);
-        toast.success("Tạo khuyến mãi thành công");
+        toast.success(t("admin.promotionsPage.msgSuccessCreate"));
       }
       setIsFormOpen(false);
     } catch (err: any) {
       console.error(err);
-      const msg = err.response?.data?.message || "Không thể lưu thông tin khuyến mãi";
+      const msg = err.response?.data?.message || (editingPromo ? t("admin.promotionsPage.msgErrorUpdate") : t("admin.promotionsPage.msgErrorCreate"));
       toast.error(msg);
     }
   };
@@ -251,7 +258,7 @@ export default function AdminPromotionsPage() {
   const columns: Column<Promotion>[] = [
     {
       key: "code",
-      header: "Mã khuyến mãi",
+      header: t("admin.promotionsPage.colCode"),
       render: (item) => (
         <span className="font-mono text-xs font-bold text-amber-900 bg-amber-50 px-2.5 py-1 rounded border border-amber-250 uppercase">
           {item.code}
@@ -260,7 +267,7 @@ export default function AdminPromotionsPage() {
     },
     {
       key: "name",
-      header: "Tên chương trình",
+      header: t("admin.promotionsPage.colName"),
       render: (item) => (
         <div className="text-left">
           <p className="font-bold text-xs text-amber-950 uppercase tracking-wide">{item.name}</p>
@@ -270,14 +277,14 @@ export default function AdminPromotionsPage() {
     },
     {
       key: "discountValue",
-      header: "Mức giảm",
+      header: t("admin.promotionsPage.colDiscount"),
       render: (item) => (
         <span className="font-bold text-xs text-emerald-700 flex items-center gap-1 justify-center">
           {item.discountType === "Percentage" ? (
             <>
               {item.discountValue}%
               <span className="text-[9px] text-muted-foreground font-normal">
-                (tối đa {item.maximumDiscount ? `${item.maximumDiscount.toLocaleString()}đ` : "ko giới hạn"})
+                ({locale === "vi" ? "tối đa" : "max"} {item.maximumDiscount ? `${item.maximumDiscount.toLocaleString()}đ` : (locale === "vi" ? "ko giới hạn" : "unlimited")})
               </span>
             </>
           ) : (
@@ -288,15 +295,15 @@ export default function AdminPromotionsPage() {
     },
     {
       key: "applicableType",
-      header: "Áp dụng cho",
+      header: t("admin.promotionsPage.colAppliesTo"),
       render: (item) => {
-        let label = "Toàn bộ đơn hàng";
+        let label = t("admin.promotionsPage.typeEntireOrder");
         let colorClass = "bg-blue-50 text-blue-800 border-blue-200";
         if (item.applicableType === "Product") {
-          label = "Sản phẩm chọn lọc";
+          label = t("admin.promotionsPage.typeProduct");
           colorClass = "bg-purple-50 text-purple-800 border-purple-200";
         } else if (item.applicableType === "Category") {
-          label = "Danh mục nhóm";
+          label = t("admin.promotionsPage.typeCategory");
           colorClass = "bg-orange-50 text-orange-800 border-orange-200";
         }
         return (
@@ -308,7 +315,7 @@ export default function AdminPromotionsPage() {
     },
     {
       key: "usedCount",
-      header: "Lượt dùng",
+      header: t("admin.promotionsPage.colUsed"),
       render: (item) => (
         <span className="text-xs font-semibold text-amber-900">
           {item.usedCount || 0} / {item.usageLimit || "∞"}
@@ -317,25 +324,25 @@ export default function AdminPromotionsPage() {
     },
     {
       key: "startDate",
-      header: "Thời gian hiệu lực",
+      header: t("admin.promotionsPage.colValidity"),
       render: (item) => {
-        const start = item.startDate ? new Date(item.startDate).toLocaleDateString("vi-VN") : "N/A";
-        const end = item.endDate ? new Date(item.endDate).toLocaleDateString("vi-VN") : "N/A";
+        const start = item.startDate ? new Date(item.startDate).toLocaleDateString(locale === "vi" ? "vi-VN" : "en-US") : "N/A";
+        const end = item.endDate ? new Date(item.endDate).toLocaleDateString(locale === "vi" ? "vi-VN" : "en-US") : "N/A";
         return (
           <div className="text-[10px] font-semibold text-muted-foreground flex flex-col items-center">
-            <span>Từ: {start}</span>
-            <span>Đến: {end}</span>
+            <span>{locale === "vi" ? "Từ" : "From"}: {start}</span>
+            <span>{locale === "vi" ? "Đến" : "To"}: {end}</span>
           </div>
         );
       }
     },
     {
       key: "status",
-      header: "Trạng thái",
+      header: t("admin.promotionsPage.colStatus"),
       render: (item) => (
         <button
           onClick={() => handleToggleStatus(item)}
-          title="Bấm để bật/tắt hoạt động"
+          title={locale === "vi" ? "Bấm để bật/tắt hoạt động" : "Click to toggle status"}
           className="focus:outline-none transition-transform hover:scale-105"
         >
           <StatusBadge status={item.status === "Active" ? "active" : "inactive"} />
@@ -344,7 +351,7 @@ export default function AdminPromotionsPage() {
     },
     {
       key: "id",
-      header: "Hành động",
+      header: t("admin.promotionsPage.colActions"),
       render: (item) => (
         <div className="flex items-center justify-center space-x-2">
           <Button
@@ -377,7 +384,7 @@ export default function AdminPromotionsPage() {
             {t("common.promotions")}
           </h1>
           <p className="text-xs text-muted-foreground font-semibold mt-1">
-            Quản lý và theo dõi các chương trình ưu đãi, mã giảm giá cho cửa hàng.
+            {t("admin.promotionsPage.subtitle")}
           </p>
         </div>
         <Button
@@ -385,7 +392,7 @@ export default function AdminPromotionsPage() {
           className="bg-amber-850 hover:bg-amber-800 text-white rounded-lg px-4 h-10 text-xs font-semibold flex items-center space-x-2 shrink-0 self-start sm:self-auto"
         >
           <Plus className="h-4 w-4" />
-          <span>Tạo khuyến mãi mới</span>
+          <span>{t("admin.promotionsPage.createButton")}</span>
         </Button>
       </div>
 
@@ -402,30 +409,30 @@ export default function AdminPromotionsPage() {
         <SearchBar
           value={searchQuery}
           onChange={setSearchQuery}
-          placeholder="Tìm theo mã hoặc tên..."
+          placeholder={t("admin.promotionsPage.searchPlaceholder")}
         />
         <Filter
-          label="Trạng thái"
+          label={t("admin.promotionsPage.filterStatus")}
           value={statusFilter}
           onChange={setStatusFilter}
           options={[
-            { value: "Draft", label: "Nháp (Draft)" },
-            { value: "Active", label: "Kích hoạt (Active)" },
-            { value: "Inactive", label: "Ngưng hoạt động (Inactive)" },
-            { value: "Expired", label: "Hết hạn (Expired)" }
+            { value: "Draft", label: t("admin.promotionsPage.statusDraft") },
+            { value: "Active", label: t("admin.promotionsPage.statusActive") },
+            { value: "Inactive", label: t("admin.promotionsPage.statusInactive") },
+            { value: "Expired", label: t("admin.promotionsPage.statusExpired") }
           ]}
-          placeholder="Tất cả trạng thái"
+          placeholder={t("admin.promotionsPage.placeholderFilterStatus")}
         />
         <Filter
-          label="Đối tượng áp dụng"
+          label={t("admin.promotionsPage.filterAppliesTo")}
           value={applicableTypeFilter}
           onChange={setApplicableTypeFilter}
           options={[
-            { value: "Entire Order", label: "Toàn bộ hóa đơn" },
-            { value: "Product", label: "Sản phẩm cụ thể" },
-            { value: "Category", label: "Danh mục nhóm" }
+            { value: "Entire Order", label: t("admin.promotionsPage.typeEntireOrder") },
+            { value: "Product", label: t("admin.promotionsPage.typeProduct") },
+            { value: "Category", label: t("admin.promotionsPage.typeCategory") }
           ]}
-          placeholder="Tất cả đối tượng"
+          placeholder={t("admin.promotionsPage.placeholderFilterAppliesTo")}
         />
       </div>
 
@@ -447,57 +454,57 @@ export default function AdminPromotionsPage() {
       <FormModal
         isOpen={isFormOpen}
         onClose={() => setIsFormOpen(false)}
-        title={editingPromo ? "Cập nhật khuyến mãi" : "Tạo khuyến mãi mới"}
+        title={editingPromo ? t("admin.promotionsPage.editButton") : t("admin.promotionsPage.createButton")}
         size="md"
       >
         <form onSubmit={handleSavePromo} className="space-y-4 text-left max-h-[75vh] overflow-y-auto px-1">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5 col-span-1">
-              <label className="text-xs font-bold text-muted-foreground uppercase">Mã code</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.promotionsPage.formCode")}</label>
               <Input
                 required
                 disabled={!!editingPromo}
                 value={formCode}
                 onChange={(e) => setFormCode(e.target.value.toUpperCase())}
-                placeholder="Mã giảm giá (ví dụ: ALL10)"
+                placeholder={t("admin.promotionsPage.placeholderCode")}
                 className="uppercase font-mono"
               />
             </div>
             <div className="space-y-1.5 col-span-1">
-              <label className="text-xs font-bold text-muted-foreground uppercase">Tên chương trình</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.promotionsPage.formName")}</label>
               <Input
                 required
                 value={formName}
                 onChange={(e) => setFormName(e.target.value)}
-                placeholder="Tên chương trình khuyến mãi"
+                placeholder={t("admin.promotionsPage.placeholderName")}
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-muted-foreground uppercase">Mô tả</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.promotionsPage.formDesc")}</label>
             <textarea
               value={formDesc}
               onChange={(e) => setFormDesc(e.target.value)}
-              placeholder="Chi tiết chương trình khuyến mãi..."
+              placeholder={t("admin.promotionsPage.placeholderDesc")}
               className="w-full text-xs p-3 rounded-lg border border-input bg-background focus:outline-none focus:ring-1 focus:ring-amber-500 h-16 resize-none"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5 col-span-1">
-              <label className="text-xs font-bold text-muted-foreground uppercase">Hình thức giảm</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.promotionsPage.formDiscountType")}</label>
               <select
                 value={formDiscountType}
                 onChange={(e) => setFormDiscountType(e.target.value as any)}
                 className="w-full text-xs p-3 rounded-lg border border-input bg-background focus:outline-none focus:ring-1 focus:ring-amber-500"
               >
-                <option value="Percentage">Theo phần trăm (%)</option>
-                <option value="Fixed Amount">Số tiền cố định (VNĐ)</option>
+                <option value="Percentage">{t("admin.promotionsPage.optionPercentage")}</option>
+                <option value="Fixed Amount">{t("admin.promotionsPage.optionFixedAmount")}</option>
               </select>
             </div>
             <div className="space-y-1.5 col-span-1">
-              <label className="text-xs font-bold text-muted-foreground uppercase">Mức giảm giá</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.promotionsPage.formDiscountValue")}</label>
               <div className="relative">
                 <Input
                   type="number"
@@ -516,7 +523,7 @@ export default function AdminPromotionsPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5 col-span-1">
-              <label className="text-xs font-bold text-muted-foreground uppercase">Đơn hàng tối thiểu (VNĐ)</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.promotionsPage.formMinOrder")}</label>
               <Input
                 type="number"
                 min={0}
@@ -526,7 +533,7 @@ export default function AdminPromotionsPage() {
             </div>
             <div className="space-y-1.5 col-span-1">
               <label className="text-xs font-bold text-muted-foreground uppercase">
-                Mức giảm tối đa (Chỉ áp dụng %)
+                {t("admin.promotionsPage.formMaxDiscount")}
               </label>
               <Input
                 type="number"
@@ -534,14 +541,14 @@ export default function AdminPromotionsPage() {
                 disabled={formDiscountType !== "Percentage"}
                 value={formMaxDiscount || ""}
                 onChange={(e) => setFormMaxDiscount(parseFloat(e.target.value) || undefined)}
-                placeholder="Để trống nếu không giới hạn"
+                placeholder={t("admin.promotionsPage.placeholderMaxDiscount")}
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5 col-span-1">
-              <label className="text-xs font-bold text-muted-foreground uppercase">Ngày bắt đầu</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.promotionsPage.formStartDate")}</label>
               <Input
                 type="datetime-local"
                 value={formStartDate}
@@ -549,7 +556,7 @@ export default function AdminPromotionsPage() {
               />
             </div>
             <div className="space-y-1.5 col-span-1">
-              <label className="text-xs font-bold text-muted-foreground uppercase">Ngày kết thúc</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.promotionsPage.formEndDate")}</label>
               <Input
                 type="datetime-local"
                 value={formEndDate}
@@ -560,47 +567,47 @@ export default function AdminPromotionsPage() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5 col-span-1">
-              <label className="text-xs font-bold text-muted-foreground uppercase">Giới hạn số lượt dùng</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.promotionsPage.formUsageLimit")}</label>
               <Input
                 type="number"
                 min={1}
                 value={formUsageLimit || ""}
                 onChange={(e) => setFormUsageLimit(parseInt(e.target.value) || undefined)}
-                placeholder="Không giới hạn"
+                placeholder={t("admin.promotionsPage.placeholderUsageLimit")}
               />
             </div>
             <div className="space-y-1.5 col-span-1">
-              <label className="text-xs font-bold text-muted-foreground uppercase">Trạng thái</label>
+              <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.promotionsPage.formStatus")}</label>
               <select
                 value={formStatus}
                 onChange={(e) => setFormStatus(e.target.value as any)}
                 className="w-full text-xs p-3 rounded-lg border border-input bg-background focus:outline-none focus:ring-1 focus:ring-amber-500"
               >
-                <option value="Draft">Draft (Lưu nháp)</option>
-                <option value="Active">Active (Hoạt động)</option>
-                <option value="Inactive">Inactive (Tạm ngưng)</option>
-                <option value="Expired">Expired (Hết hạn)</option>
+                <option value="Draft">{t("admin.promotionsPage.optionDraft")}</option>
+                <option value="Active">{t("admin.promotionsPage.optionActive")}</option>
+                <option value="Inactive">{t("admin.promotionsPage.optionInactive")}</option>
+                <option value="Expired">{t("admin.promotionsPage.optionExpired")}</option>
               </select>
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-xs font-bold text-muted-foreground uppercase">Đối tượng áp dụng</label>
+            <label className="text-xs font-bold text-muted-foreground uppercase">{t("admin.promotionsPage.formApplicableType")}</label>
             <select
               value={formApplicableType}
               onChange={(e) => setFormApplicableType(e.target.value as any)}
               className="w-full text-xs p-3 rounded-lg border border-input bg-background focus:outline-none focus:ring-1 focus:ring-amber-500"
             >
-              <option value="Entire Order">Toàn bộ đơn hàng</option>
-              <option value="Product">Sản phẩm cụ thể</option>
-              <option value="Category">Danh mục nhóm</option>
+              <option value="Entire Order">{t("admin.promotionsPage.applicableEntireOrder")}</option>
+              <option value="Product">{t("admin.promotionsPage.applicableProduct")}</option>
+              <option value="Category">{t("admin.promotionsPage.applicableCategory")}</option>
             </select>
           </div>
 
           {/* Applicable products section */}
           {formApplicableType === "Product" && (
             <div className="space-y-2 border border-dashed border-amber-200 bg-amber-50/20 p-3.5 rounded-xl">
-              <label className="text-xs font-bold text-amber-900 uppercase">Chọn sản phẩm áp dụng</label>
+              <label className="text-xs font-bold text-amber-900 uppercase">{t("admin.promotionsPage.formProducts")}</label>
               <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1">
                 {products.map((prod) => (
                   <button
@@ -624,7 +631,7 @@ export default function AdminPromotionsPage() {
           {/* Applicable categories section */}
           {formApplicableType === "Category" && (
             <div className="space-y-2 border border-dashed border-amber-200 bg-amber-50/20 p-3.5 rounded-xl">
-              <label className="text-xs font-bold text-amber-900 uppercase">Chọn danh mục áp dụng</label>
+              <label className="text-xs font-bold text-amber-900 uppercase">{t("admin.promotionsPage.formCategories")}</label>
               <div className="grid grid-cols-2 gap-2 max-h-40 overflow-y-auto pr-1">
                 {categories.map((cat) => (
                   <button
@@ -652,13 +659,13 @@ export default function AdminPromotionsPage() {
               onClick={() => setIsFormOpen(false)}
               className="text-xs font-semibold h-10 px-4 rounded-lg"
             >
-              Hủy bỏ
+              {t("common.cancel")}
             </Button>
             <Button
               type="submit"
               className="bg-amber-850 hover:bg-amber-800 text-white text-xs font-semibold h-10 px-4 rounded-lg"
             >
-              Xác nhận lưu
+              {t("common.save")}
             </Button>
           </div>
         </form>

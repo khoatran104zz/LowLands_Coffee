@@ -12,6 +12,7 @@ import { createOrder } from "@/services/order.service";
 import { getStores } from "@/services/store.service";
 import { Order, OrderItemInput, Store, Promotion } from "@/types";
 import { getAvailablePromotions, validatePromotion } from "@/services/promotion.service";
+import axiosInstance from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -49,12 +50,8 @@ import { buildOrderTrackingUrl, printOrderAsPdf } from "@/lib/order-print";
 
 const PAYMENT_METHOD_VALUES = [
   "cod",
-  "vnpay_qr",
-  "vnpay_card",
-  "bank_transfer",
   "momo",
-  "zalopay",
-  "shopeepay",
+  "vnpay",
 ] as const;
 
 type CheckoutPaymentMethod = (typeof PAYMENT_METHOD_VALUES)[number];
@@ -76,48 +73,21 @@ const PAYMENT_OPTIONS: {
 }[] = [
   {
     id: "cod",
-    title: "Thanh toán khi nhận hàng",
-    subtitle: "Trả tiền mặt cho nhân viên khi nhận đồ uống.",
+    title: "Tiền mặt",
+    subtitle: "Thanh toán khi nhận hàng (COD).",
     badge: "COD",
-  },
-  {
-    id: "vnpay_qr",
-    title: "VNPay QR",
-    subtitle: "Quét mã VNPay sandbox bằng ứng dụng ngân hàng.",
-    badge: "VNPAY",
-    requiresBank: true,
-  },
-  {
-    id: "vnpay_card",
-    title: "Thẻ nội địa / quốc tế",
-    subtitle: "Giả lập cổng VNPay/NAPAS với xác thực OTP.",
-    badge: "NAPAS",
-    requiresBank: true,
-  },
-  {
-    id: "bank_transfer",
-    title: "Chuyển khoản ngân hàng",
-    subtitle: "Chọn ngân hàng và xác nhận giao dịch sandbox.",
-    badge: "BANK",
-    requiresBank: true,
   },
   {
     id: "momo",
     title: "MoMo",
-    subtitle: "Giả lập ví MoMo và xác nhận bằng OTP.",
+    subtitle: "Ví điện tử MoMo Sandbox.",
     badge: "MOMO",
   },
   {
-    id: "zalopay",
-    title: "ZaloPay",
-    subtitle: "Thanh toán qua ví ZaloPay sandbox.",
-    badge: "ZALO",
-  },
-  {
-    id: "shopeepay",
-    title: "ShopeePay",
-    subtitle: "Thanh toán qua ví ShopeePay sandbox.",
-    badge: "S PAY",
+    id: "vnpay",
+    title: "VNPay",
+    subtitle: "Cổng thanh toán VNPay Sandbox.",
+    badge: "VNPAY",
   },
 ];
 
@@ -138,17 +108,13 @@ const LOWLANDS_TRANSFER_ACCOUNT = {
 };
 
 const ONLINE_PAYMENT_METHODS = new Set<CheckoutPaymentMethod>([
-  "vnpay_qr",
-  "vnpay_card",
-  "bank_transfer",
   "momo",
-  "zalopay",
-  "shopeepay",
+  "vnpay",
 ]);
 
 const toBackendPaymentMethod = (paymentMethod: CheckoutPaymentMethod): Order["paymentMethod"] => {
   if (paymentMethod === "cod") return "cod";
-  if (paymentMethod === "momo" || paymentMethod === "zalopay" || paymentMethod === "shopeepay") return "e_wallet";
+  if (paymentMethod === "momo") return "e_wallet";
   return "bank_transfer";
 };
 
@@ -429,8 +395,49 @@ export default function CheckoutPage() {
   const onSubmit = async (data: FormData) => {
     if (items.length === 0) return;
 
-    if (ONLINE_PAYMENT_METHODS.has(data.paymentMethod)) {
-      openPaymentGateway(data);
+    if (data.paymentMethod === "momo" || data.paymentMethod === "vnpay") {
+      setSubmitting(true);
+      const orderData: Order = {
+        storeId: formStoreId,
+        orderType,
+        receiverName: data.receiverName,
+        receiverPhone: data.receiverPhone,
+        deliveryAddress: data.deliveryAddress,
+        subtotal,
+        discountAmount,
+        totalAmount,
+        note: buildOrderNote(data.note),
+        items: buildOrderItems(),
+        paymentMethod: toBackendPaymentMethod(data.paymentMethod),
+        promotionCode: appliedPromotion?.code || undefined,
+      };
+
+      try {
+        const savedOrder = await createOrder(orderData);
+        toast.info("Đang tạo liên kết thanh toán...");
+        
+        const createPaymentPath = data.paymentMethod === "momo" 
+          ? "/payment/momo/create" 
+          : "/payment/vnpay/create";
+          
+        const paymentRes = await axiosInstance.post<{ data: { redirectUrl?: string; payUrl?: string; paymentUrl?: string } }>(
+          createPaymentPath,
+          { orderId: savedOrder.id }
+        );
+        
+        const redirectUrl = paymentRes.data.data.redirectUrl || paymentRes.data.data.payUrl || paymentRes.data.data.paymentUrl;
+        if (redirectUrl) {
+          clearCart();
+          window.location.href = redirectUrl;
+        } else {
+          toast.error("Không nhận được địa chỉ thanh toán từ hệ thống.");
+        }
+      } catch (err) {
+        console.error("Failed to submit customer order and pay", err);
+        toast.error(getOrderErrorMessage(err));
+      } finally {
+        setSubmitting(false);
+      }
       return;
     }
 
@@ -1011,7 +1018,7 @@ export default function CheckoutPage() {
                       </div>
                     </div>
 
-                    {(selectedPaymentMethod === "vnpay_qr" || selectedPaymentMethod === "bank_transfer") && (
+                    {((selectedPaymentMethod as string) === "vnpay_qr" || (selectedPaymentMethod as string) === "bank_transfer") && (
                       <div className="grid gap-4 sm:grid-cols-[280px_minmax(0,1fr)]">
                         <VietQrCard
                           transactionCode={gatewayTransactionCode}
@@ -1021,14 +1028,14 @@ export default function CheckoutPage() {
                           amountLabel={formatPrice(totalAmount)}
                         />
                         <GatewayMethodPanel
-                          title={selectedPaymentMethod === "bank_transfer" ? "Chuyển khoản bằng VietQR" : "Quét mã bằng app ngân hàng"}
+                          title={(selectedPaymentMethod as string) === "bank_transfer" ? "Chuyển khoản bằng VietQR" : "Quét mã bằng app ngân hàng"}
                           description={
-                            selectedPaymentMethod === "bank_transfer"
+                            (selectedPaymentMethod as string) === "bank_transfer"
                               ? "Mở ứng dụng ngân hàng, quét mã VietQR và kiểm tra đúng tên tài khoản, số tiền, nội dung chuyển khoản."
                               : "Mở ứng dụng ngân hàng, chọn VNPay QR và quét mã sandbox. Sau đó nhập OTP để xác nhận giao dịch."
                           }
                           steps={
-                            selectedPaymentMethod === "bank_transfer"
+                            (selectedPaymentMethod as string) === "bank_transfer"
                               ? [
                                   "Quét mã VietQR trong app ngân hàng.",
                                   "Kiểm tra người nhận LOWLANDS COFFEE và nội dung chuyển khoản.",
@@ -1044,7 +1051,7 @@ export default function CheckoutPage() {
                       </div>
                     )}
 
-                    {selectedPaymentMethod !== "vnpay_qr" && selectedPaymentMethod !== "bank_transfer" && (
+                    {(selectedPaymentMethod as string) !== "vnpay_qr" && (selectedPaymentMethod as string) !== "bank_transfer" && (
                       <GatewayMethodPanel
                         title={
                           selectedPaymentOption.requiresBank
@@ -1234,7 +1241,26 @@ function PaymentBrandMark({
     );
   }
 
-  if (method === "vnpay_qr") {
+  if (method === "vnpay") {
+    return (
+      <span className="flex items-center gap-1.5 text-[#1D5FA7]">
+        <CreditCard className={iconClass} />
+        <span className={`${textClass} font-black`}>{badge}</span>
+      </span>
+    );
+  }
+
+  if (method === "momo") {
+    return (
+      <span className="flex items-center gap-1.5 text-[#A52A2A]">
+        <Smartphone className={iconClass} />
+        <span className={`${textClass} font-black`}>{badge}</span>
+      </span>
+    );
+  }
+
+  const methodStr = method as string;
+  if (methodStr === "vnpay_qr") {
     return (
       <span className="flex items-center gap-1.5 text-[#1D5FA7]">
         <QrCode className={iconClass} />
@@ -1243,7 +1269,7 @@ function PaymentBrandMark({
     );
   }
 
-  if (method === "vnpay_card") {
+  if (methodStr === "vnpay_card") {
     return (
       <span className="flex items-center gap-1.5 text-[#1F7A4D]">
         <CreditCard className={iconClass} />
@@ -1252,7 +1278,7 @@ function PaymentBrandMark({
     );
   }
 
-  if (method === "bank_transfer") {
+  if (methodStr === "bank_transfer") {
     return (
       <span className="flex items-center gap-1.5 text-[#3A1D14]">
         <Landmark className={iconClass} />
@@ -1339,7 +1365,7 @@ function VietQrCard({
   amountLabel: string;
 }) {
   const seed = transactionCode.split("").reduce((sum, char) => sum + char.charCodeAt(0), 0);
-  const providerLabel = paymentMethod === "bank_transfer" ? "VIETQR" : "VNPAY QR";
+  const providerLabel = (paymentMethod as string) === "bank_transfer" ? "VIETQR" : "VNPAY QR";
   const transferContent = `LL ${transactionCode}`;
   const size = 21;
 

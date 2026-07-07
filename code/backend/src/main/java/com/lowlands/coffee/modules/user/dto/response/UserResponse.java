@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -25,5 +26,7 @@ public class UserResponse {
     private LocalDateTime updatedAt;
     private Long branchId;
     private String branchName;
+    private Long orderCount;
+    private BigDecimal totalSpent;
 }
 

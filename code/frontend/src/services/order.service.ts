@@ -34,6 +34,7 @@ interface BackendOrderRequest {
   deliveryAddress: string;
   paymentMethod: "CASH" | "BANKING" | "MOMO" | "CARD";
   note?: string;
+  promotionCode?: string;
   items: {
     productVariantId: number;
     quantity: number;
@@ -79,6 +80,8 @@ export interface BackendOrderResponse {
   }[];
   createdAt: string;
   updatedAt?: string;
+  promotionCode?: string;
+  promotionId?: number;
 }
 
 interface BackendPaymentResponse {
@@ -111,6 +114,7 @@ const toBackendOrderRequest = (order: Order): BackendOrderRequest => ({
   deliveryAddress: order.deliveryAddress,
   paymentMethod: paymentMethodMap[order.paymentMethod],
   note: order.note,
+  promotionCode: order.promotionCode,
   items: order.items.map((item) => ({
     productVariantId: item.productVariantId,
     quantity: item.quantity,
@@ -160,6 +164,8 @@ export const toFrontendOrder = (order: BackendOrderResponse): Order => ({
   })),
   createdAt: order.createdAt,
   updatedAt: order.updatedAt,
+  promotionCode: order.promotionCode,
+  promotionId: order.promotionId,
 });
 
 const toFrontendOrderType = (orderType: BackendOrderResponse["orderType"]): Order["orderType"] => {

@@ -18,8 +18,15 @@ import java.time.LocalDateTime;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.List;
 
 public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSpecificationExecutor<OrderEntity> {
+
+    @Query("select o.user.id, count(o.id), coalesce(sum(o.totalAmount), 0) " +
+           "from OrderEntity o " +
+           "where o.status = :status and o.user.id is not null " +
+           "group by o.user.id")
+    List<Object[]> getCustomerOrderStatsByStatus(@Param("status") String status);
 
     boolean existsByOrderCode(String orderCode);
 
@@ -35,6 +42,9 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select o from OrderEntity o where o.id = :id")
     Optional<OrderEntity> findByIdForUpdate(@Param("id") Long id);
+
+    @Query("select coalesce(sum(o.totalAmount), 0) from OrderEntity o where o.status = :status")
+    BigDecimal sumTotalRevenueByStatus(@Param("status") String status);
 
     long countByStoreId(Long storeId);
 

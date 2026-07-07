@@ -4,7 +4,8 @@ import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { 
   Coffee, History, Printer, CheckCircle, Bell,
   CupSoda, Cake, Salad, Ticket, Users, BarChart2, Settings, Grid, List, ArrowUpDown,
-  ClipboardList, Clock, XCircle, ChefHat, PackageCheck
+  ClipboardList, Clock, XCircle, ChefHat, PackageCheck,
+  User, Truck, CreditCard, Tag
 } from "lucide-react";
 import { Product, ProductVariant, Topping, CartItem, Order } from "@/types";
 import { useDashboardStore } from "@/store/dashboardStore";
@@ -961,10 +962,10 @@ export default function StaffPOSPage() {
               </div>
               
               {/* Products Container */}
-              <div className={`flex-grow overflow-y-auto pr-1 pb-1.5 content-start items-start ${
+              <div className={`flex-grow overflow-y-auto pr-1 pb-1.5 content-start ${
                 viewMode === "grid" 
-                  ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5" 
-                  : "flex flex-col gap-2"
+                  ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-2.5 items-start" 
+                  : "flex flex-col gap-2 items-stretch"
               }`}>
                 {sortedAndFilteredProducts.map((p) => (
                   <ProductCard 
@@ -1186,103 +1187,207 @@ export default function StaffPOSPage() {
         title={selectedIncomingOrder ? `Đơn online ${selectedIncomingOrder.orderCode || `#${selectedIncomingOrder.id}`}` : "Đơn online"}
         size="lg"
       >
-        {selectedIncomingOrder && (
-          <div className="space-y-4 text-left">
-            <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50/60 p-4">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2 text-amber-950">
-                  <ClipboardList className="h-4 w-4" />
-                  <span className="text-sm font-black">{selectedIncomingOrder.orderCode || `#${selectedIncomingOrder.id}`}</span>
-                </div>
-                <div className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
-                  <Clock className="h-3.5 w-3.5" />
-                  <span>
-                    {selectedIncomingOrder.createdAt
-                      ? new Date(selectedIncomingOrder.createdAt).toLocaleString("vi-VN")
-                      : "Chưa có thời gian"}
-                  </span>
-                </div>
-              </div>
-              <StatusBadge status={selectedIncomingOrder.status || "pending"} customLabel={getStatusLabel(selectedIncomingOrder.status)} />
-            </div>
+        {selectedIncomingOrder && (() => {
+          const paymentMethodLabel = selectedIncomingOrder.paymentMethod === "cod" 
+            ? "Tiền mặt (COD)" 
+            : selectedIncomingOrder.paymentMethod === "bank_transfer" 
+              ? "Chuyển khoản" 
+              : "Ví điện tử (Ví MoMo/VNPay)";
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="rounded-xl border border-border bg-white p-3">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Khách hàng</div>
-                <div className="mt-1 font-extrabold text-foreground">{selectedIncomingOrder.receiverName || "Khách"}</div>
-                <div className="mt-0.5 font-semibold text-muted-foreground">{selectedIncomingOrder.receiverPhone || "-"}</div>
-              </div>
-              <div className="rounded-xl border border-border bg-white p-3">
-                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Nhận hàng</div>
-                <div className="mt-1 font-extrabold text-foreground">{getOrderTypeLabel(selectedIncomingOrder.orderType)}</div>
-                <div className="mt-0.5 font-semibold text-muted-foreground line-clamp-2">{selectedIncomingOrder.deliveryAddress || "-"}</div>
-              </div>
-            </div>
+          const paymentStatus = selectedIncomingOrder.payment?.paymentStatus || "PENDING";
+          
+          const getPaymentStatusBadge = (status: string) => {
+            const s = status.toUpperCase();
+            switch (s) {
+              case "PAID":
+                return <span className="bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-black px-2 py-0.5 rounded-full select-none">Đã thanh toán</span>;
+              case "FAILED":
+                return <span className="bg-rose-50 border border-rose-200 text-rose-700 text-[10px] font-black px-2 py-0.5 rounded-full select-none">Thanh toán lỗi</span>;
+              default:
+                return <span className="bg-amber-50 border border-amber-200 text-amber-700 text-[10px] font-black px-2 py-0.5 rounded-full select-none">Chờ thanh toán</span>;
+            }
+          };
 
-            {selectedIncomingOrder.note && (
-              <div className="rounded-xl border border-amber-200 bg-amber-50/70 px-3 py-2 text-xs font-semibold text-amber-900">
-                Ghi chú: {selectedIncomingOrder.note}
-              </div>
-            )}
-
-            <div className="rounded-xl border border-border overflow-hidden">
-              <div className="bg-muted px-3 py-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground">
-                Chi tiết món
-              </div>
-              <div className="divide-y divide-border">
-                {selectedIncomingOrder.items.map((item, index) => (
-                  <div key={`${item.productVariantId}-${index}`} className="p-3 text-xs">
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <div className="font-extrabold text-foreground">
-                          {item.productName} - Size {item.size}
-                        </div>
-                        <div className="mt-0.5 text-muted-foreground font-semibold">
-                          x{item.quantity} - {formatCurrency(item.unitPrice)}
-                        </div>
-                      </div>
-                      <div className="font-black text-[#C8510A] whitespace-nowrap">
-                        {formatCurrency(item.totalPrice)}
-                      </div>
-                    </div>
-                    {item.toppings.length > 0 && (
-                      <div className="mt-2 space-y-1 pl-3 border-l border-border">
-                        {item.toppings.map((topping) => (
-                          <div key={topping.toppingId} className="flex justify-between gap-2 text-[11px] text-muted-foreground">
-                            <span>+ {topping.toppingName} x{topping.quantity}</span>
-                            <span>{formatCurrency(topping.totalPrice)}</span>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    {item.note && (
-                      <div className="mt-2 text-[11px] italic text-amber-800">Ghi chú món: {item.note}</div>
-                    )}
+          return (
+            <div className="space-y-4 text-left">
+              {/* Order Status Banner */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50/50 p-4 select-none">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 text-amber-950">
+                    <ClipboardList className="h-4 w-4 text-[#C8510A]" />
+                    <span className="text-sm font-black">{selectedIncomingOrder.orderCode || `#${selectedIncomingOrder.id}`}</span>
                   </div>
-                ))}
+                  <div className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
+                    <Clock className="h-3.5 w-3.5" />
+                    <span>
+                      {selectedIncomingOrder.createdAt
+                        ? new Date(selectedIncomingOrder.createdAt).toLocaleString("vi-VN")
+                        : "Chưa có thời gian"}
+                    </span>
+                  </div>
+                </div>
+                <StatusBadge status={selectedIncomingOrder.status || "pending"} customLabel={getStatusLabel(selectedIncomingOrder.status)} />
               </div>
-            </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border-t border-border pt-4">
-              <div>
-                <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Tổng tiền</div>
-                <div className="text-lg font-black text-[#C8510A]">{formatCurrency(selectedIncomingOrder.totalAmount)}</div>
+              {/* Order Info Cards Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                {/* Customer Info Card */}
+                <div className="rounded-xl border border-border bg-white p-3 space-y-2 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground select-none">
+                      <User className="h-3.5 w-3.5 text-zinc-400" />
+                      Khách hàng
+                    </div>
+                    <div className="mt-1.5 font-extrabold text-zinc-900 truncate" title={selectedIncomingOrder.receiverName}>
+                      {selectedIncomingOrder.receiverName || "Khách"}
+                    </div>
+                  </div>
+                  <div className="font-semibold text-zinc-500">{selectedIncomingOrder.receiverPhone || "-"}</div>
+                </div>
+
+                {/* Delivery Info Card */}
+                <div className="rounded-xl border border-border bg-white p-3 space-y-2 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground select-none">
+                      <Truck className="h-3.5 w-3.5 text-zinc-400" />
+                      Giao nhận
+                    </div>
+                    <div className="mt-1.5 font-extrabold text-[#C8510A]">
+                      {getOrderTypeLabel(selectedIncomingOrder.orderType)}
+                    </div>
+                  </div>
+                  <div className="font-semibold text-zinc-500 line-clamp-1" title={selectedIncomingOrder.deliveryAddress || "-"}>
+                    {selectedIncomingOrder.deliveryAddress || "-"}
+                  </div>
+                </div>
+
+                {/* Payment Info Card */}
+                <div className="rounded-xl border border-border bg-white p-3 space-y-2 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground select-none">
+                      <CreditCard className="h-3.5 w-3.5 text-zinc-400" />
+                      Thanh toán
+                    </div>
+                    <div className="mt-1.5 font-extrabold text-zinc-900">
+                      {paymentMethodLabel}
+                    </div>
+                  </div>
+                  <div className="mt-1 self-start">
+                    {getPaymentStatusBadge(paymentStatus)}
+                  </div>
+                </div>
+
+                {/* Promotion Info Card */}
+                <div className="rounded-xl border border-border bg-white p-3 space-y-2 flex flex-col justify-between">
+                  <div>
+                    <div className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-wider text-muted-foreground select-none">
+                      <Tag className="h-3.5 w-3.5 text-zinc-400" />
+                      Khuyến mãi
+                    </div>
+                    <div className="mt-1.5 font-extrabold text-emerald-700 truncate" title={selectedIncomingOrder.promotionCode || "Không áp dụng"}>
+                      {selectedIncomingOrder.promotionCode ? (
+                        <span className="bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded text-[10px] font-extrabold select-none">
+                          {selectedIncomingOrder.promotionCode}
+                        </span>
+                      ) : (
+                        "Không áp dụng"
+                      )}
+                    </div>
+                  </div>
+                  <div className="font-semibold text-zinc-500">
+                    {selectedIncomingOrder.discountAmount > 0 ? `Giảm: ${formatCurrency(selectedIncomingOrder.discountAmount)}` : "-"}
+                  </div>
+                </div>
               </div>
-              <div className="flex flex-wrap items-center justify-end gap-2">
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => handlePrintOrder(selectedIncomingOrder)}
-                  className="h-9 rounded-lg border-[#C8510A]/25 px-3 text-xs font-bold text-[#C8510A] hover:bg-[#F5EBE1]"
-                >
-                  <Printer className="h-3.5 w-3.5 mr-1.5" />
-                  In PDF
-                </Button>
-                {renderOrderActions(selectedIncomingOrder)}
+
+              {selectedIncomingOrder.note && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50/40 px-3 py-2.5 text-xs font-semibold text-amber-950 flex items-start gap-2 select-none">
+                  <span className="text-amber-600 font-extrabold shrink-0">Ghi chú:</span>
+                  <span>{selectedIncomingOrder.note}</span>
+                </div>
+              )}
+
+              {/* Items List */}
+              <div className="rounded-xl border border-border overflow-hidden bg-background">
+                <div className="bg-muted/80 px-3.5 py-2 text-[10px] font-black uppercase tracking-wider text-muted-foreground border-b border-border select-none">
+                  Chi tiết món trong đơn hàng
+                </div>
+                <div className="divide-y divide-border/60 max-h-[220px] overflow-y-auto pr-1">
+                  {selectedIncomingOrder.items.map((item, index) => (
+                    <div key={`${item.productVariantId}-${index}`} className="p-3.5 text-xs hover:bg-zinc-50/50 transition-colors">
+                      <div className="flex items-start justify-between gap-3">
+                        <div>
+                          <div className="font-extrabold text-zinc-900">
+                            {item.productName} <span className="text-[#C8510A] ml-1">Size {item.size}</span>
+                          </div>
+                          <div className="mt-1 text-zinc-500 font-semibold flex items-center gap-1.5">
+                            <span>Số lượng: <strong className="text-zinc-800">{item.quantity}</strong></span>
+                            <span className="text-zinc-300">|</span>
+                            <span>Đơn giá: {formatCurrency(item.unitPrice)}</span>
+                          </div>
+                        </div>
+                        <div className="font-black text-zinc-950 text-right">
+                          {formatCurrency(item.totalPrice)}
+                        </div>
+                      </div>
+                      {item.toppings.length > 0 && (
+                        <div className="mt-2.5 space-y-1 pl-3 border-l border-zinc-200">
+                          {item.toppings.map((topping) => (
+                            <div key={topping.toppingId} className="flex justify-between gap-2 text-[11px] text-zinc-500 font-medium">
+                              <span>+ {topping.toppingName} <span className="text-zinc-400">x{topping.quantity}</span></span>
+                              <span className="font-semibold text-zinc-700">{formatCurrency(topping.totalPrice)}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      {item.note && (
+                        <div className="mt-2 text-[11px] font-medium text-amber-800 bg-amber-50/50 px-2 py-1 rounded border border-amber-100/50 italic inline-block">
+                          Ghi chú món: {item.note}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Pricing Breakdowns & Footer Summary */}
+              <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-4 border-t border-border pt-4">
+                <div className="w-full md:max-w-xs space-y-1.5 text-xs text-zinc-500 pr-4">
+                  <div className="flex justify-between font-semibold">
+                    <span>Tạm tính:</span>
+                    <span className="text-zinc-800 font-extrabold">
+                      {formatCurrency(selectedIncomingOrder.subtotal || (selectedIncomingOrder.totalAmount + selectedIncomingOrder.discountAmount))}
+                    </span>
+                  </div>
+                  {selectedIncomingOrder.discountAmount > 0 && (
+                    <div className="flex justify-between text-emerald-600 font-bold">
+                      <span>Khấu trừ giảm giá:</span>
+                      <span>-{formatCurrency(selectedIncomingOrder.discountAmount)}</span>
+                    </div>
+                  )}
+                  <div className="flex justify-between items-end border-t border-dashed border-zinc-200 pt-2 mt-1">
+                    <span className="font-black text-zinc-900 select-none">Tổng thanh toán:</span>
+                    <span className="text-lg font-black text-[#C8510A]">{formatCurrency(selectedIncomingOrder.totalAmount)}</span>
+                  </div>
+                </div>
+                
+                {/* Action Buttons */}
+                <div className="flex flex-wrap items-center justify-end gap-2 shrink-0">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => handlePrintOrder(selectedIncomingOrder)}
+                    className="h-10 rounded-xl border-[#C8510A]/25 px-4 text-xs font-bold text-[#C8510A] hover:bg-[#F5EBE1] hover:border-[#C8510A]/50 transition-colors"
+                  >
+                    <Printer className="h-4 w-4 mr-1.5" />
+                    In Hóa Đơn (PDF)
+                  </Button>
+                  {renderOrderActions(selectedIncomingOrder)}
+                </div>
               </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
       </Modal>
 
       {/* Receipt Success Modal */}

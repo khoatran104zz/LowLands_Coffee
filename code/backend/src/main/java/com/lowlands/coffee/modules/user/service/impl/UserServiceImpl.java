@@ -18,11 +18,16 @@ import com.lowlands.coffee.modules.user.entity.UserEntity;
 import com.lowlands.coffee.modules.user.mapper.UserMapper;
 import com.lowlands.coffee.modules.user.repository.UserRepository;
 import com.lowlands.coffee.modules.user.service.UserService;
+import com.lowlands.coffee.modules.order.repository.OrderRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.stream.Collectors;
+import java.math.BigDecimal;
 
 @Service
 @Transactional
@@ -35,6 +40,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
     private final StoreUserRepository storeUserRepository;
     private final StoreRepository storeRepository;
+    private final OrderRepository orderRepository;
 
     public UserServiceImpl(
             UserRepository userRepository,
@@ -43,7 +49,8 @@ public class UserServiceImpl implements UserService {
             UserMapper userMapper,
             PasswordEncoder passwordEncoder,
             StoreUserRepository storeUserRepository,
-            StoreRepository storeRepository
+            StoreRepository storeRepository,
+            OrderRepository orderRepository
     ) {
         this.userRepository = userRepository;
         this.roleRepository = roleRepository;
@@ -52,16 +59,36 @@ public class UserServiceImpl implements UserService {
         this.passwordEncoder = passwordEncoder;
         this.storeUserRepository = storeUserRepository;
         this.storeRepository = storeRepository;
+        this.orderRepository = orderRepository;
     }
 
 
     @Override
     @Transactional(readOnly = true)
     public List<UserResponse> findAll() {
+        List<Object[]> statsList = orderRepository.getCustomerOrderStatsByStatus("COMPLETED");
+        Map<Long, Object[]> statsMap = new HashMap<>();
+        for (Object[] row : statsList) {
+            if (row[0] != null) {
+                statsMap.put((Long) row[0], row);
+            }
+        }
+
         return userRepository.findAll().stream()
                 .map(user -> {
                     UserResponse response = userMapper.toResponse(user);
                     populateBranchInfo(user.getId(), response);
+
+                    if (user.getRole() != null && "CUSTOMER".equalsIgnoreCase(user.getRole().getName())) {
+                        Object[] row = statsMap.get(user.getId());
+                        if (row != null) {
+                            response.setOrderCount((Long) row[1]);
+                            response.setTotalSpent((BigDecimal) row[2]);
+                        } else {
+                            response.setOrderCount(0L);
+                            response.setTotalSpent(BigDecimal.ZERO);
+                        }
+                    }
                     return response;
                 })
                 .toList();
@@ -70,8 +97,10 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional(readOnly = true)
     public UserResponse findById(Long id) {
-        UserResponse response = userMapper.toResponse(getUser(id));
+        UserEntity user = getUser(id);
+        UserResponse response = userMapper.toResponse(user);
         populateBranchInfo(id, response);
+        populateCustomerStats(user, response);
         return response;
     }
 
@@ -91,6 +120,7 @@ public class UserServiceImpl implements UserService {
 
         UserResponse response = userMapper.toResponse(savedUser);
         populateBranchInfo(savedUser.getId(), response);
+        populateCustomerStats(savedUser, response);
         return response;
     }
 
@@ -110,12 +140,30 @@ public class UserServiceImpl implements UserService {
 
         UserResponse response = userMapper.toResponse(savedUser);
         populateBranchInfo(savedUser.getId(), response);
+        populateCustomerStats(savedUser, response);
         return response;
     }
 
     @Override
     public void delete(Long id) {
         userRepository.delete(getUser(id));
+    }
+
+    private void populateCustomerStats(UserEntity user, UserResponse response) {
+        if (user.getRole() != null && "CUSTOMER".equalsIgnoreCase(user.getRole().getName())) {
+            List<Object[]> statsList = orderRepository.getCustomerOrderStatsByStatus("COMPLETED");
+            Object[] stats = statsList.stream()
+                    .filter(row -> user.getId().equals(row[0]))
+                    .findFirst()
+                    .orElse(null);
+            if (stats != null) {
+                response.setOrderCount((Long) stats[1]);
+                response.setTotalSpent((BigDecimal) stats[2]);
+            } else {
+                response.setOrderCount(0L);
+                response.setTotalSpent(BigDecimal.ZERO);
+            }
+        }
     }
 
     private UserEntity getUser(Long id) {

@@ -172,11 +172,6 @@ public class OrderServiceImpl implements OrderService {
             }
             discount = validateResponse.getDiscount();
             promotionEntity = promotionRepository.findByCodeIgnoreCase(request.getPromotionCode()).orElse(null);
-
-            if (promotionEntity != null) {
-                promotionEntity.setUsedCount(promotionEntity.getUsedCount() + 1);
-                promotionRepository.save(promotionEntity);
-            }
         }
 
         order.setDiscountAmount(discount);
@@ -328,6 +323,13 @@ public class OrderServiceImpl implements OrderService {
         List<StockMovementEntity> movements = createOrderStockMovements(order, actor);
         order.setStatus(COMPLETED);
         stockMovementRepository.saveAll(movements);
+
+        if (order.getPromotion() != null) {
+            com.lowlands.coffee.modules.promotion.entity.PromotionEntity promo = order.getPromotion();
+            promo.setUsedCount((promo.getUsedCount() == null ? 0 : promo.getUsedCount()) + 1);
+            promotionRepository.save(promo);
+        }
+
         return orderMapper.toResponse(orderRepository.save(order));
     }
 
