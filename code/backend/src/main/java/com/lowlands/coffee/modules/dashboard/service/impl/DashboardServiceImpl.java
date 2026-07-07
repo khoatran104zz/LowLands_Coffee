@@ -1,6 +1,5 @@
 package com.lowlands.coffee.modules.dashboard.service.impl;
 
-import com.lowlands.coffee.common.exception.ResourceNotFoundException;
 import com.lowlands.coffee.modules.dashboard.dto.response.AdminDashboardSummaryResponse;
 import com.lowlands.coffee.modules.dashboard.dto.response.ManagerDashboardSummaryResponse;
 import com.lowlands.coffee.modules.dashboard.service.DashboardService;
@@ -12,8 +11,9 @@ import com.lowlands.coffee.modules.store.entity.StoreUserEntity;
 import com.lowlands.coffee.modules.store.entity.StoreEntity;
 import com.lowlands.coffee.modules.store.repository.StoreRepository;
 import com.lowlands.coffee.modules.store.repository.StoreUserRepository;
-import com.lowlands.coffee.modules.user.entity.UserEntity;
+import com.lowlands.coffee.modules.store.service.ManagerStoreContextService;
 import com.lowlands.coffee.modules.user.repository.UserRepository;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,6 +35,7 @@ public class DashboardServiceImpl implements DashboardService {
     private final StockMovementRepository stockMovementRepository;
     private final OrderRepository orderRepository;
     private final GoodsReceiptRepository goodsReceiptRepository;
+    private final ManagerStoreContextService managerStoreContextService;
 
     public DashboardServiceImpl(
             UserRepository userRepository,
@@ -43,7 +44,8 @@ public class DashboardServiceImpl implements DashboardService {
             StoreUserRepository storeUserRepository,
             StockMovementRepository stockMovementRepository,
             OrderRepository orderRepository,
-            GoodsReceiptRepository goodsReceiptRepository
+            GoodsReceiptRepository goodsReceiptRepository,
+            ManagerStoreContextService managerStoreContextService
     ) {
         this.userRepository = userRepository;
         this.storeRepository = storeRepository;
@@ -52,57 +54,69 @@ public class DashboardServiceImpl implements DashboardService {
         this.stockMovementRepository = stockMovementRepository;
         this.orderRepository = orderRepository;
         this.goodsReceiptRepository = goodsReceiptRepository;
+        this.managerStoreContextService = managerStoreContextService;
     }
 
     @Override
-    public AdminDashboardSummaryResponse getAdminSummary() {
+    public AdminDashboardSummaryResponse getAdminSummary(Long storeId) {
+        TimeWindows windows = currentTimeWindows();
         return AdminDashboardSummaryResponse.builder()
                 .totalUsers(userRepository.count())
-                .totalStores(storeRepository.count())
+                .totalStores(storeId == null ? storeRepository.count() : 1)
                 .totalProducts(productRepository.count())
-                .totalOrders(0)
-                .totalRevenue(BigDecimal.ZERO)
+                .totalOrders(orderRepository.countByOptionalStoreId(storeId))
+                .totalRevenue(orderRepository.sumPaidCompletedRevenue(storeId))
+                .todayRevenue(orderRepository.sumPaidCompletedRevenueBetween(storeId, windows.todayStart(), windows.todayEnd()))
+                .weekRevenue(orderRepository.sumPaidCompletedRevenueBetween(storeId, windows.weekStart(), windows.todayEnd()))
+                .monthRevenue(orderRepository.sumPaidCompletedRevenueBetween(storeId, windows.monthStart(), windows.todayEnd()))
+                .yearRevenue(orderRepository.sumPaidCompletedRevenueBetween(storeId, windows.yearStart(), windows.todayEnd()))
+                .completedOrders(orderRepository.countByStatusAndOptionalStoreId("COMPLETED", storeId))
+                .cancelledOrders(orderRepository.countByStatusAndOptionalStoreId("CANCELLED", storeId))
+                .lowStockCount(countLowStockItems(storeId))
+                .paymentBreakdown(orderRepository.findPaymentBreakdownForPaidCompletedOrders(
+                        storeId,
+                        windows.yearStart(),
+                        windows.todayEnd()
+                ))
+                .topProducts(orderRepository.findTopProductsByPaidCompletedRevenue(
+                        storeId,
+                        windows.yearStart(),
+                        windows.todayEnd(),
+                        PageRequest.of(0, 5)
+                ))
+                .topCategories(orderRepository.findTopCategoriesByPaidCompletedRevenue(
+                        storeId,
+                        windows.yearStart(),
+                        windows.todayEnd(),
+                        PageRequest.of(0, 5)
+                ))
+                .storeRanking(orderRepository.findStoreRankingByPaidCompletedRevenue(
+                        storeId,
+                        windows.yearStart(),
+                        windows.todayEnd(),
+                        PageRequest.of(0, 10)
+                ))
                 .build();
     }
 
     @Override
     public ManagerDashboardSummaryResponse getManagerSummary(String managerEmail) {
-        UserEntity manager = userRepository.findByEmail(managerEmail)
-                .orElseThrow(() -> new ResourceNotFoundException("Manager user not found"));
-        Long storeId = storeUserRepository.findByUserId(manager.getId()).stream()
-                .filter(storeUser -> "active".equalsIgnoreCase(storeUser.getStatus()))
-                .map(StoreUserEntity::getStore)
-                .map(store -> store.getId())
-                .findFirst()
-                .orElseThrow(() -> new ResourceNotFoundException("Manager store assignment not found"));
-        StoreEntity store = storeRepository.findById(storeId)
-                .orElseThrow(() -> new ResourceNotFoundException("Manager store not found"));
+        StoreEntity store = managerStoreContextService.getCurrentManagerStore();
+        Long storeId = store.getId();
 
         long inventoryItems = stockMovementRepository.countDistinctIngredientsByStoreId(storeId);
-        long lowStockItems = stockMovementRepository.calculateAllStockBalances().stream()
-                .filter(balance -> storeId.equals(balance[0]))
-                .filter(balance -> {
-                    BigDecimal minStock = (BigDecimal) balance[6];
-                    BigDecimal currentStock = (BigDecimal) balance[7];
-                    return currentStock.compareTo(minStock) <= 0;
-                })
-                .count();
+        long lowStockItems = countLowStockItems(storeId);
+        TimeWindows windows = currentTimeWindows();
 
-        // Calculate time periods for today, yesterday, this week, this month
-        LocalDateTime now = LocalDateTime.now();
-        LocalDateTime todayStart = now.with(LocalTime.MIN);
-        LocalDateTime todayEnd = now.with(LocalTime.MAX);
-
-        LocalDateTime yesterdayStart = todayStart.minusDays(1);
-        LocalDateTime yesterdayEnd = todayEnd.minusDays(1);
-
-        LocalDateTime thisWeekStart = todayStart.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
-        LocalDateTime thisMonthStart = todayStart.with(TemporalAdjusters.firstDayOfMonth());
-
-        long todayOrders = orderRepository.countByStoreIdAndCreatedAtBetween(storeId, todayStart, todayEnd);
-        BigDecimal todayRevenue = orderRepository.sumRevenueByStoreAndStatusAndCreatedAtBetween(storeId, "COMPLETED", todayStart, todayEnd);
+        long todayOrders = orderRepository.countByStoreIdAndCreatedAtBetween(storeId, windows.todayStart(), windows.todayEnd());
+        BigDecimal todayRevenue = orderRepository.sumPaidCompletedRevenueBetween(storeId, windows.todayStart(), windows.todayEnd());
         long preparingOrders = orderRepository.countByStoreIdAndStatus(storeId, "PREPARING");
-        long completedOrders = orderRepository.countByStoreIdAndStatusAndCreatedAtBetween(storeId, "COMPLETED", todayStart, todayEnd);
+        long completedOrders = orderRepository.countByStoreIdAndStatusAndCreatedAtBetween(
+                storeId,
+                "COMPLETED",
+                windows.todayStart(),
+                windows.todayEnd()
+        );
 
         long activeStaff = storeUserRepository.findByStoreId(storeId).stream()
                 .filter(su -> "active".equalsIgnoreCase(su.getStatus()))
@@ -112,17 +126,33 @@ public class DashboardServiceImpl implements DashboardService {
                 })
                 .count();
 
-        long todayGoodsReceipts = goodsReceiptRepository.countByStoreIdAndCreatedAtBetween(storeId, todayStart, todayEnd);
+        long todayGoodsReceipts = goodsReceiptRepository.countByStoreIdAndCreatedAtBetween(
+                storeId,
+                windows.todayStart(),
+                windows.todayEnd()
+        );
         long todayStockAdjustments = stockMovementRepository.countByStoreIdAndMovementTypeAndCreatedAtBetween(
                 storeId,
                 "ADJUSTMENT",
-                todayStart,
-                todayEnd
+                windows.todayStart(),
+                windows.todayEnd()
         );
 
-        BigDecimal yesterdayRevenue = orderRepository.sumRevenueByStoreAndStatusAndCreatedAtBetween(storeId, "COMPLETED", yesterdayStart, yesterdayEnd);
-        BigDecimal thisWeekRevenue = orderRepository.sumRevenueByStoreAndStatusAndCreatedAtBetween(storeId, "COMPLETED", thisWeekStart, todayEnd);
-        BigDecimal thisMonthRevenue = orderRepository.sumRevenueByStoreAndStatusAndCreatedAtBetween(storeId, "COMPLETED", thisMonthStart, todayEnd);
+        BigDecimal yesterdayRevenue = orderRepository.sumPaidCompletedRevenueBetween(
+                storeId,
+                windows.yesterdayStart(),
+                windows.yesterdayEnd()
+        );
+        BigDecimal thisWeekRevenue = orderRepository.sumPaidCompletedRevenueBetween(
+                storeId,
+                windows.weekStart(),
+                windows.todayEnd()
+        );
+        BigDecimal thisMonthRevenue = orderRepository.sumPaidCompletedRevenueBetween(
+                storeId,
+                windows.monthStart(),
+                windows.todayEnd()
+        );
 
         return ManagerDashboardSummaryResponse.builder()
                 .storeId(storeId)
@@ -133,7 +163,7 @@ public class DashboardServiceImpl implements DashboardService {
                 .lowStockCount(lowStockItems)
                 .inventoryAlerts(lowStockItems)
                 .totalOrders(orderRepository.countByStoreId(storeId))
-                .totalRevenue(orderRepository.sumRevenueByStoreAndStatus(storeId, "COMPLETED"))
+                .totalRevenue(orderRepository.sumPaidCompletedRevenue(storeId))
                 .todayOrders(todayOrders)
                 .todayRevenue(todayRevenue)
                 .preparingOrders(preparingOrders)
@@ -145,6 +175,54 @@ public class DashboardServiceImpl implements DashboardService {
                 .yesterdayRevenue(yesterdayRevenue)
                 .thisWeekRevenue(thisWeekRevenue)
                 .thisMonthRevenue(thisMonthRevenue)
+                .topProducts(orderRepository.findTopProductsByPaidCompletedRevenue(
+                        storeId,
+                        windows.yearStart(),
+                        windows.todayEnd(),
+                        PageRequest.of(0, 5)
+                ))
                 .build();
+    }
+
+    private long countLowStockItems(Long storeId) {
+        return stockMovementRepository.calculateAllStockBalances().stream()
+                .filter(balance -> storeId == null || storeId.equals(balance[0]))
+                .filter(balance -> {
+                    BigDecimal minStock = (BigDecimal) balance[6];
+                    BigDecimal currentStock = (BigDecimal) balance[7];
+                    return currentStock.compareTo(minStock) <= 0;
+                })
+                .count();
+    }
+
+    private TimeWindows currentTimeWindows() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime todayStart = now.with(LocalTime.MIN);
+        LocalDateTime todayEnd = now.with(LocalTime.MAX);
+        LocalDateTime yesterdayStart = todayStart.minusDays(1);
+        LocalDateTime yesterdayEnd = todayStart;
+        LocalDateTime weekStart = todayStart.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+        LocalDateTime monthStart = todayStart.with(TemporalAdjusters.firstDayOfMonth());
+        LocalDateTime yearStart = LocalDate.of(todayStart.getYear(), 1, 1).atStartOfDay();
+        return new TimeWindows(
+                todayStart,
+                todayEnd,
+                yesterdayStart,
+                yesterdayEnd,
+                weekStart,
+                monthStart,
+                yearStart
+        );
+    }
+
+    private record TimeWindows(
+            LocalDateTime todayStart,
+            LocalDateTime todayEnd,
+            LocalDateTime yesterdayStart,
+            LocalDateTime yesterdayEnd,
+            LocalDateTime weekStart,
+            LocalDateTime monthStart,
+            LocalDateTime yearStart
+    ) {
     }
 }

@@ -17,10 +17,14 @@ public class FlywayConfig {
     @Bean(initMethod = "migrate")
     public Flyway flyway(DataSource dataSource, Environment environment) {
         String locations = environment.getProperty("spring.flyway.locations", "classpath:db/migration");
+        String ignoreMigrationPatterns = environment.getProperty(
+                "spring.flyway.ignore-migration-patterns",
+                "*:missing,*:future"
+        );
         return Flyway.configure()
                 .dataSource(dataSource)
                 .locations(locations.split(","))
-                .ignoreMigrationPatterns("*:missing")
+                .ignoreMigrationPatterns(ignoreMigrationPatterns.split(","))
                 .load();
     }
 

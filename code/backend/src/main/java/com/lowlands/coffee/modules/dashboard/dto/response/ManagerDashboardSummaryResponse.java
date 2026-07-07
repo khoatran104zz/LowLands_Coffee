@@ -4,6 +4,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Getter
 @Builder
@@ -33,4 +34,5 @@ public class ManagerDashboardSummaryResponse {
     private final BigDecimal yesterdayRevenue;
     private final BigDecimal thisWeekRevenue;
     private final BigDecimal thisMonthRevenue;
+    private final List<DashboardTopProductResponse> topProducts;
 }

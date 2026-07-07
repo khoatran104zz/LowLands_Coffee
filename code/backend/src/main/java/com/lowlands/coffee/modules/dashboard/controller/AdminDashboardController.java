@@ -5,6 +5,7 @@ import com.lowlands.coffee.modules.dashboard.dto.response.AdminDashboardSummaryR
 import com.lowlands.coffee.modules.dashboard.service.DashboardService;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
@@ -18,7 +19,9 @@ public class AdminDashboardController {
     }
 
     @GetMapping("/summary")
-    public ApiResponse<AdminDashboardSummaryResponse> getSummary() {
-        return ApiResponse.success(dashboardService.getAdminSummary());
+    public ApiResponse<AdminDashboardSummaryResponse> getSummary(
+            @RequestParam(required = false) Long storeId
+    ) {
+        return ApiResponse.success(dashboardService.getAdminSummary(storeId));
     }
 }

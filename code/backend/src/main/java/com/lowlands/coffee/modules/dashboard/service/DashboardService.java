@@ -5,7 +5,7 @@ import com.lowlands.coffee.modules.dashboard.dto.response.ManagerDashboardSummar
 
 public interface DashboardService {
 
-    AdminDashboardSummaryResponse getAdminSummary();
+    AdminDashboardSummaryResponse getAdminSummary(Long storeId);
 
     ManagerDashboardSummaryResponse getManagerSummary(String managerEmail);
 }
