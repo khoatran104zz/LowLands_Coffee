@@ -42,6 +42,7 @@ import java.util.Set;
 public class InventoryServiceImpl implements InventoryService {
 
     private static final String DRAFT = "DRAFT";
+    private static final String PENDING = "PENDING";
     private static final String COMPLETED = "COMPLETED";
     private static final String CANCELLED = "CANCELLED";
     private static final String IN = "IN";
@@ -143,7 +144,7 @@ public class InventoryServiceImpl implements InventoryService {
         receipt.setStore(getStore(storeId));
         receipt.setCreatedBy(getUser(createdById));
         receipt.setReceiptCode(receiptCode);
-        receipt.setStatus(DRAFT);
+        receipt.setStatus(PENDING);
         receipt.setNote(clean(request.getNote()));
         replaceReceiptItems(receipt, request.getItems());
         receipt.setTotalAmount(calculateTotal(receipt));
@@ -168,7 +169,7 @@ public class InventoryServiceImpl implements InventoryService {
     public GoodsReceiptResponse updateGoodsReceipt(Long id, GoodsReceiptUpdateRequest request) {
         validateReceiptItems(request.getItems());
         GoodsReceiptEntity receipt = getGoodsReceipt(id);
-        ensureDraft(receipt);
+        ensureDraftOrPending(receipt);
         String receiptCode = request.getReceiptCode().trim();
         if (goodsReceiptRepository.existsByReceiptCodeAndIdNot(receiptCode, id)) {
             throw new DuplicateResourceException("Goods receipt code already exists");
@@ -194,7 +195,7 @@ public class InventoryServiceImpl implements InventoryService {
         validateReceiptItems(request.getItems());
         GoodsReceiptEntity receipt = getGoodsReceipt(id);
         ensureReceiptStore(receipt, storeId);
-        ensureDraft(receipt);
+        ensureDraftOrPending(receipt);
         String receiptCode = request.getReceiptCode().trim();
         if (goodsReceiptRepository.existsByReceiptCodeAndIdNot(receiptCode, id)) {
             throw new DuplicateResourceException("Goods receipt code already exists");
@@ -212,7 +213,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public void deleteGoodsReceipt(Long id) {
         GoodsReceiptEntity receipt = getGoodsReceipt(id);
-        ensureDraft(receipt);
+        ensureDraftOrPending(receipt);
         receipt.setStatus(CANCELLED);
         goodsReceiptRepository.save(receipt);
     }
@@ -220,7 +221,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public GoodsReceiptResponse completeGoodsReceipt(Long id) {
         GoodsReceiptEntity receipt = getGoodsReceipt(id);
-        ensureDraft(receipt);
+        ensureDraftOrPending(receipt);
         receipt.setStatus(COMPLETED);
         GoodsReceiptEntity savedReceipt = goodsReceiptRepository.save(receipt);
         savedReceipt.getItems().forEach(item -> stockMovementRepository.save(
@@ -254,7 +255,7 @@ public class InventoryServiceImpl implements InventoryService {
                     "Completed goods receipt is missing stock movements"
             );
         }
-        ensureDraft(receipt);
+        ensureDraftOrPending(receipt);
         receipt.setStatus(COMPLETED);
         GoodsReceiptEntity savedReceipt = goodsReceiptRepository.save(receipt);
         if (!stockMovementRepository.existsByMovementTypeAndReferenceTypeAndReferenceId(IN, GOODS_RECEIPT, savedReceipt.getId())) {
@@ -379,9 +380,9 @@ public class InventoryServiceImpl implements InventoryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Ingredient not found"));
     }
 
-    private void ensureDraft(GoodsReceiptEntity receipt) {
-        if (!DRAFT.equals(receipt.getStatus())) {
-            throw new BadRequestException("Only draft goods receipt can be changed");
+    private void ensureDraftOrPending(GoodsReceiptEntity receipt) {
+        if (!DRAFT.equals(receipt.getStatus()) && !PENDING.equals(receipt.getStatus())) {
+            throw new BadRequestException("Only draft or pending goods receipt can be changed");
         }
     }
 
