@@ -313,17 +313,6 @@ export default function ManagerImportNotesPage() {
           searchKey="receiptCode"
           searchQuery={searchQuery}
           onView={handleViewDetails}
-          onEdit={viewingReceipt?.status === "draft" ? handleViewDetails : undefined}
-          onDelete={undefined}
-          extraActions={[
-            {
-              icon: CheckCircle,
-              onClick: handleOpenComplete,
-              color: "text-emerald-600 hover:bg-emerald-50",
-              title: t("manager.inventory.importNotes.actionComplete") || "Hoàn tất phiếu nhập",
-              visible: (item: GoodsReceipt) => item.status === "draft"
-            }
-          ]}
         />
       )}
 
@@ -540,17 +529,7 @@ export default function ManagerImportNotesPage() {
               >
                 {t("manager.inventory.importNotes.modalDetailBtnClose")}
               </Button>
-              {viewingReceipt.status === "draft" && (
-                <Button
-                  onClick={() => {
-                    setIsDetailOpen(false);
-                    handleOpenComplete(viewingReceipt);
-                  }}
-                  className="bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg h-10 text-xs font-semibold px-4 cursor-pointer"
-                >
-                  {t("manager.inventory.importNotes.modalDetailBtnComplete")}
-                </Button>
-              )}
+
             </div>
           </div>
         )}

@@ -6,6 +6,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useConfirm } from "@/hooks/useConfirm";
 import { LanguageSwitcher } from "@/components/features/layout/LanguageSwitcher";
 import { AccountModal } from "../account/AccountModal";
+import { getNotifications, markNotificationAsRead, NotificationItem } from "@/services/notification.service";
 
 interface HeaderProps {
   locale: string;
@@ -46,12 +47,63 @@ export function Header({ locale, onOpenMobileSidebar }: HeaderProps) {
 
   if (!user) return null;
 
-  // Mock operational notifications
-  const notifications = [
-    { id: 1, title: "Cảnh báo kho hàng", desc: "Hạt sen ngâm syrup đã hết hàng hoàn toàn!", type: "alert", time: "5 phút trước" },
-    { id: 2, title: "Đơn hàng mới", desc: "Đơn hàng LL-103 chờ xác nhận thanh toán chuyển khoản", type: "order", time: "12 phút trước" },
-    { id: 3, title: "Mức tồn kho thấp", desc: "Sữa tươi Đà Lạt Milk 950ml sắp chạm ngưỡng cảnh báo", type: "warning", time: "1 giờ trước" }
-  ];
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+
+  const loadNotifications = async () => {
+    try {
+      const data = await getNotifications();
+      setNotifications(data);
+    } catch (error) {
+      console.error("Failed to load notifications", error);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      void loadNotifications();
+      const interval = setInterval(() => {
+        void loadNotifications();
+      }, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (isNotifOpen) {
+      void loadNotifications();
+    }
+  }, [isNotifOpen]);
+
+  const handleNotifClick = async (item: NotificationItem) => {
+    try {
+      await markNotificationAsRead(item.id);
+      setNotifications(prev => prev.map(n => n.id === item.id ? { ...n, isRead: true } : n));
+      setIsNotifOpen(false);
+      if (item.link) {
+        router.push(`/${locale}${item.link}`);
+      }
+    } catch (error) {
+      console.error("Failed to mark notification as read", error);
+    }
+  };
+
+  const formatNotifTime = (createdAtStr: string) => {
+    try {
+      const date = new Date(createdAtStr);
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffMins = Math.floor(diffMs / 60000);
+      if (diffMins < 1) return "Vừa xong";
+      if (diffMins < 60) return `${diffMins} phút trước`;
+      const diffHours = Math.floor(diffMins / 60);
+      if (diffHours < 24) return `${diffHours} giờ trước`;
+      return date.toLocaleDateString("vi-VN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    } catch {
+      return "";
+    }
+  };
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const getHeaderTitle = () => {
     if (pathname.includes("/dashboard")) return t("common.dashboard");
@@ -137,27 +189,45 @@ export function Header({ locale, onOpenMobileSidebar }: HeaderProps) {
               className="relative p-2 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 hover:text-zinc-800 transition-all cursor-pointer border border-zinc-150"
             >
               <Bell className="h-4.5 w-4.5" />
-              <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-rose-600 ring-2 ring-white animate-pulse" />
+              {unreadCount > 0 && (
+                <span className="absolute top-1.5 right-1.5 h-2.5 w-2.5 rounded-full bg-rose-600 ring-2 ring-white animate-pulse" />
+              )}
             </button>
 
             {isNotifOpen && (
               <div className="absolute right-0 mt-2.5 w-80 bg-white dark:bg-zinc-900 border border-zinc-250 dark:border-zinc-800 rounded-xl shadow-xl z-50 overflow-hidden text-left p-1">
                 <div className="px-4 py-2.5 border-b border-zinc-100 select-none flex items-center justify-between">
                   <span className="text-xs font-bold text-zinc-800 uppercase tracking-wide font-outfit">Thông báo vận hành</span>
-                  <span className="text-[9px] font-bold text-[#c8510a] bg-amber-50 px-2 py-0.5 rounded-full select-none">Mới</span>
+                  {unreadCount > 0 && (
+                    <span className="text-[9px] font-bold text-[#c8510a] bg-amber-50 px-2 py-0.5 rounded-full select-none">Mới ({unreadCount})</span>
+                  )}
                 </div>
                 <div className="divide-y divide-zinc-100 max-h-64 overflow-y-auto">
-                  {notifications.map((item) => (
-                    <div key={item.id} className="p-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition-colors">
-                      <div className="flex items-center justify-between">
-                        <span className={`text-[10px] font-bold uppercase tracking-wider ${
-                          item.type === "alert" ? "text-rose-600" : item.type === "warning" ? "text-amber-600" : "text-amber-800"
-                        }`}>{item.title}</span>
-                        <span className="text-[9px] text-zinc-400 font-semibold">{item.time}</span>
+                  {notifications.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-zinc-400">Không có thông báo nào</div>
+                  ) : (
+                    notifications.map((item) => (
+                      <div
+                        key={item.id}
+                        onClick={() => handleNotifClick(item)}
+                        className={`p-3 hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition-colors cursor-pointer ${
+                          !item.isRead ? "bg-amber-50/20 font-semibold" : ""
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className={`text-[10px] font-bold uppercase tracking-wider ${
+                            item.type === "IMPORT_REQUEST" || item.type === "alert"
+                              ? "text-rose-600"
+                              : item.type === "IMPORT_APPROVED"
+                              ? "text-emerald-600"
+                              : "text-amber-800"
+                          }`}>{item.title}</span>
+                          <span className="text-[9px] text-zinc-400 font-semibold">{formatNotifTime(item.createdAt)}</span>
+                        </div>
+                        <p className="text-xs text-zinc-650 dark:text-zinc-350 mt-1 leading-snug">{item.content}</p>
                       </div>
-                      <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 leading-snug">{item.desc}</p>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </div>
             )}

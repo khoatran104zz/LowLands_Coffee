@@ -6,6 +6,7 @@ import { useTranslation } from "@/hooks/useTranslation";
 import { useConfirm } from "@/hooks/useConfirm";
 import { LanguageSwitcher } from "@/components/features/layout/LanguageSwitcher";
 import { AccountModal } from "../account/AccountModal";
+import { getNotifications, markNotificationAsRead, NotificationItem } from "@/services/notification.service";
 
 interface HeaderProps {
   locale: string;
@@ -46,11 +47,63 @@ export function Header({ locale, onOpenMobileSidebar }: HeaderProps) {
 
   if (!user) return null;
 
-  // Mock manager operational notifications for this branch
-  const notifications = [
-    { id: 1, title: t("manager.header.notifLowStock"), desc: t("manager.header.notifLowStockDesc"), type: "alert", time: "10m" },
-    { id: 2, title: t("manager.header.notifNewOrder"), desc: t("manager.header.notifNewOrderDesc"), type: "order", time: "15m" }
-  ];
+  const [notifications, setNotifications] = useState<NotificationItem[]>([]);
+
+  const loadNotifications = async () => {
+    try {
+      const data = await getNotifications();
+      setNotifications(data);
+    } catch (error) {
+      console.error("Failed to load notifications", error);
+    }
+  };
+
+  useEffect(() => {
+    if (user) {
+      void loadNotifications();
+      const interval = setInterval(() => {
+        void loadNotifications();
+      }, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [user]);
+
+  useEffect(() => {
+    if (isNotifOpen) {
+      void loadNotifications();
+    }
+  }, [isNotifOpen]);
+
+  const handleNotifClick = async (item: NotificationItem) => {
+    try {
+      await markNotificationAsRead(item.id);
+      setNotifications(prev => prev.map(n => n.id === item.id ? { ...n, isRead: true } : n));
+      setIsNotifOpen(false);
+      if (item.link) {
+        router.push(`/${locale}${item.link}`);
+      }
+    } catch (error) {
+      console.error("Failed to mark notification as read", error);
+    }
+  };
+
+  const formatNotifTime = (createdAtStr: string) => {
+    try {
+      const date = new Date(createdAtStr);
+      const now = new Date();
+      const diffMs = now.getTime() - date.getTime();
+      const diffMins = Math.floor(diffMs / 60000);
+      if (diffMins < 1) return "Vừa xong";
+      if (diffMins < 60) return `${diffMins} phút trước`;
+      const diffHours = Math.floor(diffMins / 60);
+      if (diffHours < 24) return `${diffHours} giờ trước`;
+      return date.toLocaleDateString("vi-VN", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+    } catch {
+      return "";
+    }
+  };
+
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 
   const getHeaderTitle = () => {
     if (pathname.includes("/dashboard")) return t("common.sidebar.dashboard");
@@ -124,25 +177,41 @@ export function Header({ locale, onOpenMobileSidebar }: HeaderProps) {
               className="relative p-1.5 rounded-full hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-500 transition-colors cursor-pointer"
             >
               <Bell className="h-4 w-4" />
-              <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-rose-600 ring-2 ring-white"></span>
+              {unreadCount > 0 && (
+                <span className="absolute top-1 right-1 h-2 w-2 rounded-full bg-rose-600 ring-2 ring-white"></span>
+              )}
             </button>
 
             {isNotifOpen && (
-              <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 rounded-xl shadow-lg py-2 z-50 animate-slide-in-down">
+              <div className="absolute right-0 mt-2 w-72 bg-white dark:bg-zinc-950 border border-zinc-200 dark:border-zinc-850 rounded-xl shadow-lg py-2 z-50 animate-slide-in-down text-left">
                 <div className="px-4 py-1.5 border-b border-zinc-100 dark:border-zinc-800 flex justify-between items-center">
                   <span className="text-xs font-bold text-zinc-800 dark:text-zinc-200">{t("manager.header.opNotification")}</span>
-                  <span className="text-[10px] text-amber-850 font-bold cursor-pointer hover:underline">{t("manager.header.latest")}</span>
+                  {unreadCount > 0 && (
+                    <span className="text-[10px] text-amber-850 font-bold select-none">Mới ({unreadCount})</span>
+                  )}
                 </div>
                 <div className="divide-y divide-zinc-100 dark:divide-zinc-850 max-h-60 overflow-y-auto">
-                  {notifications.map((n) => (
-                    <div key={n.id} className="p-3 text-left hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors cursor-pointer">
-                      <div className="flex justify-between items-start">
-                        <span className="text-xs font-bold text-zinc-900 dark:text-zinc-100 truncate">{n.title}</span>
-                        <span className="text-[9px] text-zinc-400 whitespace-nowrap ml-2">{n.time}</span>
+                  {notifications.length === 0 ? (
+                    <div className="p-4 text-center text-xs text-zinc-400">Không có thông báo nào</div>
+                  ) : (
+                    notifications.map((n) => (
+                      <div
+                        key={n.id}
+                        onClick={() => handleNotifClick(n)}
+                        className={`p-3 text-left hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors cursor-pointer ${
+                          !n.isRead ? "bg-amber-50/10 font-semibold" : ""
+                        }`}
+                      >
+                        <div className="flex justify-between items-start">
+                          <span className={`text-xs font-bold truncate ${
+                            n.type === "IMPORT_APPROVED" ? "text-emerald-600" : "text-zinc-900 dark:text-zinc-100"
+                          }`}>{n.title}</span>
+                          <span className="text-[9px] text-zinc-400 whitespace-nowrap ml-2">{formatNotifTime(n.createdAt)}</span>
+                        </div>
+                        <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5 line-clamp-2">{n.content}</p>
                       </div>
-                      <p className="text-[10px] text-zinc-500 dark:text-zinc-400 mt-0.5 line-clamp-2">{n.desc}</p>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </div>
             )}

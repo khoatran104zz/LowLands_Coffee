@@ -28,6 +28,7 @@ import com.lowlands.coffee.modules.supplier.entity.SupplierEntity;
 import com.lowlands.coffee.modules.supplier.repository.SupplierRepository;
 import com.lowlands.coffee.modules.user.entity.UserEntity;
 import com.lowlands.coffee.modules.user.repository.UserRepository;
+import com.lowlands.coffee.modules.notification.service.NotificationService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,6 +42,7 @@ import java.util.Set;
 public class InventoryServiceImpl implements InventoryService {
 
     private static final String DRAFT = "DRAFT";
+    private static final String PENDING = "PENDING";
     private static final String COMPLETED = "COMPLETED";
     private static final String CANCELLED = "CANCELLED";
     private static final String IN = "IN";
@@ -55,6 +57,7 @@ public class InventoryServiceImpl implements InventoryService {
     private final UserRepository userRepository;
     private final IngredientRepository ingredientRepository;
     private final InventoryMapper inventoryMapper;
+    private final NotificationService notificationService;
 
     public InventoryServiceImpl(
             GoodsReceiptRepository goodsReceiptRepository,
@@ -63,7 +66,8 @@ public class InventoryServiceImpl implements InventoryService {
             StoreRepository storeRepository,
             UserRepository userRepository,
             IngredientRepository ingredientRepository,
-            InventoryMapper inventoryMapper
+            InventoryMapper inventoryMapper,
+            NotificationService notificationService
     ) {
         this.goodsReceiptRepository = goodsReceiptRepository;
         this.stockMovementRepository = stockMovementRepository;
@@ -72,6 +76,7 @@ public class InventoryServiceImpl implements InventoryService {
         this.userRepository = userRepository;
         this.ingredientRepository = ingredientRepository;
         this.inventoryMapper = inventoryMapper;
+        this.notificationService = notificationService;
     }
 
     @Override
@@ -139,18 +144,32 @@ public class InventoryServiceImpl implements InventoryService {
         receipt.setStore(getStore(storeId));
         receipt.setCreatedBy(getUser(createdById));
         receipt.setReceiptCode(receiptCode);
-        receipt.setStatus(DRAFT);
+        receipt.setStatus(PENDING);
         receipt.setNote(clean(request.getNote()));
         replaceReceiptItems(receipt, request.getItems());
         receipt.setTotalAmount(calculateTotal(receipt));
-        return inventoryMapper.toGoodsReceiptResponse(goodsReceiptRepository.save(receipt));
+        GoodsReceiptResponse response = inventoryMapper.toGoodsReceiptResponse(goodsReceiptRepository.save(receipt));
+
+        // Notify Admins!
+        notificationService.createNotification(
+                "Yêu cầu nhập kho mới",
+                "Quản lý chi nhánh " + receipt.getStore().getName() + " đã tạo yêu cầu nhập kho mới " + receiptCode + ".",
+                "IMPORT_REQUEST",
+                receipt.getCreatedBy().getFullName(),
+                null,
+                "ADMIN",
+                null,
+                "/admin/import-notes"
+        );
+
+        return response;
     }
 
     @Override
     public GoodsReceiptResponse updateGoodsReceipt(Long id, GoodsReceiptUpdateRequest request) {
         validateReceiptItems(request.getItems());
         GoodsReceiptEntity receipt = getGoodsReceipt(id);
-        ensureDraft(receipt);
+        ensureDraftOrPending(receipt);
         String receiptCode = request.getReceiptCode().trim();
         if (goodsReceiptRepository.existsByReceiptCodeAndIdNot(receiptCode, id)) {
             throw new DuplicateResourceException("Goods receipt code already exists");
@@ -176,7 +195,7 @@ public class InventoryServiceImpl implements InventoryService {
         validateReceiptItems(request.getItems());
         GoodsReceiptEntity receipt = getGoodsReceipt(id);
         ensureReceiptStore(receipt, storeId);
-        ensureDraft(receipt);
+        ensureDraftOrPending(receipt);
         String receiptCode = request.getReceiptCode().trim();
         if (goodsReceiptRepository.existsByReceiptCodeAndIdNot(receiptCode, id)) {
             throw new DuplicateResourceException("Goods receipt code already exists");
@@ -194,7 +213,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public void deleteGoodsReceipt(Long id) {
         GoodsReceiptEntity receipt = getGoodsReceipt(id);
-        ensureDraft(receipt);
+        ensureDraftOrPending(receipt);
         receipt.setStatus(CANCELLED);
         goodsReceiptRepository.save(receipt);
     }
@@ -202,12 +221,25 @@ public class InventoryServiceImpl implements InventoryService {
     @Override
     public GoodsReceiptResponse completeGoodsReceipt(Long id) {
         GoodsReceiptEntity receipt = getGoodsReceipt(id);
-        ensureDraft(receipt);
+        ensureDraftOrPending(receipt);
         receipt.setStatus(COMPLETED);
         GoodsReceiptEntity savedReceipt = goodsReceiptRepository.save(receipt);
         savedReceipt.getItems().forEach(item -> stockMovementRepository.save(
                 createReceiptMovement(savedReceipt, item)
         ));
+
+        // Notify the Manager who requested it!
+        notificationService.createNotification(
+                "Yêu cầu nhập kho được duyệt",
+                "Yêu cầu nhập kho " + savedReceipt.getReceiptCode() + " đã được Admin phê duyệt thành công.",
+                "IMPORT_APPROVED",
+                "Admin Hệ thống",
+                savedReceipt.getCreatedBy().getId(),
+                null,
+                null,
+                "/manager/inventory/import-notes"
+        );
+
         return inventoryMapper.toGoodsReceiptResponse(savedReceipt);
     }
 
@@ -223,7 +255,7 @@ public class InventoryServiceImpl implements InventoryService {
                     "Completed goods receipt is missing stock movements"
             );
         }
-        ensureDraft(receipt);
+        ensureDraftOrPending(receipt);
         receipt.setStatus(COMPLETED);
         GoodsReceiptEntity savedReceipt = goodsReceiptRepository.save(receipt);
         if (!stockMovementRepository.existsByMovementTypeAndReferenceTypeAndReferenceId(IN, GOODS_RECEIPT, savedReceipt.getId())) {
@@ -348,9 +380,9 @@ public class InventoryServiceImpl implements InventoryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Ingredient not found"));
     }
 
-    private void ensureDraft(GoodsReceiptEntity receipt) {
-        if (!DRAFT.equals(receipt.getStatus())) {
-            throw new BadRequestException("Only draft goods receipt can be changed");
+    private void ensureDraftOrPending(GoodsReceiptEntity receipt) {
+        if (!DRAFT.equals(receipt.getStatus()) && !PENDING.equals(receipt.getStatus())) {
+            throw new BadRequestException("Only draft or pending goods receipt can be changed");
         }
     }
 

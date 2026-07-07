@@ -330,14 +330,14 @@ export default function AdminImportNotesPage() {
           searchQuery={searchQuery}
           onView={handleOpenDetail}
           onEdit={(item) => {
-            if (item.status === "DRAFT") {
+            if (item.status === "DRAFT" || item.status === "PENDING") {
               handleOpenComplete(item);
             } else {
-              toast.info("Chỉ có thể xác nhận hoàn tất đối với phiếu nháp.");
+              toast.info("Chỉ có thể xác nhận hoàn tất đối với phiếu nháp hoặc phiếu chờ duyệt.");
             }
           }}
           onDelete={(item) => {
-            if (item.status === "DRAFT") {
+            if (item.status === "DRAFT" || item.status === "PENDING") {
               handleOpenDelete(item);
             } else {
               toast.error("Không thể xóa phiếu nhập kho đã hoàn tất!");
@@ -564,7 +564,7 @@ export default function AdminImportNotesPage() {
               >
                 Đóng
               </Button>
-              {viewingReceipt.status === "DRAFT" && (
+              {(viewingReceipt.status === "DRAFT" || viewingReceipt.status === "PENDING") && (
                 <Button
                   onClick={() => {
                     setIsDetailOpen(false);
