@@ -5,7 +5,7 @@ import {
   Coffee, History, Printer, CheckCircle, Bell,
   CupSoda, Cake, Salad, Ticket, Users, BarChart2, Settings, Grid, List, ArrowUpDown,
   ClipboardList, Clock, XCircle, ChefHat, PackageCheck,
-  User, Truck, CreditCard, Tag
+  User, Truck, CreditCard, Tag, Store
 } from "lucide-react";
 import { Product, ProductVariant, Topping, CartItem, Order } from "@/types";
 import { useDashboardStore } from "@/store/dashboardStore";
@@ -619,12 +619,20 @@ export default function StaffPOSPage() {
       <header className="flex items-center justify-between pb-1 shrink-0">
         {/* Branch Name Tag on the Left */}
         <div className="flex items-center space-x-2.5">
-          <div className="flex items-center space-x-2 py-1 px-2.5 bg-amber-500/10 text-[#C8510A] rounded-full text-[10px] font-bold border border-amber-500/20 select-none animate-fade-in">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-            </span>
-            <span>{user?.branchName || "Chi nhánh chính"}</span>
+          <div className="flex items-center gap-2.5 px-3 py-1.5 bg-amber-500/10 dark:bg-amber-950/20 border border-amber-500/20 text-[#8C5E3C] rounded-xl font-outfit select-none animate-fade-in">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#C8510A]/10 text-[#C8510A]">
+              <Store className="h-4.5 w-4.5" />
+            </div>
+            <div className="flex flex-col text-left">
+              <span className="text-[9px] font-black uppercase tracking-wider text-amber-800/60 dark:text-amber-400/60 leading-none mb-1">Cửa hàng làm việc</span>
+              <span className="text-sm font-black text-[#3A1D14] dark:text-amber-100 flex items-center gap-1.5 leading-none">
+                {user?.branchName || "Chi nhánh chính"}
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+                </span>
+              </span>
+            </div>
           </div>
         </div>
 
