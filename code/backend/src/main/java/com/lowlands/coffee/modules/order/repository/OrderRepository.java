@@ -18,7 +18,6 @@ import java.time.LocalDateTime;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
-import java.util.List;
 
 public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSpecificationExecutor<OrderEntity> {
 
@@ -66,6 +65,34 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
     long countByStatusAndOptionalStoreId(
             @Param("status") String status,
             @Param("storeId") Long storeId
+    );
+
+    @Query("""
+            select count(o)
+            from OrderEntity o
+            where (:storeId is null or o.store.id = :storeId)
+              and o.createdAt >= :start
+              and o.createdAt < :end
+            """)
+    long countByOptionalStoreIdAndCreatedAtBetween(
+            @Param("storeId") Long storeId,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
+    );
+
+    @Query("""
+            select count(o)
+            from OrderEntity o
+            where o.status = :status
+              and (:storeId is null or o.store.id = :storeId)
+              and o.createdAt >= :start
+              and o.createdAt < :end
+            """)
+    long countByStatusAndOptionalStoreIdAndCreatedAtBetween(
+            @Param("status") String status,
+            @Param("storeId") Long storeId,
+            @Param("start") LocalDateTime start,
+            @Param("end") LocalDateTime end
     );
 
     @Query("select coalesce(sum(o.totalAmount), 0) from OrderEntity o where o.store.id = :storeId and o.status = :status")
@@ -201,6 +228,18 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
             @Param("storeId") Long storeId,
             @Param("start") LocalDateTime start,
             @Param("end") LocalDateTime end,
+            Pageable pageable
+    );
+
+    @Query("""
+            select o
+            from OrderEntity o
+            left join fetch o.store
+            where (:storeId is null or o.store.id = :storeId)
+            order by o.createdAt desc
+            """)
+    List<OrderEntity> findRecentOrders(
+            @Param("storeId") Long storeId,
             Pageable pageable
     );
 

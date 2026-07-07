@@ -1,13 +1,18 @@
 package com.lowlands.coffee.modules.dashboard.service.impl;
 
 import com.lowlands.coffee.modules.dashboard.dto.response.AdminDashboardSummaryResponse;
+import com.lowlands.coffee.modules.dashboard.dto.response.DashboardLowStockResponse;
+import com.lowlands.coffee.modules.dashboard.dto.response.DashboardRecentActivityResponse;
+import com.lowlands.coffee.modules.dashboard.dto.response.DashboardTrendPointResponse;
 import com.lowlands.coffee.modules.dashboard.dto.response.ManagerDashboardSummaryResponse;
+import com.lowlands.coffee.modules.inventory.entity.GoodsReceiptEntity;
+import com.lowlands.coffee.modules.inventory.entity.StockMovementEntity;
 import com.lowlands.coffee.modules.dashboard.service.DashboardService;
 import com.lowlands.coffee.modules.inventory.repository.GoodsReceiptRepository;
 import com.lowlands.coffee.modules.inventory.repository.StockMovementRepository;
+import com.lowlands.coffee.modules.order.entity.OrderEntity;
 import com.lowlands.coffee.modules.order.repository.OrderRepository;
 import com.lowlands.coffee.modules.product.repository.ProductRepository;
-import com.lowlands.coffee.modules.store.entity.StoreUserEntity;
 import com.lowlands.coffee.modules.store.entity.StoreEntity;
 import com.lowlands.coffee.modules.store.repository.StoreRepository;
 import com.lowlands.coffee.modules.store.repository.StoreUserRepository;
@@ -23,6 +28,9 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.TemporalAdjusters;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 @Service
 @Transactional(readOnly = true)
@@ -70,6 +78,9 @@ public class DashboardServiceImpl implements DashboardService {
                 .weekRevenue(orderRepository.sumPaidCompletedRevenueBetween(storeId, windows.weekStart(), windows.todayEnd()))
                 .monthRevenue(orderRepository.sumPaidCompletedRevenueBetween(storeId, windows.monthStart(), windows.todayEnd()))
                 .yearRevenue(orderRepository.sumPaidCompletedRevenueBetween(storeId, windows.yearStart(), windows.todayEnd()))
+                .ordersToday(orderRepository.countByOptionalStoreIdAndCreatedAtBetween(storeId, windows.todayStart(), windows.todayEnd()))
+                .completedOrdersToday(orderRepository.countByStatusAndOptionalStoreIdAndCreatedAtBetween("COMPLETED", storeId, windows.todayStart(), windows.todayEnd()))
+                .cancelledOrdersToday(orderRepository.countByStatusAndOptionalStoreIdAndCreatedAtBetween("CANCELLED", storeId, windows.todayStart(), windows.todayEnd()))
                 .completedOrders(orderRepository.countByStatusAndOptionalStoreId("COMPLETED", storeId))
                 .cancelledOrders(orderRepository.countByStatusAndOptionalStoreId("CANCELLED", storeId))
                 .lowStockCount(countLowStockItems(storeId))
@@ -96,6 +107,10 @@ public class DashboardServiceImpl implements DashboardService {
                         windows.todayEnd(),
                         PageRequest.of(0, 10)
                 ))
+                .revenueTrend(buildSevenDayTrend(storeId, windows.todayStart()))
+                .orderTrend(buildSevenDayTrend(storeId, windows.todayStart()))
+                .lowStockItems(findLowStockItems(storeId, 5))
+                .recentActivities(findRecentActivities(storeId, 8))
                 .build();
     }
 
@@ -111,6 +126,7 @@ public class DashboardServiceImpl implements DashboardService {
         long todayOrders = orderRepository.countByStoreIdAndCreatedAtBetween(storeId, windows.todayStart(), windows.todayEnd());
         BigDecimal todayRevenue = orderRepository.sumPaidCompletedRevenueBetween(storeId, windows.todayStart(), windows.todayEnd());
         long preparingOrders = orderRepository.countByStoreIdAndStatus(storeId, "PREPARING");
+        long readyOrders = orderRepository.countByStoreIdAndStatus(storeId, "READY");
         long completedOrders = orderRepository.countByStoreIdAndStatusAndCreatedAtBetween(
                 storeId,
                 "COMPLETED",
@@ -167,6 +183,7 @@ public class DashboardServiceImpl implements DashboardService {
                 .todayOrders(todayOrders)
                 .todayRevenue(todayRevenue)
                 .preparingOrders(preparingOrders)
+                .readyOrders(readyOrders)
                 .completedOrders(completedOrders)
                 .activeStaff(activeStaff)
                 .staffCount(activeStaff)
@@ -181,18 +198,124 @@ public class DashboardServiceImpl implements DashboardService {
                         windows.todayEnd(),
                         PageRequest.of(0, 5)
                 ))
+                .paymentBreakdown(orderRepository.findPaymentBreakdownForPaidCompletedOrders(
+                        storeId,
+                        windows.yearStart(),
+                        windows.todayEnd()
+                ))
+                .revenueTrend(buildSevenDayTrend(storeId, windows.todayStart()))
+                .orderTrend(buildSevenDayTrend(storeId, windows.todayStart()))
+                .lowStockItemsList(findLowStockItems(storeId, 5))
+                .ingredientConsumption(stockMovementRepository.findIngredientConsumptionByStore(
+                        storeId,
+                        windows.weekStart(),
+                        windows.todayEnd(),
+                        PageRequest.of(0, 5)
+                ))
+                .recentActivities(findRecentActivities(storeId, 8))
                 .build();
     }
 
     private long countLowStockItems(Long storeId) {
-        return stockMovementRepository.calculateAllStockBalances().stream()
-                .filter(balance -> storeId == null || storeId.equals(balance[0]))
+        return stockBalances(storeId).stream()
                 .filter(balance -> {
-                    BigDecimal minStock = (BigDecimal) balance[6];
+                    BigDecimal minStock = minStock(balance);
                     BigDecimal currentStock = (BigDecimal) balance[7];
                     return currentStock.compareTo(minStock) <= 0;
                 })
                 .count();
+    }
+
+    private List<DashboardLowStockResponse> findLowStockItems(Long storeId, int limit) {
+        return stockBalances(storeId).stream()
+                .filter(balance -> {
+                    BigDecimal minStock = minStock(balance);
+                    BigDecimal currentStock = (BigDecimal) balance[7];
+                    return currentStock.compareTo(minStock) <= 0;
+                })
+                .sorted(Comparator.comparing(balance -> (BigDecimal) balance[7]))
+                .limit(limit)
+                .map(balance -> new DashboardLowStockResponse(
+                        (Long) balance[0],
+                        (String) balance[1],
+                        (Long) balance[2],
+                        (String) balance[3],
+                        (String) balance[4],
+                        (String) balance[5],
+                        minStock(balance),
+                        (BigDecimal) balance[7]
+                ))
+                .toList();
+    }
+
+    private List<Object[]> stockBalances(Long storeId) {
+        if (storeId == null) {
+            return stockMovementRepository.calculateAllStockBalances();
+        }
+        return stockMovementRepository.calculateStockBalancesByStoreId(storeId);
+    }
+
+    private BigDecimal minStock(Object[] balance) {
+        BigDecimal minStock = (BigDecimal) balance[6];
+        return minStock == null ? BigDecimal.ZERO : minStock;
+    }
+
+    private List<DashboardTrendPointResponse> buildSevenDayTrend(Long storeId, LocalDateTime todayStart) {
+        List<DashboardTrendPointResponse> points = new ArrayList<>();
+        for (int i = 6; i >= 0; i--) {
+            LocalDateTime start = todayStart.minusDays(i);
+            LocalDateTime end = start.plusDays(1);
+            LocalDate date = start.toLocalDate();
+            points.add(new DashboardTrendPointResponse(
+                    date,
+                    date.getDayOfMonth() + "/" + date.getMonthValue(),
+                    orderRepository.sumPaidCompletedRevenueBetween(storeId, start, end),
+                    orderRepository.countByOptionalStoreIdAndCreatedAtBetween(storeId, start, end)
+            ));
+        }
+        return points;
+    }
+
+    private List<DashboardRecentActivityResponse> findRecentActivities(Long storeId, int limit) {
+        List<DashboardRecentActivityResponse> activities = new ArrayList<>();
+
+        for (OrderEntity order : orderRepository.findRecentOrders(storeId, PageRequest.of(0, limit))) {
+            activities.add(new DashboardRecentActivityResponse(
+                    "ORDER",
+                    "Order " + order.getOrderCode(),
+                    "Status " + order.getStatus(),
+                    order.getCreatedAt(),
+                    order.getTotalAmount(),
+                    order.getStore().getName()
+            ));
+        }
+
+        for (GoodsReceiptEntity receipt : goodsReceiptRepository.findRecentGoodsReceipts(storeId, PageRequest.of(0, limit))) {
+            activities.add(new DashboardRecentActivityResponse(
+                    "GOODS_RECEIPT",
+                    "Goods receipt " + receipt.getReceiptCode(),
+                    "Status " + receipt.getStatus(),
+                    receipt.getCreatedAt(),
+                    receipt.getTotalAmount(),
+                    receipt.getStore().getName()
+            ));
+        }
+
+        for (StockMovementEntity movement : stockMovementRepository.findRecentMovements(storeId, PageRequest.of(0, limit))) {
+            activities.add(new DashboardRecentActivityResponse(
+                    "STOCK_MOVEMENT",
+                    movement.getMovementType() + " " + movement.getIngredient().getName(),
+                    movement.getQuantity().stripTrailingZeros().toPlainString() + " " + movement.getUnit(),
+                    movement.getCreatedAt(),
+                    null,
+                    movement.getStore().getName()
+            ));
+        }
+
+        return activities.stream()
+                .sorted(Comparator.comparing(DashboardRecentActivityResponse::getCreatedAt).reversed())
+                .limit(limit)
+                .toList();
     }
 
     private TimeWindows currentTimeWindows() {

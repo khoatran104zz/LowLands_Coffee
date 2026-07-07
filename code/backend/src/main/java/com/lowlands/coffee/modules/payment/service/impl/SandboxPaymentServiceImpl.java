@@ -35,34 +35,34 @@ public class SandboxPaymentServiceImpl implements SandboxPaymentService {
     private final PaymentRepository paymentRepository;
     private final RestTemplate restTemplate;
 
-    @Value("${MOMO_PARTNER_CODE}")
+    @Value("${MOMO_PARTNER_CODE:}")
     private String momoPartnerCode;
 
-    @Value("${MOMO_ACCESS_KEY}")
+    @Value("${MOMO_ACCESS_KEY:}")
     private String momoAccessKey;
 
-    @Value("${MOMO_SECRET_KEY}")
+    @Value("${MOMO_SECRET_KEY:}")
     private String momoSecretKey;
 
-    @Value("${MOMO_ENDPOINT}")
+    @Value("${MOMO_ENDPOINT:https://test-payment.momo.vn/v2/gateway/api/create}")
     private String momoEndpoint;
 
-    @Value("${MOMO_RETURN_URL}")
+    @Value("${MOMO_RETURN_URL:http://localhost:8080/api/v1/payment/momo/return}")
     private String momoReturnUrl;
 
-    @Value("${MOMO_NOTIFY_URL}")
+    @Value("${MOMO_NOTIFY_URL:http://localhost:8080/api/v1/payment/momo/ipn}")
     private String momoNotifyUrl;
 
-    @Value("${VNP_TMNCODE}")
+    @Value("${VNP_TMNCODE:}")
     private String vnpTmnCode;
 
-    @Value("${VNP_HASH_SECRET}")
+    @Value("${VNP_HASH_SECRET:}")
     private String vnpHashSecret;
 
-    @Value("${VNP_URL}")
+    @Value("${VNP_URL:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}")
     private String vnpUrl;
 
-    @Value("${VNP_RETURN_URL}")
+    @Value("${VNP_RETURN_URL:http://localhost:8080/api/v1/payment/vnpay/return}")
     private String vnpReturnUrl;
 
     public SandboxPaymentServiceImpl(OrderRepository orderRepository, PaymentRepository paymentRepository) {
@@ -73,6 +73,8 @@ public class SandboxPaymentServiceImpl implements SandboxPaymentService {
 
     @Override
     public String createMomoPayment(Long orderId) {
+        requireMomoConfigured();
+
         OrderEntity order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
@@ -150,6 +152,8 @@ public class SandboxPaymentServiceImpl implements SandboxPaymentService {
 
     @Override
     public String createVnpayPayment(Long orderId, String ipAddress) {
+        requireVnpayConfigured();
+
         OrderEntity order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found"));
 
@@ -345,6 +349,8 @@ public class SandboxPaymentServiceImpl implements SandboxPaymentService {
     }
 
     private boolean verifyMomoSignature(Map<String, String> params) {
+        requireMomoConfigured();
+
         String signature = params.get("signature");
         if (signature == null) return false;
 
@@ -371,6 +377,8 @@ public class SandboxPaymentServiceImpl implements SandboxPaymentService {
     }
 
     private boolean verifyVnpaySignature(Map<String, String> params) {
+        requireVnpayConfigured();
+
         String secureHash = params.get("vnp_SecureHash");
         if (secureHash == null) return false;
 
@@ -428,5 +436,21 @@ public class SandboxPaymentServiceImpl implements SandboxPaymentService {
             log.error("Failed to compute HmacSHA512 signature", e);
             throw new RuntimeException("HMAC computation error", e);
         }
+    }
+
+    private void requireMomoConfigured() {
+        if (isBlank(momoPartnerCode) || isBlank(momoAccessKey) || isBlank(momoSecretKey)) {
+            throw new BadRequestException("MoMo sandbox payment is not configured");
+        }
+    }
+
+    private void requireVnpayConfigured() {
+        if (isBlank(vnpTmnCode) || isBlank(vnpHashSecret)) {
+            throw new BadRequestException("VNPay sandbox payment is not configured");
+        }
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.isBlank();
     }
 }

@@ -24,6 +24,7 @@ public class ManagerDashboardSummaryResponse {
     private final long todayOrders;
     private final BigDecimal todayRevenue;
     private final long preparingOrders;
+    private final long readyOrders;
     private final long completedOrders;
     private final long activeStaff;
     private final long staffCount;
@@ -35,4 +36,10 @@ public class ManagerDashboardSummaryResponse {
     private final BigDecimal thisWeekRevenue;
     private final BigDecimal thisMonthRevenue;
     private final List<DashboardTopProductResponse> topProducts;
+    private final List<DashboardPaymentBreakdownResponse> paymentBreakdown;
+    private final List<DashboardTrendPointResponse> revenueTrend;
+    private final List<DashboardTrendPointResponse> orderTrend;
+    private final List<DashboardLowStockResponse> lowStockItemsList;
+    private final List<DashboardIngredientConsumptionResponse> ingredientConsumption;
+    private final List<DashboardRecentActivityResponse> recentActivities;
 }

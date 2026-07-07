@@ -19,6 +19,9 @@ public class AdminDashboardSummaryResponse {
     private final BigDecimal weekRevenue;
     private final BigDecimal monthRevenue;
     private final BigDecimal yearRevenue;
+    private final long ordersToday;
+    private final long completedOrdersToday;
+    private final long cancelledOrdersToday;
     private final long completedOrders;
     private final long cancelledOrders;
     private final long lowStockCount;
@@ -26,4 +29,8 @@ public class AdminDashboardSummaryResponse {
     private final List<DashboardTopProductResponse> topProducts;
     private final List<DashboardTopCategoryResponse> topCategories;
     private final List<DashboardStoreRankingResponse> storeRanking;
+    private final List<DashboardTrendPointResponse> revenueTrend;
+    private final List<DashboardTrendPointResponse> orderTrend;
+    private final List<DashboardLowStockResponse> lowStockItems;
+    private final List<DashboardRecentActivityResponse> recentActivities;
 }
