@@ -549,10 +549,10 @@ function MenuPageInner() {
                         variants={gridContainerVariants}
                         initial="hidden"
                         animate="show"
-                        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
+                        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 items-stretch"
                       >
                         {comboProducts.map((product) => (
-                          <motion.div key={product.id} variants={cardItemVariants}>
+                          <motion.div key={product.id} variants={cardItemVariants} className="h-full">
                             <ProductCard product={product} />
                           </motion.div>
                         ))}
@@ -574,10 +574,10 @@ function MenuPageInner() {
                         variants={gridContainerVariants}
                         initial="hidden"
                         animate="show"
-                        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+                        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 items-stretch"
                       >
                         {regularProducts.map((product) => (
-                          <motion.div key={product.id} variants={cardItemVariants}>
+                          <motion.div key={product.id} variants={cardItemVariants} className="h-full">
                             <ProductCard product={product} />
                           </motion.div>
                         ))}

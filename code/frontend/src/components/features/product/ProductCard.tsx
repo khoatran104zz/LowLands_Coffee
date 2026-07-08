@@ -18,7 +18,6 @@ export function ProductCard({ product }: ProductCardProps) {
 
   const isCombo = (product.comboProductIds && product.comboProductIds.length > 0) || false;
 
-  // Get starting price from variants
   const startingPrice =
     product.variants && product.variants.length > 0
       ? Math.min(...product.variants.map((v) => Number(v.price)))
@@ -29,15 +28,18 @@ export function ProductCard({ product }: ProductCardProps) {
     currency: "VND",
   }).format(startingPrice);
 
-  // Fake "original" price to show combo savings (~15-20% higher shown as crossed out)
   const comboSavingPercent = 15;
-  const originalPrice = isCombo ? Math.round(startingPrice * (1 + comboSavingPercent / 100) / 1000) * 1000 : 0;
+  const originalPrice = isCombo
+    ? Math.round((startingPrice * (1 + comboSavingPercent / 100)) / 1000) * 1000
+    : 0;
   const formattedOriginalPrice = new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
   }).format(originalPrice);
 
-  const translatedName = t(`product.items.${product.id}.name`, { defaultValue: product.name });
+  const translatedName = t(`product.items.${product.id}.name`, {
+    defaultValue: product.name,
+  });
   const translatedDesc = t(`product.items.${product.id}.description`, {
     defaultValue: product.description || t("product.defaultDescription"),
   });
@@ -56,12 +58,12 @@ export function ProductCard({ product }: ProductCardProps) {
     }
   };
 
-  // ─── COMBO CARD ────────────────────────────────────────────────────────────
+  // ─── COMBO CARD ─────────────────────────────────────────────────────────────
   if (isCombo) {
     return (
-      <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-amber-400/40 bg-gradient-to-b from-[#2A1810] to-[#1A0F08] shadow-lg hover:shadow-[0_8px_32px_rgba(200,81,10,0.35)] transition-all duration-400 hover:-translate-y-1.5">
+      <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-amber-400/40 bg-gradient-to-b from-[#2A1810] to-[#1A0F08] shadow-lg hover:shadow-[0_8px_32px_rgba(200,81,10,0.35)] transition-all duration-300 hover:-translate-y-1.5 h-full">
 
-        {/* HOT DEAL ribbon */}
+        {/* COMBO ribbon top-left */}
         <div className="absolute top-0 left-0 z-20 overflow-hidden w-20 h-20 pointer-events-none">
           <div className="absolute -left-5 top-3 rotate-[-45deg] bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[8px] font-black uppercase tracking-wider px-8 py-1 shadow-md">
             COMBO
@@ -74,15 +76,15 @@ export function ProductCard({ product }: ProductCardProps) {
           -{comboSavingPercent}%
         </div>
 
-        {/* Product Image */}
-        <div className="relative aspect-[4/3] w-full overflow-hidden bg-black/30">
+        {/* Product Image — fixed square aspect */}
+        <div className="relative aspect-square w-full overflow-hidden bg-black/30 shrink-0">
           {product.imageUrl ? (
             <Image
               src={product.imageUrl}
               alt={product.name}
               fill
               sizes="(max-width: 768px) 50vw, 25vw"
-              className="object-cover transition-transform duration-500 group-hover:scale-108 brightness-90 group-hover:brightness-100"
+              className="object-cover transition-transform duration-500 group-hover:scale-105 brightness-90 group-hover:brightness-100"
               loading="lazy"
             />
           ) : (
@@ -91,7 +93,7 @@ export function ProductCard({ product }: ProductCardProps) {
             </div>
           )}
 
-          {/* Overlay with add to cart */}
+          {/* Hover overlay */}
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-end justify-center pb-4 pointer-events-none md:pointer-events-auto">
             <button
               onClick={handleAddToCart}
@@ -103,48 +105,47 @@ export function ProductCard({ product }: ProductCardProps) {
           </div>
         </div>
 
-        {/* Info */}
-        <div className="flex flex-col flex-grow p-4 gap-2.5">
-          {/* "GIÁ HỜI" pill */}
-          <div className="flex items-center gap-1.5">
-            <span className="flex items-center gap-1 bg-amber-500/15 text-amber-400 border border-amber-500/25 text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full">
-              <Sparkles className="h-2.5 w-2.5" />
-              Giá hời — Tiết kiệm ngay!
+        {/* Info — flex-grow to fill remaining height */}
+        <div className="flex flex-col flex-grow p-3 sm:p-4 gap-1.5">
+          {/* Deal pill */}
+          <div className="flex items-center gap-1">
+            <span className="flex items-center gap-1 bg-amber-500/15 text-amber-400 border border-amber-500/25 text-[8px] font-black uppercase tracking-wider px-1.5 py-0.5 rounded-full whitespace-nowrap">
+              <Sparkles className="h-2 w-2 shrink-0" />
+              Giá hời!
             </span>
           </div>
 
-          <h3 className="font-heading font-bold text-sm sm:text-base text-amber-100 line-clamp-2 leading-snug group-hover:text-amber-300 transition-colors">
+          <h3 className="font-heading font-bold text-sm text-amber-100 line-clamp-2 leading-snug group-hover:text-amber-300 transition-colors">
             {translatedName}
           </h3>
 
-          <p className="text-[11px] text-amber-100/50 line-clamp-2 leading-relaxed">
+          <p className="text-[11px] text-amber-100/45 line-clamp-2 leading-relaxed flex-grow">
             {translatedDesc}
           </p>
 
-          {/* Price row */}
-          <div className="flex items-center justify-between mt-auto pt-3 border-t border-amber-400/15">
-            <div className="flex flex-col">
-              {/* Crossed-out original price */}
+          {/* Price row — always at bottom */}
+          <div className="flex items-center justify-between pt-2.5 border-t border-amber-400/15 mt-auto">
+            <div className="flex flex-col min-w-0">
               <span className="text-[10px] text-red-400/70 line-through font-semibold">
                 {formattedOriginalPrice}
               </span>
-              <span className="text-base sm:text-lg font-extrabold text-amber-400 leading-tight">
+              <span className="text-sm sm:text-base font-extrabold text-amber-400 leading-tight">
                 {formattedPrice}
               </span>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-1.5 shrink-0">
               <button
                 onClick={handleAddToCart}
-                className="md:hidden flex h-9 w-9 items-center justify-center rounded-full bg-amber-500 text-[#1A0F08] hover:bg-amber-400 transition-all duration-300"
+                className="md:hidden flex h-8 w-8 items-center justify-center rounded-full bg-amber-500 text-[#1A0F08] hover:bg-amber-400 transition-all duration-300"
                 aria-label="Add to cart"
               >
-                <ShoppingCart className="h-4 w-4" />
+                <ShoppingCart className="h-3.5 w-3.5" />
               </button>
               <Link
                 href={`/menu/${product.id}`}
-                className="flex h-9 w-9 items-center justify-center rounded-full bg-amber-500/20 border border-amber-400/30 text-amber-400 hover:bg-amber-500 hover:text-[#1A0F08] transition-all duration-300"
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-amber-500/20 border border-amber-400/30 text-amber-400 hover:bg-amber-500 hover:text-[#1A0F08] transition-all duration-300"
               >
-                <ArrowRight className="h-4 w-4" />
+                <ArrowRight className="h-3.5 w-3.5" />
               </Link>
             </div>
           </div>
@@ -153,11 +154,11 @@ export function ProductCard({ product }: ProductCardProps) {
     );
   }
 
-  // ─── REGULAR CARD ──────────────────────────────────────────────────────────
+  // ─── REGULAR CARD ────────────────────────────────────────────────────────────
   return (
-    <div className="group flex flex-col justify-between overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm hover:shadow-lg hover:border-accent/30 transition-all duration-350 hover:-translate-y-1">
-      {/* Product Image */}
-      <div className="relative aspect-square w-full bg-secondary/20 overflow-hidden">
+    <div className="group flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm hover:shadow-lg hover:border-accent/30 transition-all duration-300 hover:-translate-y-1 h-full">
+      {/* Product Image — fixed square aspect */}
+      <div className="relative aspect-square w-full bg-secondary/20 overflow-hidden shrink-0">
         {product.imageUrl ? (
           <Image
             src={product.imageUrl}
@@ -185,17 +186,17 @@ export function ProductCard({ product }: ProductCardProps) {
         </div>
       </div>
 
-      {/* Info Container */}
+      {/* Info Container — flex-grow to fill remaining height */}
       <div className="flex flex-col flex-grow p-4 text-left gap-2">
         <h3 className="font-heading font-bold text-base sm:text-lg text-primary line-clamp-1 group-hover:text-primary/80 transition-colors">
           {translatedName}
         </h3>
-        <p className="text-xs text-muted-foreground line-clamp-2 min-h-[32px] leading-relaxed">
+        <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed flex-grow">
           {translatedDesc}
         </p>
 
-        {/* Pricing and Action */}
-        <div className="flex items-center justify-between mt-auto pt-3 border-t border-border/40">
+        {/* Pricing and Action — always at bottom */}
+        <div className="flex items-center justify-between pt-3 border-t border-border/40 mt-auto">
           <div className="flex flex-col">
             <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground">
               {t("common.price")}
