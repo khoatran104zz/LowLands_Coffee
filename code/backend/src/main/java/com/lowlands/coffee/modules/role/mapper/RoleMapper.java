@@ -15,11 +15,15 @@ import java.util.stream.Collectors;
 @Mapper(componentModel = "spring")
 public interface RoleMapper {
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "permissions", ignore = true)
     RoleEntity toEntity(RoleCreateRequest request);
 
     @Mapping(target = "permissions", expression = "java(toPermissionCodes(entity.getPermissions()))")
     RoleResponse toResponse(RoleEntity entity);
 
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "permissions", ignore = true)
     void updateEntity(RoleUpdateRequest request, @MappingTarget RoleEntity entity);
 
     default Set<String> toPermissionCodes(Set<PermissionEntity> permissions) {

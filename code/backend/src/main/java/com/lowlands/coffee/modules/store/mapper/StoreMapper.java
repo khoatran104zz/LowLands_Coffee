@@ -14,6 +14,7 @@ public interface StoreMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     StoreEntity toEntity(StoreCreateRequest request);
 
     StoreResponse toResponse(StoreEntity entity);
@@ -21,5 +22,6 @@ public interface StoreMapper {
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     void updateEntity(StoreUpdateRequest request, @MappingTarget StoreEntity entity);
 }

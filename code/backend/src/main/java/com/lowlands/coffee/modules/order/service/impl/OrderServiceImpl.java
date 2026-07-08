@@ -330,7 +330,15 @@ public class OrderServiceImpl implements OrderService {
             promotionRepository.save(promo);
         }
 
-        return orderMapper.toResponse(orderRepository.save(order));
+        OrderEntity savedOrder = orderRepository.save(order);
+        log.info(
+                "Order completed: orderId={}, orderCode={}, storeId={}, stockMovementCount={}",
+                savedOrder.getId(),
+                savedOrder.getOrderCode(),
+                savedOrder.getStore().getId(),
+                movements.size()
+        );
+        return orderMapper.toResponse(savedOrder);
     }
 
     private OrderResponse transition(Long id, String fromStatus, String toStatus, String actorEmail) {

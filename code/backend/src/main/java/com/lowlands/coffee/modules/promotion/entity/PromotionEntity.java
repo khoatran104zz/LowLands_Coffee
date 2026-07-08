@@ -65,6 +65,10 @@ public class PromotionEntity {
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
 
+    @Version
+    @Column(nullable = false)
+    private Long version;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "promotion_products",

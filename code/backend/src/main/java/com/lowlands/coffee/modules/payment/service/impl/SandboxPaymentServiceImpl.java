@@ -18,6 +18,7 @@ import org.springframework.web.client.RestTemplate;
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
@@ -87,7 +88,7 @@ public class SandboxPaymentServiceImpl implements SandboxPaymentService {
 
         String requestId = UUID.randomUUID().toString();
         String orderCode = order.getOrderCode();
-        long amount = order.getTotalAmount().setScale(0, BigDecimal.ROUND_HALF_UP).longValue();
+        long amount = order.getTotalAmount().setScale(0, RoundingMode.HALF_UP).longValue();
         String orderInfo = "Thanh toan don hang Lowlands Coffee " + orderCode;
         String extraData = "";
         String requestType = "captureWallet";
@@ -112,11 +113,6 @@ public class SandboxPaymentServiceImpl implements SandboxPaymentService {
         requestBody.put("extraData", extraData);
         requestBody.put("requestType", requestType);
         requestBody.put("signature", signature);
-
-        log.info("MoMo Config: partnerCode='{}', accessKey='{}', endpoint='{}'", momoPartnerCode, momoAccessKey, momoEndpoint);
-        log.info("MoMo Raw Signature String: '{}'", rawSignature);
-        log.info("MoMo Computed Signature: '{}'", signature);
-        log.info("MoMo Request Body: {}", requestBody);
 
         log.info("Sending payment request to MoMo Sandbox for Order: {}, amount: {}", orderCode, amount);
 
@@ -167,7 +163,7 @@ public class SandboxPaymentServiceImpl implements SandboxPaymentService {
         String orderCode = order.getOrderCode();
         long amount = order.getTotalAmount()
                 .multiply(new BigDecimal(100))
-                .setScale(0, BigDecimal.ROUND_HALF_UP)
+                .setScale(0, RoundingMode.HALF_UP)
                 .longValue();
         String orderInfo = "Thanh toan don hang Lowlands Coffee " + orderCode;
         String clientIp = (ipAddress == null || ipAddress.isBlank()) ? "127.0.0.1" : ipAddress.trim();

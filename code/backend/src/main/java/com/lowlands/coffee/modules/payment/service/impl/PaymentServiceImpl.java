@@ -16,6 +16,8 @@ import com.lowlands.coffee.modules.store.entity.StoreUserEntity;
 import com.lowlands.coffee.modules.store.repository.StoreUserRepository;
 import com.lowlands.coffee.modules.user.entity.UserEntity;
 import com.lowlands.coffee.modules.user.repository.UserRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +29,8 @@ import java.util.Set;
 @Service
 @Transactional
 public class PaymentServiceImpl implements PaymentService {
+
+    private static final Logger log = LoggerFactory.getLogger(PaymentServiceImpl.class);
 
     private static final String ACTIVE = "active";
     private static final String ADMIN = "ADMIN";
@@ -83,7 +87,16 @@ public class PaymentServiceImpl implements PaymentService {
         payment.setAmount(order.getTotalAmount());
         payment.setPaidAt(LocalDateTime.now());
         order.setPayment(payment);
-        return paymentMapper.toDetailResponse(paymentRepository.save(payment));
+        PaymentEntity savedPayment = paymentRepository.save(payment);
+        log.info(
+                "Payment success: paymentId={}, orderId={}, storeId={}, method={}, amount={}",
+                savedPayment.getId(),
+                order.getId(),
+                order.getStore().getId(),
+                savedPayment.getPaymentMethod(),
+                savedPayment.getAmount()
+        );
+        return paymentMapper.toDetailResponse(savedPayment);
     }
 
     @Override
@@ -117,7 +130,14 @@ public class PaymentServiceImpl implements PaymentService {
             throw new BadRequestException("Only paid payment can be refunded");
         }
         payment.setPaymentStatus(REFUNDED);
-        return paymentMapper.toDetailResponse(paymentRepository.save(payment));
+        PaymentEntity savedPayment = paymentRepository.save(payment);
+        log.info(
+                "Payment refunded: paymentId={}, orderId={}, storeId={}",
+                savedPayment.getId(),
+                savedPayment.getOrder().getId(),
+                savedPayment.getOrder().getStore().getId()
+        );
+        return paymentMapper.toDetailResponse(savedPayment);
     }
 
     @Override
@@ -133,7 +153,14 @@ public class PaymentServiceImpl implements PaymentService {
         }
         payment.setPaymentStatus(FAILED);
         payment.setPaidAt(null);
-        return paymentMapper.toDetailResponse(paymentRepository.save(payment));
+        PaymentEntity savedPayment = paymentRepository.save(payment);
+        log.warn(
+                "Payment failed: paymentId={}, orderId={}, storeId={}",
+                savedPayment.getId(),
+                savedPayment.getOrder().getId(),
+                savedPayment.getOrder().getStore().getId()
+        );
+        return paymentMapper.toDetailResponse(savedPayment);
     }
 
     private PaymentEntity createPayment(OrderEntity order, String method) {

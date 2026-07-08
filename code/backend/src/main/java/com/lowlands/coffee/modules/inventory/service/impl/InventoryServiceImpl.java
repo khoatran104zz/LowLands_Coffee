@@ -29,6 +29,8 @@ import com.lowlands.coffee.modules.supplier.repository.SupplierRepository;
 import com.lowlands.coffee.modules.user.entity.UserEntity;
 import com.lowlands.coffee.modules.user.repository.UserRepository;
 import com.lowlands.coffee.modules.notification.service.NotificationService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +42,8 @@ import java.util.Set;
 @Service
 @Transactional
 public class InventoryServiceImpl implements InventoryService {
+
+    private static final Logger log = LoggerFactory.getLogger(InventoryServiceImpl.class);
 
     private static final String DRAFT = "DRAFT";
     private static final String PENDING = "PENDING";
@@ -227,6 +231,13 @@ public class InventoryServiceImpl implements InventoryService {
         savedReceipt.getItems().forEach(item -> stockMovementRepository.save(
                 createReceiptMovement(savedReceipt, item)
         ));
+        log.info(
+                "Goods receipt completed: receiptId={}, receiptCode={}, storeId={}, itemCount={}",
+                savedReceipt.getId(),
+                savedReceipt.getReceiptCode(),
+                savedReceipt.getStore().getId(),
+                savedReceipt.getItems().size()
+        );
 
         // Notify the Manager who requested it!
         notificationService.createNotification(
@@ -263,6 +274,13 @@ public class InventoryServiceImpl implements InventoryService {
                     createReceiptMovement(savedReceipt, item)
             ));
         }
+        log.info(
+                "Manager goods receipt completed: receiptId={}, receiptCode={}, storeId={}, itemCount={}",
+                savedReceipt.getId(),
+                savedReceipt.getReceiptCode(),
+                savedReceipt.getStore().getId(),
+                savedReceipt.getItems().size()
+        );
         return inventoryMapper.toGoodsReceiptResponse(savedReceipt);
     }
 
@@ -297,7 +315,15 @@ public class InventoryServiceImpl implements InventoryService {
         movement.setReferenceId(null);
         movement.setNote(clean(request.getNote()));
         movement.setCreatedBy(getUser(request.getCreatedById()));
-        return inventoryMapper.toStockMovementResponse(stockMovementRepository.save(movement));
+        StockMovementEntity savedMovement = stockMovementRepository.save(movement);
+        log.info(
+                "Stock adjustment created: movementId={}, storeId={}, ingredientId={}, quantity={}",
+                savedMovement.getId(),
+                savedMovement.getStore().getId(),
+                savedMovement.getIngredient().getId(),
+                savedMovement.getQuantity()
+        );
+        return inventoryMapper.toStockMovementResponse(savedMovement);
     }
 
     @Override
@@ -319,7 +345,15 @@ public class InventoryServiceImpl implements InventoryService {
         movement.setReferenceId(null);
         movement.setNote(clean(request.getNote()));
         movement.setCreatedBy(getUser(createdById));
-        return inventoryMapper.toStockMovementResponse(stockMovementRepository.save(movement));
+        StockMovementEntity savedMovement = stockMovementRepository.save(movement);
+        log.info(
+                "Manager stock adjustment created: movementId={}, storeId={}, ingredientId={}, quantity={}",
+                savedMovement.getId(),
+                savedMovement.getStore().getId(),
+                savedMovement.getIngredient().getId(),
+                savedMovement.getQuantity()
+        );
+        return inventoryMapper.toStockMovementResponse(savedMovement);
     }
 
     @Override

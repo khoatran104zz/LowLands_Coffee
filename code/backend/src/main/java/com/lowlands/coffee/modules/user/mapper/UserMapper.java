@@ -19,6 +19,7 @@ public interface UserMapper {
     @Mapping(target = "employee", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     UserEntity toEntity(UserCreateRequest request);
 
     @Mapping(target = "roleId", source = "role.id")
@@ -26,6 +27,10 @@ public interface UserMapper {
     @Mapping(target = "role", source = "role.name")
     @Mapping(target = "employeeCode", source = "employee.employeeCode")
     @Mapping(target = "permissions", expression = "java(toPermissionCodes(entity))")
+    @Mapping(target = "branchId", ignore = true)
+    @Mapping(target = "branchName", ignore = true)
+    @Mapping(target = "orderCount", ignore = true)
+    @Mapping(target = "totalSpent", ignore = true)
     UserResponse toResponse(UserEntity entity);
 
     @Mapping(target = "id", ignore = true)
@@ -34,6 +39,7 @@ public interface UserMapper {
     @Mapping(target = "employee", ignore = true)
     @Mapping(target = "createdAt", ignore = true)
     @Mapping(target = "updatedAt", ignore = true)
+    @Mapping(target = "version", ignore = true)
     void updateEntity(UserUpdateRequest request, @MappingTarget UserEntity entity);
 
     default List<String> toPermissionCodes(UserEntity entity) {

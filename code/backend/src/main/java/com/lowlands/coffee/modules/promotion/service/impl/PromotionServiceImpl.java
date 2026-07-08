@@ -10,6 +10,8 @@ import com.lowlands.coffee.modules.promotion.entity.PromotionEntity;
 import com.lowlands.coffee.modules.promotion.mapper.PromotionMapper;
 import com.lowlands.coffee.modules.promotion.repository.PromotionRepository;
 import com.lowlands.coffee.modules.promotion.service.PromotionService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,8 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 public class PromotionServiceImpl implements PromotionService {
+
+    private static final Logger log = LoggerFactory.getLogger(PromotionServiceImpl.class);
 
     private final PromotionRepository promotionRepository;
     private final ProductRepository productRepository;
@@ -91,7 +95,15 @@ public class PromotionServiceImpl implements PromotionService {
         entity.getCategories().clear();
 
         mapUpdateRequestToEntity(request, entity);
-        return promotionMapper.toResponse(promotionRepository.save(entity));
+        PromotionEntity savedPromotion = promotionRepository.save(entity);
+        log.info(
+                "Promotion updated: promotionId={}, code={}, status={}, applicableType={}",
+                savedPromotion.getId(),
+                savedPromotion.getCode(),
+                savedPromotion.getStatus(),
+                savedPromotion.getApplicableType()
+        );
+        return promotionMapper.toResponse(savedPromotion);
     }
 
     @Override
@@ -106,7 +118,14 @@ public class PromotionServiceImpl implements PromotionService {
         PromotionEntity entity = promotionRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Promotion not found with ID: " + id));
         entity.setStatus(status);
-        return promotionMapper.toResponse(promotionRepository.save(entity));
+        PromotionEntity savedPromotion = promotionRepository.save(entity);
+        log.info(
+                "Promotion status updated: promotionId={}, code={}, status={}",
+                savedPromotion.getId(),
+                savedPromotion.getCode(),
+                savedPromotion.getStatus()
+        );
+        return promotionMapper.toResponse(savedPromotion);
     }
 
     @Override

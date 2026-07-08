@@ -19,6 +19,8 @@ import com.lowlands.coffee.modules.user.mapper.UserMapper;
 import com.lowlands.coffee.modules.user.repository.UserRepository;
 import com.lowlands.coffee.modules.user.service.UserService;
 import com.lowlands.coffee.modules.order.repository.OrderRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,6 +34,8 @@ import java.math.BigDecimal;
 @Service
 @Transactional
 public class UserServiceImpl implements UserService {
+
+    private static final Logger log = LoggerFactory.getLogger(UserServiceImpl.class);
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
@@ -146,7 +150,9 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public void delete(Long id) {
-        userRepository.delete(getUser(id));
+        UserEntity user = getUser(id);
+        userRepository.delete(user);
+        log.warn("User deleted: userId={}, role={}", user.getId(), user.getRole().getName());
     }
 
     private void populateCustomerStats(UserEntity user, UserResponse response) {

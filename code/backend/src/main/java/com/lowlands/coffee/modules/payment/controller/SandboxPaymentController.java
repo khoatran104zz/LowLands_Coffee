@@ -5,6 +5,8 @@ import com.lowlands.coffee.common.exception.BadRequestException;
 import com.lowlands.coffee.common.exception.ResourceNotFoundException;
 import com.lowlands.coffee.modules.payment.service.SandboxPaymentService;
 import jakarta.servlet.http.HttpServletRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +23,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/v1/payment")
 public class SandboxPaymentController {
+
+    private static final Logger log = LoggerFactory.getLogger(SandboxPaymentController.class);
 
     private final SandboxPaymentService sandboxPaymentService;
 
@@ -85,10 +89,13 @@ public class SandboxPaymentController {
             sandboxPaymentService.handleVnpayIpn(params);
             return ResponseEntity.ok(Map.of("RspCode", "00", "Message", "Confirm Success"));
         } catch (BadRequestException e) {
+            log.warn("VNPay IPN rejected: {}", e.getMessage());
             return ResponseEntity.ok(Map.of("RspCode", "97", "Message", "Invalid Signature"));
         } catch (ResourceNotFoundException e) {
+            log.warn("VNPay IPN rejected: {}", e.getMessage());
             return ResponseEntity.ok(Map.of("RspCode", "01", "Message", "Order not found"));
         } catch (Exception e) {
+            log.error("VNPay IPN processing failed", e);
             return ResponseEntity.ok(Map.of("RspCode", "99", "Message", "Input data required"));
         }
     }
