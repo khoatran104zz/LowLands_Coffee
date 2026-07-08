@@ -38,6 +38,19 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long>, JpaSp
     @EntityGraph(attributePaths = {"store", "user", "payment"})
     Optional<OrderEntity> findByOrderCode(String orderCode);
 
+    @Query("""
+            select case when count(oi) > 0 then true else false end
+            from OrderItemEntity oi
+            join oi.order o
+            where o.user.id = :userId
+              and oi.product.id = :productId
+              and o.status = 'COMPLETED'
+            """)
+    boolean existsCompletedPurchaseByUserAndProduct(
+            @Param("userId") Long userId,
+            @Param("productId") Long productId
+    );
+
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("select o from OrderEntity o where o.id = :id")
     Optional<OrderEntity> findByIdForUpdate(@Param("id") Long id);

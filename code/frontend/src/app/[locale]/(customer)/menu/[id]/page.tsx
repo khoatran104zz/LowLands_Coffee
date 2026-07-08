@@ -4,10 +4,19 @@ import { useEffect, use, useState } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
 import Image from "next/image";
 import { toast } from "sonner";
-import { AlertCircle, ArrowLeft, Minus, Plus, ShoppingBag } from "lucide-react";
-import { getProductById, getProducts } from "@/services/product.service";
+import { AlertCircle, ArrowLeft, MessageSquare, Minus, Plus, ShoppingBag, Star } from "lucide-react";
+import {
+  getProductById,
+  getProductReviewEligibility,
+  getProductReviews,
+  getProducts,
+  ProductReviewEligibility,
+  ProductReviewSummary,
+  submitProductReview,
+} from "@/services/product.service";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useCartStore } from "@/store/cart.store";
+import { useAuthStore } from "@/store/auth.store";
 import { Product, ProductVariant, Topping } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -18,6 +27,17 @@ interface Props {
     locale: string;
   }>;
 }
+
+const emptyReviewSummary: ProductReviewSummary = {
+  averageRating: 0,
+  reviewCount: 0,
+  reviews: [],
+};
+
+const getReviewErrorMessage = (error: unknown) => {
+  const apiError = error as { response?: { data?: { message?: string } } };
+  return apiError.response?.data?.message || "Không thể gửi đánh giá lúc này.";
+};
 
 export default function ProductDetailPage({ params }: Props) {
   const { id } = use(params);
@@ -33,8 +53,28 @@ export default function ProductDetailPage({ params }: Props) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
+  const [reviewSummary, setReviewSummary] = useState<ProductReviewSummary>(emptyReviewSummary);
+  const [reviewEligibility, setReviewEligibility] = useState<ProductReviewEligibility | null>(null);
+  const [reviewRating, setReviewRating] = useState(5);
+  const [reviewComment, setReviewComment] = useState("");
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [reviewSubmitting, setReviewSubmitting] = useState(false);
 
   const addItemToCart = useCartStore((state) => state.addItem);
+  const { isAuthenticated, hasHydrated } = useAuthStore();
+
+  const loadReviews = async () => {
+    setReviewsLoading(true);
+    try {
+      const reviews = await getProductReviews(productId);
+      setReviewSummary(reviews);
+    } catch (reviewError) {
+      console.error("Failed to load product reviews", reviewError);
+      setReviewSummary(emptyReviewSummary);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
 
   useEffect(() => {
     const loadProductDetails = async () => {
@@ -49,6 +89,7 @@ export default function ProductDetailPage({ params }: Props) {
         setAllProducts(productsList || []);
         setSelectedVariant(data.variants?.[0] ?? null);
         setSelectedToppings(data.toppings?.map((topping) => ({ topping, quantity: 0 })) ?? []);
+        void loadReviews();
       } catch (loadError) {
         console.error("Failed to load product details from backend", loadError);
         setProduct(null);
@@ -61,7 +102,41 @@ export default function ProductDetailPage({ params }: Props) {
     };
 
     void loadProductDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [productId]);
+
+  useEffect(() => {
+    if (!hasHydrated) return;
+    if (!isAuthenticated) {
+      setReviewEligibility(null);
+      setReviewRating(5);
+      setReviewComment("");
+      return;
+    }
+
+    let active = true;
+    const loadEligibility = async () => {
+      try {
+        const eligibility = await getProductReviewEligibility(productId);
+        if (!active) return;
+        setReviewEligibility(eligibility);
+        if (eligibility.review) {
+          setReviewRating(eligibility.review.rating);
+          setReviewComment(eligibility.review.comment || "");
+        }
+      } catch (eligibilityError) {
+        console.error("Failed to load product review eligibility", eligibilityError);
+        if (active) {
+          setReviewEligibility(null);
+        }
+      }
+    };
+
+    void loadEligibility();
+    return () => {
+      active = false;
+    };
+  }, [productId, hasHydrated, isAuthenticated]);
 
   const handleToppingToggle = (topping: Topping, checked: boolean) => {
     setSelectedToppings((prev) =>
@@ -110,6 +185,57 @@ export default function ProductDetailPage({ params }: Props) {
     router.push("/cart");
   };
 
+  const handleReviewSubmit = async () => {
+    if (!isAuthenticated) {
+      toast.error("Vui lòng đăng nhập để đánh giá sản phẩm.");
+      router.push("/login");
+      return;
+    }
+    if (!reviewEligibility?.canReview) {
+      toast.error(reviewEligibility?.message || "Bạn chưa đủ điều kiện đánh giá sản phẩm này.");
+      return;
+    }
+
+    setReviewSubmitting(true);
+    try {
+      const savedReview = await submitProductReview(productId, {
+        rating: reviewRating,
+        comment: reviewComment.trim() || undefined,
+      });
+      setReviewEligibility({
+        canReview: true,
+        hasReviewed: true,
+        message: "Bạn đã đánh giá sản phẩm này và có thể cập nhật lại.",
+        review: savedReview,
+      });
+      await loadReviews();
+      toast.success("Đã lưu đánh giá của bạn.");
+    } catch (submitError) {
+      console.error("Failed to submit product review", submitError);
+      toast.error(getReviewErrorMessage(submitError));
+    } finally {
+      setReviewSubmitting(false);
+    }
+  };
+
+  const renderStars = (rating: number, className = "h-4 w-4") =>
+    Array.from({ length: 5 }, (_, index) => {
+      const filled = index < Math.round(rating);
+      return (
+        <Star
+          key={index}
+          className={`${className} ${filled ? "fill-[#D99A2B] text-[#D99A2B]" : "text-muted-foreground/30"}`}
+        />
+      );
+    });
+
+  const formatReviewDate = (value: string) =>
+    new Intl.DateTimeFormat("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }).format(new Date(value));
+
   const showContent = !loading && error === null && product;
 
   return (
@@ -150,6 +276,7 @@ export default function ProductDetailPage({ params }: Props) {
         )}
 
         {showContent && (
+          <>
           <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-start">
             <div className="md:col-span-5 relative aspect-square w-full rounded-2xl bg-secondary/20 overflow-hidden border border-border/60">
               {product.imageUrl ? (
@@ -323,6 +450,171 @@ export default function ProductDetailPage({ params }: Props) {
               </div>
             </div>
           </div>
+          <section className="mt-14 border-t border-border/60 pt-10">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+              <div className="lg:col-span-4 rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-accent/10 p-3 text-accent">
+                    <Star className="h-6 w-6 fill-current" />
+                  </div>
+                  <div>
+                    <p className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                      Đánh giá sản phẩm
+                    </p>
+                    <div className="mt-1 flex items-end gap-2">
+                      <span className="text-3xl font-black text-primary">
+                        {reviewSummary.averageRating.toFixed(1)}
+                      </span>
+                      <span className="pb-1 text-xs font-semibold text-muted-foreground">
+                        / 5
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="mt-4 flex items-center gap-1">
+                  {renderStars(reviewSummary.averageRating, "h-5 w-5")}
+                </div>
+                <p className="mt-3 text-sm font-semibold text-muted-foreground">
+                  {reviewSummary.reviewCount > 0
+                    ? `${reviewSummary.reviewCount} đánh giá từ khách hàng đã mua sản phẩm.`
+                    : "Chưa có đánh giá nào cho sản phẩm này."}
+                </p>
+
+                <div className="mt-6 rounded-xl border border-border/70 bg-secondary/20 p-4">
+                  {!isAuthenticated ? (
+                    <div className="space-y-3">
+                      <p className="text-sm font-semibold text-foreground">
+                        Đăng nhập để đánh giá sau khi hoàn tất đơn hàng.
+                      </p>
+                      <Button
+                        type="button"
+                        onClick={() => router.push("/login")}
+                        className="h-10 rounded-full px-5 text-sm font-bold"
+                      >
+                        Đăng nhập
+                      </Button>
+                    </div>
+                  ) : reviewEligibility?.canReview ? (
+                    <div className="space-y-4">
+                      <div>
+                        <p className="mb-2 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                          Chọn số sao
+                        </p>
+                        <div className="flex gap-1.5">
+                          {Array.from({ length: 5 }, (_, index) => {
+                            const value = index + 1;
+                            const selected = value <= reviewRating;
+                            return (
+                              <button
+                                key={value}
+                                type="button"
+                                onClick={() => setReviewRating(value)}
+                                className="rounded-full p-1 transition hover:scale-105"
+                                aria-label={`${value} sao`}
+                              >
+                                <Star
+                                  className={`h-7 w-7 ${
+                                    selected ? "fill-[#D99A2B] text-[#D99A2B]" : "text-muted-foreground/30"
+                                  }`}
+                                />
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                      <textarea
+                        value={reviewComment}
+                        onChange={(event) => setReviewComment(event.target.value)}
+                        maxLength={500}
+                        placeholder="Chia sẻ cảm nhận của bạn về hương vị, đóng gói hoặc trải nghiệm..."
+                        className="min-h-[96px] w-full resize-none rounded-xl border border-border bg-card p-3 text-sm focus:outline-primary/50"
+                      />
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-[11px] font-semibold text-muted-foreground">
+                          {reviewComment.length}/500 ký tự
+                        </span>
+                        <Button
+                          type="button"
+                          onClick={handleReviewSubmit}
+                          disabled={reviewSubmitting}
+                          className="h-10 rounded-full px-5 text-sm font-bold"
+                        >
+                          {reviewSubmitting
+                            ? "Đang lưu..."
+                            : reviewEligibility.hasReviewed
+                              ? "Cập nhật"
+                              : "Gửi đánh giá"}
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-sm font-semibold text-muted-foreground">
+                      {reviewEligibility?.message || "Bạn cần hoàn tất đơn hàng có sản phẩm này trước khi đánh giá."}
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              <div className="lg:col-span-8 rounded-2xl border border-border/80 bg-card p-6 shadow-sm">
+                <div className="mb-5 flex items-center justify-between gap-3">
+                  <div>
+                    <h2 className="font-heading text-xl font-black text-primary">
+                      Nhận xét của khách hàng
+                    </h2>
+                    <p className="mt-1 text-sm font-semibold text-muted-foreground">
+                      Các đánh giá được gửi bởi tài khoản đã hoàn tất đơn hàng.
+                    </p>
+                  </div>
+                  <MessageSquare className="h-6 w-6 text-accent" />
+                </div>
+
+                {reviewsLoading ? (
+                  <div className="space-y-3 animate-pulse">
+                    <div className="h-20 rounded-xl bg-muted" />
+                    <div className="h-20 rounded-xl bg-muted" />
+                  </div>
+                ) : reviewSummary.reviews.length === 0 ? (
+                  <div className="rounded-xl border border-dashed border-border bg-secondary/20 p-8 text-center">
+                    <MessageSquare className="mx-auto h-8 w-8 text-muted-foreground/40" />
+                    <p className="mt-3 text-sm font-semibold text-muted-foreground">
+                      Sản phẩm này đang chờ đánh giá đầu tiên.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {reviewSummary.reviews.map((review) => (
+                      <article
+                        key={review.id}
+                        className="rounded-xl border border-border/70 bg-background/60 p-4"
+                      >
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                          <div>
+                            <p className="font-bold text-primary">{review.reviewerName}</p>
+                            <div className="mt-1 flex items-center gap-1">
+                              {renderStars(review.rating)}
+                            </div>
+                          </div>
+                          <span className="text-xs font-semibold text-muted-foreground">
+                            {formatReviewDate(review.updatedAt || review.createdAt)}
+                          </span>
+                        </div>
+                        {review.comment ? (
+                          <p className="mt-3 text-sm leading-relaxed text-foreground/85">
+                            {review.comment}
+                          </p>
+                        ) : (
+                          <p className="mt-3 text-sm italic text-muted-foreground">
+                            Khách hàng chưa để lại bình luận.
+                          </p>
+                        )}
+                      </article>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </section>
+          </>
         )}
       </div>
     </div>

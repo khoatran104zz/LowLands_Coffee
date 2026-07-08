@@ -46,6 +46,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.POST, "/api/v1/orders").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/v1/orders/track").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/products/*/reviews/eligibility").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/products/*/reviews").authenticated()
+                        .requestMatchers(HttpMethod.GET, "/api/v1/products", "/api/v1/products/**").permitAll()
                         .requestMatchers(
                                 "/api/v1/payment/**",
                                 "/api/v1/auth/login",
@@ -53,8 +56,6 @@ public class SecurityConfig {
                                 "/api/v1/auth/refresh-token",
                                 "/api/v1/menu",
                                 "/api/v1/categories",
-                                "/api/v1/products",
-                                "/api/v1/products/**",
                                 "/api/v1/stores",
                                 "/api/v1/stores/**",
                                 "/api/v1/promotions/available",

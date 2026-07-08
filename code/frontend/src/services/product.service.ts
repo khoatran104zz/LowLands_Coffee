@@ -62,6 +62,35 @@ export interface ProductAvailability {
   shortages: StockShortage[];
 }
 
+export interface ProductReview {
+  id: number;
+  productId: number;
+  userId: number;
+  reviewerName: string;
+  rating: number;
+  comment?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductReviewSummary {
+  averageRating: number;
+  reviewCount: number;
+  reviews: ProductReview[];
+}
+
+export interface ProductReviewEligibility {
+  canReview: boolean;
+  hasReviewed: boolean;
+  message: string;
+  review?: ProductReview | null;
+}
+
+export interface ProductReviewRequest {
+  rating: number;
+  comment?: string;
+}
+
 export const getProducts = async (params?: ProductFilterParams): Promise<Product[]> => {
   const response = await axiosInstance.get<ApiResponse<Product[]>>("/products", { params });
   return response.data.data;
@@ -69,6 +98,21 @@ export const getProducts = async (params?: ProductFilterParams): Promise<Product
 
 export const getProductById = async (id: number): Promise<Product> => {
   const response = await axiosInstance.get<ApiResponse<Product>>(`/products/${id}`);
+  return response.data.data;
+};
+
+export const getProductReviews = async (id: number): Promise<ProductReviewSummary> => {
+  const response = await axiosInstance.get<ApiResponse<ProductReviewSummary>>(`/products/${id}/reviews`);
+  return response.data.data;
+};
+
+export const getProductReviewEligibility = async (id: number): Promise<ProductReviewEligibility> => {
+  const response = await axiosInstance.get<ApiResponse<ProductReviewEligibility>>(`/products/${id}/reviews/eligibility`);
+  return response.data.data;
+};
+
+export const submitProductReview = async (id: number, data: ProductReviewRequest): Promise<ProductReview> => {
+  const response = await axiosInstance.post<ApiResponse<ProductReview>>(`/products/${id}/reviews`, data);
   return response.data.data;
 };
 
