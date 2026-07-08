@@ -9,7 +9,7 @@ import { Product, Category } from "@/types";
 import { ProductCard } from "@/components/features/product/ProductCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Search, AlertCircle, Coffee, ArrowRight, ArrowLeft } from "lucide-react";
+import { Search, AlertCircle, Coffee, ArrowRight, ArrowLeft, Sparkles, Gift, Zap } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function MenuPage() {
@@ -297,9 +297,99 @@ function MenuPageInner() {
                 />
               );
             })}
+
+            {/* ── COMBO PROMO SHOWCASE SECTION ── */}
+            {(() => {
+              const comboCatId = getCategoryIdByName("combo");
+              return (
+                <section className="relative overflow-hidden bg-gradient-to-br from-[#1A0C07] via-[#2E160A] to-[#1A0C07] z-[30] py-20 md:py-28">
+                  {/* Animated background glows */}
+                  <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute top-1/4 left-1/3 w-72 h-72 rounded-full bg-amber-500/10 blur-[100px]" />
+                    <div className="absolute bottom-1/4 right-1/4 w-56 h-56 rounded-full bg-orange-600/12 blur-[80px]" />
+                  </div>
+
+                  <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
+                    <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
+
+                      {/* Text side */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 25 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true, margin: "-100px" }}
+                        transition={{ duration: 0.8, ease: [0.16,1,0.3,1] as const }}
+                        className="md:col-span-6 flex flex-col items-start gap-5"
+                      >
+                        <div className="flex items-center gap-2">
+                          <span className="text-[9px] font-black tracking-widest text-amber-400 uppercase">🔥 Ưu đãi đặc biệt</span>
+                          <span className="bg-red-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide">HOT DEAL</span>
+                        </div>
+                        <h2 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tight leading-none text-amber-100 uppercase">
+                          COMBO
+                        </h2>
+                        <div className="flex items-center gap-3">
+                          <div className="h-0.5 w-10 bg-amber-500" />
+                          <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">Tiết kiệm đến 15%</span>
+                        </div>
+                        <p className="text-sm sm:text-base leading-relaxed font-medium text-amber-100/60 text-balance">
+                          Chọn ngay bộ đôi hoàn hảo — thức uống yêu thích kết hợp cùng món ăn nhẹ thơm ngon. Cùng một lúc, tiết kiệm hơn, trọn vẹn hơn!
+                        </p>
+                        <div className="flex items-center gap-3 mt-2">
+                          <Button
+                            onClick={() => handleCategorySelect(comboCatId)}
+                            className="rounded-full bg-amber-500 text-[#1A0C07] hover:bg-amber-400 font-black text-xs px-7 py-3 shadow-[0_8px_25px_rgba(245,158,11,0.4)] hover:shadow-[0_8px_35px_rgba(245,158,11,0.55)] transition-all duration-300 cursor-pointer"
+                          >
+                            <Gift className="mr-2 h-3.5 w-3.5" />
+                            Xem tất cả Combo
+                          </Button>
+                          <span className="text-xs font-bold text-amber-400/70">10 Combo có sẵn</span>
+                        </div>
+                      </motion.div>
+
+                      {/* Visual side - floating deal cards */}
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.9, y: 30 }}
+                        whileInView={{ opacity: 1, scale: 1, y: 0 }}
+                        viewport={{ once: true, margin: "-100px" }}
+                        transition={{ duration: 0.8, ease: [0.16,1,0.3,1] as const }}
+                        className="md:col-span-6 flex justify-center items-center"
+                      >
+                        <div className="relative w-full max-w-[380px]">
+                          {/* Main visual card */}
+                          <div className="relative aspect-square rounded-3xl overflow-hidden border border-amber-400/20 shadow-[0_20px_60px_rgba(245,158,11,0.25)] bg-gradient-to-br from-[#2A1810] to-[#3D2015]">
+                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-8 text-center">
+                              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/20 border border-amber-400/30">
+                                <Gift className="h-8 w-8 text-amber-400" />
+                              </div>
+                              <div>
+                                <p className="text-3xl font-black text-amber-300">-15%</p>
+                                <p className="text-sm font-bold text-amber-100/60 mt-1">So với mua lẻ từng món</p>
+                              </div>
+                              <div className="grid grid-cols-2 gap-2 w-full mt-2">
+                                {["☕ + 🥖", "🧋 + 🍰", "🍵 + 🥐", "🥤 + 🍞"].map((pair, i) => (
+                                  <div key={i} className="bg-amber-500/10 border border-amber-400/20 rounded-xl py-2 px-3 text-center">
+                                    <span className="text-base">{pair}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
+                          {/* Floating badge */}
+                          <div className="absolute -top-3 -right-3 bg-red-500 text-white text-[10px] font-black px-3 py-1.5 rounded-full shadow-lg uppercase tracking-wide">
+                            GIÁ HỜI!
+                          </div>
+                        </div>
+                      </motion.div>
+
+                    </div>
+                  </div>
+                </section>
+              );
+            })()}
           </div>
         </div>
       )}
+
 
       {/* DETAILED LIST MODE (Traditional product card grid) */}
       {!isShowcaseMode && (
@@ -403,20 +493,101 @@ function MenuPageInner() {
             )}
 
             {/* Product Card Grid with Stagger Cascade */}
-            {showList && filteredProducts.length > 0 && (
-              <motion.div 
-                variants={gridContainerVariants}
-                initial="hidden"
-                animate="show"
-                className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
-              >
-                {filteredProducts.map((product) => (
-                  <motion.div key={product.id} variants={cardItemVariants}>
-                    <ProductCard product={product} />
-                  </motion.div>
-                ))}
-              </motion.div>
-            )}
+            {showList && filteredProducts.length > 0 && (() => {
+              const comboCategoryId = categories.find(c => c.name.toLowerCase() === "combo")?.id;
+              const comboProducts = filteredProducts.filter(p => p.categoryId === comboCategoryId);
+              const regularProducts = filteredProducts.filter(p => p.categoryId !== comboCategoryId);
+              const showComboSection = comboProducts.length > 0 && (selectedCategoryId === null || selectedCategoryId === comboCategoryId);
+
+              return (
+                <div className="space-y-12">
+
+                  {/* ── COMBO BANNER SECTION ── */}
+                  {showComboSection && (
+                    <div>
+                      {/* Combo Section Header */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.6, ease: [0.16,1,0.3,1] }}
+                        className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[#2A1810] via-[#3D2015] to-[#2A1810] border border-amber-500/25 px-6 sm:px-10 py-7 mb-6 shadow-lg"
+                      >
+                        {/* Glowing orb */}
+                        <div className="absolute right-0 top-0 w-56 h-56 rounded-full bg-amber-500/8 blur-3xl pointer-events-none" />
+                        <div className="absolute left-0 bottom-0 w-40 h-40 rounded-full bg-orange-600/10 blur-2xl pointer-events-none" />
+
+                        <div className="relative z-10 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                          <div className="flex items-start gap-3">
+                            <div className="mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-500/20 border border-amber-400/30 text-amber-400">
+                              <Gift className="h-5 w-5" />
+                            </div>
+                            <div>
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="text-[9px] font-black uppercase tracking-widest text-amber-400">Ưu đãi đặc biệt</span>
+                                <span className="flex items-center gap-0.5 bg-red-500 text-white text-[8px] font-black px-1.5 py-0.5 rounded-full">
+                                  <Zap className="h-2 w-2" />
+                                  HOT DEAL
+                                </span>
+                              </div>
+                              <h2 className="font-heading font-black text-xl sm:text-2xl text-amber-100 leading-tight">
+                                Combo Giá Hời — Tiết kiệm đến 15%
+                              </h2>
+                              <p className="text-xs text-amber-100/50 mt-1 leading-relaxed">
+                                Kết hợp thức uống &amp; đồ ăn theo set, nhận ngay ưu đãi đặc biệt không thể bỏ lỡ!
+                              </p>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1.5 shrink-0 bg-amber-500/10 border border-amber-400/20 text-amber-300 text-[10px] font-black px-4 py-2 rounded-full">
+                            <Sparkles className="h-3 w-3" />
+                            {comboProducts.length} Combo có sẵn
+                          </div>
+                        </div>
+                      </motion.div>
+
+                      {/* Combo Grid */}
+                      <motion.div
+                        variants={gridContainerVariants}
+                        initial="hidden"
+                        animate="show"
+                        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4"
+                      >
+                        {comboProducts.map((product) => (
+                          <motion.div key={product.id} variants={cardItemVariants}>
+                            <ProductCard product={product} />
+                          </motion.div>
+                        ))}
+                      </motion.div>
+                    </div>
+                  )}
+
+                  {/* ── REGULAR PRODUCTS ── */}
+                  {regularProducts.length > 0 && (
+                    <div>
+                      {showComboSection && (
+                        <div className="flex items-center gap-3 mb-5">
+                          <div className="h-px flex-1 bg-border/50" />
+                          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Thức uống &amp; Món ăn</span>
+                          <div className="h-px flex-1 bg-border/50" />
+                        </div>
+                      )}
+                      <motion.div
+                        variants={gridContainerVariants}
+                        initial="hidden"
+                        animate="show"
+                        className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+                      >
+                        {regularProducts.map((product) => (
+                          <motion.div key={product.id} variants={cardItemVariants}>
+                            <ProductCard product={product} />
+                          </motion.div>
+                        ))}
+                      </motion.div>
+                    </div>
+                  )}
+
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}
