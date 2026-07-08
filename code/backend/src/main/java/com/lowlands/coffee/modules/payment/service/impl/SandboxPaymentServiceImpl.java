@@ -10,6 +10,7 @@ import com.lowlands.coffee.modules.payment.service.SandboxPaymentService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -24,6 +25,7 @@ import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -34,6 +36,7 @@ public class SandboxPaymentServiceImpl implements SandboxPaymentService {
     private final OrderRepository orderRepository;
     private final PaymentRepository paymentRepository;
     private final RestTemplate restTemplate;
+    private final Environment environment;
 
     @Value("${MOMO_PARTNER_CODE:}")
     private String momoPartnerCode;
@@ -53,21 +56,14 @@ public class SandboxPaymentServiceImpl implements SandboxPaymentService {
     @Value("${MOMO_NOTIFY_URL:http://localhost:8080/api/v1/payment/momo/ipn}")
     private String momoNotifyUrl;
 
-    @Value("${VNP_TMNCODE:}")
-    private String vnpTmnCode;
-
-    @Value("${VNP_HASH_SECRET:}")
-    private String vnpHashSecret;
-
-    @Value("${VNP_URL:https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}")
-    private String vnpUrl;
-
-    @Value("${VNP_RETURN_URL:http://localhost:8080/api/v1/payment/vnpay/return}")
-    private String vnpReturnUrl;
-
-    public SandboxPaymentServiceImpl(OrderRepository orderRepository, PaymentRepository paymentRepository) {
+    public SandboxPaymentServiceImpl(
+            OrderRepository orderRepository,
+            PaymentRepository paymentRepository,
+            Environment environment
+    ) {
         this.orderRepository = orderRepository;
         this.paymentRepository = paymentRepository;
+        this.environment = environment;
         this.restTemplate = new RestTemplate();
     }
 
@@ -169,9 +165,11 @@ public class SandboxPaymentServiceImpl implements SandboxPaymentService {
         }
 
         String orderCode = order.getOrderCode();
-        long amount = order.getTotalAmount().multiply(new BigDecimal(100)).setScale(0, BigDecimal.ROUND_HALF_UP).longValue();
+        long amount = order.getTotalAmount()
+                .multiply(new BigDecimal(100))
+                .setScale(0, BigDecimal.ROUND_HALF_UP)
+                .longValue();
         String orderInfo = "Thanh toan don hang Lowlands Coffee " + orderCode;
-        
         String clientIp = (ipAddress == null || ipAddress.isBlank()) ? "127.0.0.1" : ipAddress.trim();
         if (clientIp.contains(",")) {
             clientIp = clientIp.split(",")[0].trim();
@@ -180,56 +178,30 @@ public class SandboxPaymentServiceImpl implements SandboxPaymentService {
             clientIp = "127.0.0.1";
         }
 
-        String createDate = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"))
-                .format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("Asia/Ho_Chi_Minh"));
+        String createDate = formatVnpayDate(now);
+        String expireDate = formatVnpayDate(now.plusMinutes(15));
 
         Map<String, String> vnpParams = new TreeMap<>();
         vnpParams.put("vnp_Version", "2.1.0");
         vnpParams.put("vnp_Command", "pay");
-        vnpParams.put("vnp_TmnCode", vnpTmnCode);
+        vnpParams.put("vnp_TmnCode", vnpayTmnCode());
         vnpParams.put("vnp_Amount", String.valueOf(amount));
         vnpParams.put("vnp_CurrCode", "VND");
         vnpParams.put("vnp_TxnRef", orderCode);
         vnpParams.put("vnp_OrderInfo", orderInfo);
         vnpParams.put("vnp_OrderType", "other");
-        vnpParams.put("vnp_Locale", "vn");
-        vnpParams.put("vnp_ReturnUrl", vnpReturnUrl);
+        vnpParams.put("vnp_Locale", vnpayLocale());
+        vnpParams.put("vnp_ReturnUrl", vnpayReturnUrl());
         vnpParams.put("vnp_IpAddr", clientIp);
         vnpParams.put("vnp_CreateDate", createDate);
+        vnpParams.put("vnp_ExpireDate", expireDate);
 
-        // Build query string and hash data
-        Map<String, String> nonParams = new TreeMap<>();
-        for (Map.Entry<String, String> entry : vnpParams.entrySet()) {
-            if (entry.getValue() != null && !entry.getValue().isEmpty()) {
-                nonParams.put(entry.getKey(), entry.getValue());
-            }
-        }
+        String signedData = buildVnpaySignedData(vnpParams);
+        String secureHash = hmacSha512(vnpayHashSecret(), signedData);
+        String paymentUrl = vnpayPaymentUrl() + "?" + signedData + "&vnp_SecureHash=" + secureHash;
 
-        StringBuilder hashData = new StringBuilder();
-        StringBuilder query = new StringBuilder();
-        Iterator<Map.Entry<String, String>> itr = nonParams.entrySet().iterator();
-        while (itr.hasNext()) {
-            Map.Entry<String, String> entry = itr.next();
-            String key = entry.getKey();
-            String value = entry.getValue();
-
-            // Build hashData (No URL encoding)
-            hashData.append(key).append("=").append(value);
-
-            // Build query (With URL encoding using UTF-8, keeping + for spaces)
-            String encodedKey = URLEncoder.encode(key, StandardCharsets.UTF_8);
-            String encodedValue = URLEncoder.encode(value, StandardCharsets.UTF_8);
-            query.append(encodedKey).append("=").append(encodedValue);
-
-            if (itr.hasNext()) {
-                hashData.append("&");
-                query.append("&");
-            }
-        }
-
-        String secureHash = hmacSha512(vnpHashSecret, hashData.toString());
-        String paymentUrl = vnpUrl + "?" + query.toString() + "&vnp_SecureHash=" + secureHash;
-
+        payment.setPaymentMethod("BANKING");
         payment.setPaymentGateway("VNPAY");
         paymentRepository.save(payment);
 
@@ -249,13 +221,13 @@ public class SandboxPaymentServiceImpl implements SandboxPaymentService {
 
         if (!isValid) {
             log.error("Invalid MoMo signature for Order Code: {}", orderCode);
-            return "http://localhost:3000/payment/result?success=false&orderCode=" + orderCode + "&message=Chữ%20ký%20không%20hợp%20lệ";
+            return paymentResultUrl(false, orderCode, "Chu ky khong hop le");
         }
 
         boolean success = "0".equals(resultCode);
         updateOrderAndPayment(orderCode, success, transId, "MOMO");
 
-        return "http://localhost:3000/payment/result?success=" + success + "&orderCode=" + orderCode;
+        return paymentResultUrl(success, orderCode, null);
     }
 
     @Override
@@ -298,13 +270,13 @@ public class SandboxPaymentServiceImpl implements SandboxPaymentService {
 
         if (!isValid) {
             log.error("Invalid VNPay signature for Order Code: {}", orderCode);
-            return "http://localhost:3000/payment/result?success=false&orderCode=" + orderCode + "&message=Mã%20băm%20bảo%20mật%20không%20hợp%20lệ";
+            return paymentResultUrl(false, orderCode, "Ma bam bao mat khong hop le");
         }
 
         boolean success = "00".equals(responseCode);
         updateOrderAndPayment(orderCode, success, transactionNo, "VNPAY");
 
-        return "http://localhost:3000/payment/result?success=" + success + "&orderCode=" + orderCode;
+        return paymentResultUrl(success, orderCode, null);
     }
 
     @Override
@@ -397,34 +369,28 @@ public class SandboxPaymentServiceImpl implements SandboxPaymentService {
         String secureHash = params.get("vnp_SecureHash");
         if (secureHash == null) return false;
 
-        Map<String, String> sortedParams = new TreeMap<>(params);
-        sortedParams.remove("vnp_SecureHash");
-        sortedParams.remove("vnp_SecureHashType");
-
-        // Filter out null or empty parameters
-        Map<String, String> nonParams = new TreeMap<>();
-        for (Map.Entry<String, String> entry : sortedParams.entrySet()) {
-            if (entry.getValue() != null && !entry.getValue().isEmpty()) {
-                nonParams.put(entry.getKey(), entry.getValue());
-            }
-        }
-
-        StringBuilder hashData = new StringBuilder();
-        Iterator<Map.Entry<String, String>> itr = nonParams.entrySet().iterator();
-        while (itr.hasNext()) {
-            Map.Entry<String, String> entry = itr.next();
-            String key = entry.getKey();
-            String value = entry.getValue();
-
-            // Build hashData (No URL encoding)
-            hashData.append(key).append("=").append(value);
-            if (itr.hasNext()) {
-                hashData.append("&");
-            }
-        }
-
-        String computed = hmacSha512(vnpHashSecret, hashData.toString());
+        String signedData = buildVnpaySignedData(params);
+        String computed = hmacSha512(vnpayHashSecret(), signedData);
         return computed.equalsIgnoreCase(secureHash);
+    }
+
+    String buildVnpaySignedData(Map<String, String> params) {
+        return params.entrySet().stream()
+                .filter(entry -> entry.getKey() != null && entry.getKey().startsWith("vnp_"))
+                .filter(entry -> !"vnp_SecureHash".equals(entry.getKey()))
+                .filter(entry -> !"vnp_SecureHashType".equals(entry.getKey()))
+                .filter(entry -> entry.getValue() != null && !entry.getValue().isBlank())
+                .sorted(Map.Entry.comparingByKey())
+                .map(entry -> encodeVnpay(entry.getKey()) + "=" + encodeVnpay(entry.getValue()))
+                .collect(Collectors.joining("&"));
+    }
+
+    private String encodeVnpay(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8);
+    }
+
+    private String formatVnpayDate(ZonedDateTime value) {
+        return value.format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"));
     }
 
     private String hmacSha256(String data, String key) {
@@ -468,9 +434,77 @@ public class SandboxPaymentServiceImpl implements SandboxPaymentService {
     }
 
     private void requireVnpayConfigured() {
-        if (isBlank(vnpTmnCode) || isBlank(vnpHashSecret)) {
-            throw new BadRequestException("VNPay sandbox payment is not configured");
+        if (isBlank(vnpayTmnCode()) || isBlank(vnpayHashSecret())) {
+            throw new BadRequestException("VNPay sandbox payment is not configured. Please set VNPAY_TMN_CODE and VNPAY_HASH_SECRET.");
         }
+    }
+
+    private String vnpayTmnCode() {
+        return firstNonBlank("VNPAY_TMN_CODE", "VNP_TMNCODE");
+    }
+
+    private String vnpayHashSecret() {
+        return firstNonBlank("VNPAY_HASH_SECRET", "VNP_HASH_SECRET");
+    }
+
+    private String vnpayPaymentUrl() {
+        return firstNonBlank(
+                "VNPAY_PAYMENT_URL",
+                "VNP_URL",
+                "https://sandbox.vnpayment.vn/paymentv2/vpcpay.html"
+        );
+    }
+
+    private String vnpayReturnUrl() {
+        return firstNonBlank(
+                "VNPAY_RETURN_URL",
+                "VNP_RETURN_URL",
+                "http://localhost:8080/api/v1/payment/vnpay/return"
+        );
+    }
+
+    private String vnpayLocale() {
+        return firstNonBlank("VNPAY_LOCALE", "vn");
+    }
+
+    private String paymentResultUrl(boolean success, String orderCode, String message) {
+        String baseUrl = firstNonBlank(
+                "FRONTEND_PAYMENT_RESULT_URL",
+                "http://localhost:3000/vi/payment/result"
+        );
+        StringBuilder redirect = new StringBuilder(baseUrl)
+                .append(baseUrl.contains("?") ? "&" : "?")
+                .append("success=")
+                .append(success);
+        if (!isBlank(orderCode)) {
+            redirect.append("&orderCode=").append(encodeVnpay(orderCode));
+        }
+        if (!isBlank(message)) {
+            redirect.append("&message=").append(encodeVnpay(message));
+        }
+        return redirect.toString();
+    }
+
+    private String firstNonBlank(String... keysOrFallback) {
+        for (int i = 0; i < keysOrFallback.length; i++) {
+            String key = keysOrFallback[i];
+            String value = environment.getProperty(key);
+            if (!isBlank(value) && !isPlaceholder(value)) {
+                return value.trim();
+            }
+            if (i == keysOrFallback.length - 1 && !key.contains("_") && !key.contains(".")) {
+                return key;
+            }
+            if (i == keysOrFallback.length - 1 && key.startsWith("http")) {
+                return key;
+            }
+        }
+        return "";
+    }
+
+    private boolean isPlaceholder(String value) {
+        String trimmed = value.trim();
+        return trimmed.startsWith("<") && trimmed.endsWith(">");
     }
 
     private boolean isBlank(String value) {

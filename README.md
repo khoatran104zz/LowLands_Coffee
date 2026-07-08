@@ -107,9 +107,18 @@ JWT_SECRET=<your-jwt-secret-key>
 
 # URL API backend (không thay đổi nếu chạy local)
 NEXT_PUBLIC_API_URL=http://localhost:8080/api/v1
+
+# VNPay Sandbox (lấy từ sandbox.vnpayment.vn/devreg)
+VNPAY_TMN_CODE=<your-vnpay-tmn-code>
+VNPAY_HASH_SECRET=<your-vnpay-hash-secret>
+VNPAY_PAYMENT_URL=https://sandbox.vnpayment.vn/paymentv2/vpcpay.html
+VNPAY_RETURN_URL=http://localhost:8080/api/v1/payment/vnpay/return
+FRONTEND_PAYMENT_RESULT_URL=http://localhost:3000/vi/payment/result
 ```
 
 > ⚠️ **Không commit file `.env`** — chỉ `.env.example` được track bởi Git.
+
+> VNPay Sandbox cần TMN Code và Hash Secret riêng. Thẻ test thành công phổ biến: ngân hàng `NCB`, số thẻ `9704198526191432198`, chủ thẻ `NGUYEN VAN A`, ngày phát hành `07/15`, OTP `123456`.
 
 ### Frontend environment
 

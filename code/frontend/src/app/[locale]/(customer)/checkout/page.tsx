@@ -79,7 +79,7 @@ const PAYMENT_OPTIONS: {
   {
     id: "vnpay",
     title: "VNPay",
-    subtitle: "Cổng thanh toán VNPay Sandbox.",
+    subtitle: "Thanh toán trực tuyến qua cổng VNPay.",
     badge: "VNPAY",
   },
 ];
@@ -103,6 +103,22 @@ const LOWLANDS_TRANSFER_ACCOUNT = {
 const ONLINE_PAYMENT_METHODS = new Set<CheckoutPaymentMethod>([
   "vnpay",
 ]);
+
+const PAYMENT_TRACKING_STORAGE_KEY = "lowlands_pending_payment_order";
+
+const rememberPendingPaymentOrder = (order: Order) => {
+  if (typeof window === "undefined" || !order.orderCode || !order.receiverPhone?.trim()) {
+    return;
+  }
+
+  window.localStorage.setItem(
+    PAYMENT_TRACKING_STORAGE_KEY,
+    JSON.stringify({
+      orderCode: order.orderCode,
+      receiverPhone: order.receiverPhone.trim(),
+    })
+  );
+};
 
 const toBackendPaymentMethod = (paymentMethod: CheckoutPaymentMethod): Order["paymentMethod"] => {
   if (paymentMethod === "cod") return "cod";
@@ -416,6 +432,7 @@ export default function CheckoutPage() {
 
       try {
         const savedOrder = await createOrder(orderData);
+        rememberPendingPaymentOrder(savedOrder);
         toast.info("Đang tạo liên kết thanh toán...");
         
         const createPaymentPath = "/payment/vnpay/create";

@@ -14,12 +14,37 @@ interface OrderDetail {
   orderCode: string;
   totalAmount: number;
   status: string;
+  receiverPhone?: string;
   payment?: {
     paymentMethod: string;
     paymentStatus: string;
     paymentGateway?: string;
   };
 }
+
+const PAYMENT_TRACKING_STORAGE_KEY = "lowlands_pending_payment_order";
+
+const readStoredReceiverPhone = (orderCode: string) => {
+  if (typeof window === "undefined" || !orderCode) {
+    return "";
+  }
+
+  try {
+    const rawValue = window.localStorage.getItem(PAYMENT_TRACKING_STORAGE_KEY);
+    if (!rawValue) {
+      return "";
+    }
+
+    const parsed = JSON.parse(rawValue) as { orderCode?: string; receiverPhone?: string };
+    if (parsed.orderCode !== orderCode) {
+      return "";
+    }
+
+    return parsed.receiverPhone?.trim() || "";
+  } catch {
+    return "";
+  }
+};
 
 export default function PaymentResultPage() {
   const { t } = useTranslation();
@@ -41,10 +66,16 @@ export default function PaymentResultPage() {
     }
 
     const fetchOrderDetails = async () => {
+      const receiverPhone = readStoredReceiverPhone(orderCode);
+      if (!receiverPhone) {
+        setLoading(false);
+        return;
+      }
+
       try {
         // Fetch order details from public tracking API since user might be anonymous
         const response = await axiosInstance.get<{ data: OrderDetail }>("/orders/track", {
-          params: { code: orderCode, phone: "" },
+          params: { code: orderCode, phone: receiverPhone },
         });
         setOrder(response.data.data);
       } catch (error) {
@@ -77,8 +108,10 @@ export default function PaymentResultPage() {
   const handleTrackOrder = () => {
     if (isAuthenticated) {
       router.push("/profile#orders");
-    } else if (order) {
+    } else if (order?.receiverPhone) {
       // Redirect to guest tracking page
+      router.push(`/track-order?code=${encodeURIComponent(orderCode)}&phone=${encodeURIComponent(order.receiverPhone)}`);
+    } else if (orderCode) {
       router.push(`/track-order?code=${encodeURIComponent(orderCode)}`);
     } else {
       router.push("/menu");
