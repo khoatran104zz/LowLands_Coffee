@@ -74,10 +74,10 @@ export function ProductCard({ product }: ProductCardProps) {
       {/* Info Container */}
       <div className="flex flex-col flex-grow p-4 text-left gap-2">
         <h3 className="font-heading font-bold text-base sm:text-lg text-primary line-clamp-1 group-hover:text-primary/80 transition-colors">
-          {product.name}
+          {t(`product.items.${product.id}.name`, { defaultValue: product.name })}
         </h3>
         <p className="text-xs text-muted-foreground line-clamp-2 min-h-[32px] leading-relaxed">
-          {product.description || t("product.defaultDescription")}
+          {t(`product.items.${product.id}.description`, { defaultValue: product.description || t("product.defaultDescription") })}
         </p>
 
         {/* Pricing and Action */}

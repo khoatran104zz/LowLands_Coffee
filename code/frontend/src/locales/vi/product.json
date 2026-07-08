@@ -19,6 +19,7 @@
   "addedToCart": "Đã thêm sản phẩm vào giỏ hàng thành công!",
   "outOfStock": "Sản phẩm tạm thời hết hàng!",
   "defaultDescription": "Hương vị thơm ngon đặc trưng chỉ có tại Lowlands Coffee.",
+  "comboIncludes": "Combo bao gồm:",
   "cart": {
     "title": "Giỏ Hàng Của Bạn",
     "empty": "Giỏ hàng của bạn đang trống.",
@@ -88,6 +89,172 @@
       "nameRequired": "Họ tên không được để trống",
       "phoneInvalid": "Số điện thoại không hợp lệ (yêu cầu 10 số)",
       "addressRequired": "Địa chỉ giao hàng không được để trống"
+    }
+  },
+  "items": {
+    "1": {
+      "name": "Phin Sữa Đá Đậm Chất",
+      "description": "Cà phê phin truyền thống thơm nồng, quyện cùng sữa đặc béo ngậy. Đánh thức năng lượng ngày mới cực chất!"
+    },
+    "2": {
+      "name": "Bạc Xỉu Sữa Mịn",
+      "description": "Ly bạc xỉu kem sữa ngọt ngào dịu êm. Lựa chọn hoàn hảo cho những tín đồ ưa thích vị ngọt thanh thanh."
+    },
+    "3": {
+      "name": "Trà Sen Vàng Bùi Ngậy",
+      "description": "Trà ô long thanh mát kết hợp cùng hạt sen bùi bùi, củ năng giòn sần sật và kem béo ngậy."
+    },
+    "4": {
+      "name": "Freeze Trà Xanh Đá Xay",
+      "description": "Matcha Nhật Bản xay mịn cùng đá, phủ kem tươi mịn màng và thạch trà xanh giòn giòn mát lạnh."
+    },
+    "6": {
+      "name": "Latte Art Thượng Hạng",
+      "description": "Sự kết hợp hoàn hảo giữa Espresso đậm đà và sữa nóng mịn màng, phủ bọt nghệ thuật ấn tượng."
+    },
+    "7": {
+      "name": "Trà Đào Cam Sả Sảng Khoái",
+      "description": "Vị trà đào thơm lừng quyện cùng sả tươi ấm nồng và cam tươi chua ngọt. Đập tan cơn khát cực đỉnh!"
+    },
+    "8": {
+      "name": "Bánh Mì Que Pate Hải Phòng",
+      "description": "Vỏ bánh giòn rụm ôm trọn lớp pate gan béo ngậy thơm nồng. Món ăn nhẹ quốc dân cực hot!"
+    },
+    "9": {
+      "name": "Cheesecake Việt Quất Quý Phái",
+      "description": "Bánh phô mai nướng mịn màng phủ xốt quả việt quất chua ngọt đậm đà, ăn một miếng là mê."
+    },
+    "14": {
+      "name": "Phin Đen Đá Thuần Khiết",
+      "description": "Hương vị nguyên bản mạnh mẽ từ hạt cà phê rang xay nguyên chất, mang lại sự tỉnh táo tức thì."
+    },
+    "15": {
+      "name": "Cappuccino Bọt Sữa",
+      "description": "Espresso đậm đặc hòa cùng sữa nóng và lớp bọt mịn dày, rắc thêm chút bột cacao quyến rũ."
+    },
+    "16": {
+      "name": "Americano Thanh Mát",
+      "description": "Espresso pha loãng thanh tao, lưu giữ trọn vẹn hương thơm mộc mạc của hạt Arabica."
+    },
+    "17": {
+      "name": "Espresso Tinh Túy",
+      "description": "Một shot Espresso đậm đặc nguyên chất với lớp crema vàng óng, chuẩn vị cà phê Ý."
+    },
+    "18": {
+      "name": "Caramel Macchiato Ngọt Ngào",
+      "description": "Cà phê sữa béo ngậy hòa quyện cùng xốt caramel ngọt lịm, tạo nên tầng hương vị mê say."
+    },
+    "19": {
+      "name": "Mocha Sô-cô-la Đậm Đà",
+      "description": "Sự giao thoa tuyệt vời giữa vị đắng của Espresso và sự ngọt ngào của sô-cô-la cao cấp."
+    },
+    "20": {
+      "name": "Cold Brew Ủ Lạnh Thanh Khiết",
+      "description": "Cà phê được ủ lạnh chậm trong 16 giờ, mang lại hương vị mượt mà, ít đắng và thanh mát tự nhiên."
+    },
+    "21": {
+      "name": "Bánh Mì Que Phô Mai Tan Chảy",
+      "description": "Vỏ bánh giòn tan kết hợp cùng nhân phô mai sữa béo ngậy kéo sợi hấp dẫn."
+    },
+    "22": {
+      "name": "Matcha Latte Chuẩn Nhật",
+      "description": "Bột trà xanh Uji matcha nguyên chất hòa cùng sữa tươi thơm béo, mang lại hương vị thanh khiết, an lành."
+    },
+    "23": {
+      "name": "Combo Năng Lượng Khởi Đầu",
+      "description": "Khởi đầu ngày mới tỉnh táo và no bụng với 1 ly Phin Sữa Đá đậm đà và 1 chiếc Bánh Mì Que Pate giòn thơm."
+    },
+    "24": {
+      "name": "Combo Đôi Bạn Tri Kỷ",
+      "description": "Trọn vẹn câu chuyện cùng tri kỷ: 1 ly Phin Sữa Đá đậm vị truyền thống kết hợp cùng 1 ly Trà Đào Cam Sả sảng khoái."
+    },
+    "25": {
+      "name": "Combo Chiều Ngọt Ngào Thư Giãn",
+      "description": "Khoảnh khắc chiều ngọt ngào: 1 ly Latte ấm áp mịn màng quyện cùng 1 lát bánh phô mai việt quất chua ngọt thơm ngậy."
+    },
+    "26": {
+      "name": "Trà Vải Vườn Hồng",
+      "description": "Hương trà thanh khiết hòa cùng trái vải mọng nước ngọt ngào và thạch vải giòn dai sảng khoái."
+    },
+    "27": {
+      "name": "Trà Nhãn Sen Vàng",
+      "description": "Vị thanh nhẹ của trà lài kết hợp cùng cùi nhãn ngọt lịm và thạch nhãn dai giòn khó cưỡng."
+    },
+    "28": {
+      "name": "Trà Sữa Trân Châu Hoàng Kim",
+      "description": "Trà sữa truyền thống đậm vị trà thơm béo, uống cùng trân châu đen dai giòn vui miệng."
+    },
+    "29": {
+      "name": "Trà Sữa Matcha Thượng Hạng",
+      "description": "Trà sữa hương vị matcha thanh mát dịu nhẹ, cân bằng hoàn hảo giữa vị chát nhẹ và vị ngọt ngào."
+    },
+    "30": {
+      "name": "Ô Long Kem Cheese Sánh Mịn",
+      "description": "Trà Ô Long đậm đà nguyên bản, phủ thêm lớp kem phô mai (cream cheese) mặn ngọt béo ngậy tan chảy."
+    },
+    "31": {
+      "name": "Trà Xoài Nhiệt Đới Tươi Mát",
+      "description": "Trà xoài xoài chua ngọt sảng khoái kết hợp với thạch xoài dai giòn, mang đậm hương vị nhiệt đới rực rỡ."
+    },
+    "32": {
+      "name": "Trà Chanh Dây Mật Ong",
+      "description": "Vị chanh dây chua thanh kết hợp cùng mật ong ngọt dịu, giúp thanh lọc cơ thể cực tốt."
+    },
+    "33": {
+      "name": "Freeze Cà Phê Đá Xay",
+      "description": "Cà phê đậm đà xay cùng đá và xốt sô-cô-la ngọt ngào, phủ kem tươi béo ngậy quyến rũ."
+    },
+    "34": {
+      "name": "Freeze Socola Băng Bản",
+      "description": "Sô-cô-la hảo hạng xay nhuyễn sánh mịn, kết hợp với kem tươi béo ngậy và xốt sô-cô-la ngọt ngào."
+    },
+    "35": {
+      "name": "Freeze Caramel Hoàng Kim",
+      "description": "Caramel ngọt lịm xay cùng đá mát lạnh, phủ kem béo ngậy và rưới thêm xốt caramel vàng óng."
+    },
+    "36": {
+      "name": "Freeze Cookies & Cream Đá Xay",
+      "description": "Bánh quy sô-cô-la xay cùng sữa tươi và đá, phủ kem tươi và vụn bánh quy giòn rụm cực ghiền."
+    },
+    "42": {
+      "name": "Bánh Mì Thịt Nướng Sài Gòn",
+      "description": "Bánh mì giòn nóng hổi nhân thịt nướng thơm nức mũi, kèm dưa chua và nước xốt đậm đà chuẩn vị."
+    },
+    "43": {
+      "name": "Croissant Bơ Pháp Thơm Giòn",
+      "description": "Bánh sừng bò ngàn lớp thơm lừng bơ Pháp cao cấp, vỏ bánh giòn rụm ruột bánh mềm xốp."
+    },
+    "44": {
+      "name": "Tiramisu Ý Lãng Mạn",
+      "description": "Bánh tiramisu mềm mịn thấm vị cà phê Espresso thơm nồng và rượu nhẹ phảng phất, phủ bột cacao thanh tao."
+    },
+    "45": {
+      "name": "Combo Tỉnh Táo Tức Thì",
+      "description": "Bứt phá năng lượng tức thì: 1 ly Phin Đen Đá mạnh mẽ và 1 chiếc Bánh Mì Sài Gòn thịt nướng đậm đà."
+    },
+    "46": {
+      "name": "Combo Ngọt Ngào Giao Thoa",
+      "description": "Sự kết hợp hoàn hảo cho tín đồ hảo ngọt: 1 ly Trà Sữa Trân Châu dai giòn và 1 lát bánh Tiramisu mềm mịn."
+    },
+    "47": {
+      "name": "Combo Trà Chiều Sang Chảnh",
+      "description": "Trà chiều thư thái chuẩn gu: 1 ly Trà Đào Cam Sả mát lạnh uống cùng 1 chiếc Croissant bơ Pháp thơm giòn."
+    },
+    "48": {
+      "name": "Combo Năng Lượng Đột Phá",
+      "description": "Combo bổ sung năng lượng đột phá: 1 ly Latte thơm béo và 1 chiếc Bánh Mì Que Pate giòn rụm."
+    },
+    "49": {
+      "name": "Combo Thư Giãn Tao Nhã",
+      "description": "Thư giãn thanh tao cuối ngày: 1 ly Trà Sen Vàng hạt sen bùi ngậy quyện cùng 1 lát Cheesecake việt quất chi ngọt."
+    },
+    "50": {
+      "name": "Combo Đôi Lứa Hẹn Hò",
+      "description": "Gia vị ngọt ngào cho buổi hẹn hò: 1 ly Cappuccino nồng nàn bọt sữa và 1 chiếc Bánh Sừng Bò bơ Pháp thơm phức."
+    },
+    "51": {
+      "name": "Combo Sáng Tạo Bứt Phá",
+      "description": "Khơi nguồn cảm hứng sáng tạo: 1 ly Bạc Xỉu kem sữa ngọt ngào và 1 chiếc Bánh Mì Que Phô Mai béo ngậy."
     }
   }
 }

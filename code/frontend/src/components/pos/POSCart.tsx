@@ -435,7 +435,7 @@ export function POSCart({
 
     const isConfirmed = await confirm({
       title: t("common.confirmDeleteTitle") || "Xác nhận xóa",
-      message: `${t("pos.confirmRemoveItemMsg") || "Bạn có chắc chắn muốn xóa món này khỏi đơn hàng?"} ("${item.product.name}")`,
+      message: `${t("pos.confirmRemoveItemMsg") || "Bạn có chắc chắn muốn xóa món này khỏi đơn hàng?"} ("${t(`product.items.${item.product.id}.name`, { defaultValue: item.product.name })}")`,
       confirmText: t("common.delete") || "Xóa",
       cancelText: t("common.cancel") || "Hủy",
       variant: "danger"
@@ -554,7 +554,7 @@ export function POSCart({
                 
                 {/* Name and Meta */}
                 <div className="text-left min-w-0">
-                  <h4 className="text-xs font-black text-foreground truncate leading-tight">{item.product.name}</h4>
+                  <h4 className="text-xs font-black text-foreground truncate leading-tight">{t(`product.items.${item.product.id}.name`, { defaultValue: item.product.name })}</h4>
                   <span className="text-[9px] text-muted-foreground block mt-0.5 leading-none">
                     Size: {item.variant.size}
                     {item.toppings.length > 0 &&

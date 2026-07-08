@@ -951,7 +951,7 @@ export default function CheckoutPage() {
                     <div key={item.id} className="flex items-start justify-between gap-4 text-sm">
                       <div className="min-w-0">
                         <p className="font-black text-[#3A1D14]">
-                          {item.product.name} <span className="font-semibold text-[#7B655A]">x{item.quantity}</span>
+                          {t(`product.items.${item.product.id}.name`, { defaultValue: item.product.name })} <span className="font-semibold text-[#7B655A]">x{item.quantity}</span>
                         </p>
                         <p className="mt-0.5 text-xs font-semibold text-[#7B655A]">{t("product.menu.size")} {item.variant.size}</p>
                         {item.toppings.length > 0 && (

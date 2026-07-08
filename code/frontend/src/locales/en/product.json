@@ -19,6 +19,7 @@
   "addedToCart": "Successfully added product to cart!",
   "outOfStock": "Product temporarily out of stock!",
   "defaultDescription": "Signature delicious flavor only available at Lowlands Coffee.",
+  "comboIncludes": "Combo includes:",
   "cart": {
     "title": "Your Cart",
     "empty": "Your cart is empty.",
@@ -88,6 +89,172 @@
       "nameRequired": "Recipient's name cannot be empty",
       "phoneInvalid": "Invalid phone number (must be 10 digits)",
       "addressRequired": "Shipping address cannot be empty"
+    }
+  },
+  "items": {
+    "1": {
+      "name": "Signature Phin Condensed Milk Coffee",
+      "description": "Traditional aromatic drip coffee blended with rich sweet condensed milk. Awaken your day with pure local energy!"
+    },
+    "2": {
+      "name": "Silky Smooth Bac Xiu",
+      "description": "A sweet, gentle combination of fresh milk and premium coffee. Perfect for those who love a lighter brew."
+    },
+    "3": {
+      "name": "Golden Lotus Tea with Cheese Foam",
+      "description": "Refreshing Oolong tea paired with sweet lotus seeds, crispy water chestnuts, and a rich cheese cream layer."
+    },
+    "4": {
+      "name": "Green Tea Matcha Freeze",
+      "description": "Premium Japanese Matcha blended with ice, topped with fluffy whipped cream and matcha jelly."
+    },
+    "6": {
+      "name": "Premium Latte Art",
+      "description": "Rich espresso shot combined with warm steamed milk, crowned with a beautiful microfoam design."
+    },
+    "7": {
+      "name": "Refreshing Peach Lemongrass Tea",
+      "description": "Aromatic tea with sweet peaches, warm lemongrass notes, and fresh orange slices. Ultimate thirst quencher!"
+    },
+    "8": {
+      "name": "Crispy Stick Bread with Rich Pate",
+      "description": "Super crispy stick baguette stuffed with savory, buttery liver pate. The ultimate national street snack!"
+    },
+    "9": {
+      "name": "Royal Blueberry Cheesecake",
+      "description": "Smooth baked cream cheese cake topped with sweet and tangy blueberry glaze. One bite and you'll fall in love."
+    },
+    "14": {
+      "name": "Pure Phin Black Coffee",
+      "description": "Original bold drip coffee brewed from roasted ground beans, delivering an instant kick of wakefulness."
+    },
+    "15": {
+      "name": "Frothy Cream Cappuccino",
+      "description": "Bold espresso balanced with hot milk, topped with a thick layer of silky foam and cocoa dusting."
+    },
+    "16": {
+      "name": "Smooth Americano",
+      "description": "Espresso diluted with hot water, preserving the gentle floral notes of premium Arabica beans."
+    },
+    "17": {
+      "name": "Pure Espresso Shot",
+      "description": "A concentrated shot of pure espresso with a rich golden crema, prepared Italian style."
+    },
+    "18": {
+      "name": "Sweet Caramel Macchiato",
+      "description": "Velvety steamed milk and espresso marked with sweet caramel drizzle for a comforting treat."
+    },
+    "19": {
+      "name": "Rich Chocolate Mocha",
+      "description": "The perfect marriage of bold espresso and premium decadent chocolate, topped with steamed milk."
+    },
+    "20": {
+      "name": "16-Hour Cold Brew Coffee",
+      "description": "Slowly steeped in cold water for 16 hours, yielding an incredibly smooth, naturally sweet, low-acid coffee."
+    },
+    "21": {
+      "name": "Melty Cheese Stick Bread",
+      "description": "Crispy baked stick bread filled with hot, gooey, stretchable melted cheese."
+    },
+    "22": {
+      "name": "Authentic Japanese Matcha Latte",
+      "description": "Fine Uji matcha powder whisked with rich steamed milk for a clean, comforting green tea experience."
+    },
+    "23": {
+      "name": "Energy Start Combo",
+      "description": "Get a perfect start with 1 bold Phin Condensed Milk Coffee and 1 crispy, savory Pate Stick Bread."
+    },
+    "24": {
+      "name": "Best Friends Combo",
+      "description": "Share your story: 1 rich, traditional Phin Condensed Milk Coffee paired with 1 cooling, zesty Peach Lemongrass Tea."
+    },
+    "25": {
+      "name": "Sweet Afternoon Escape Combo",
+      "description": "Unwind in style: 1 velvety Latte paired with 1 slice of decadent, tangy Blueberry Cheesecake."
+    },
+    "26": {
+      "name": "Garden Rose Lychee Tea",
+      "description": "Delicate tea infused with sweet, juicy whole lychees and crunchy lychee jelly."
+    },
+    "27": {
+      "name": "Golden Longan Tea",
+      "description": "Fragrant jasmine tea matched with sweet, fleshy longan fruits and bouncy longan jelly."
+    },
+    "28": {
+      "name": "Golden Pearl Milk Tea",
+      "description": "Rich, creamy traditional milk tea served with chewy brown sugar pearls for ultimate comfort."
+    },
+    "29": {
+      "name": "Premium Matcha Milk Tea",
+      "description": "Smooth milk tea with clean matcha flavor, offering a perfect balance of sweet and green tea notes."
+    },
+    "30": {
+      "name": "Velvety Cheese Foam Oolong Tea",
+      "description": "Fragrant dark Oolong tea topped with a thick layer of savory, sweet, and rich cream cheese."
+    },
+    "31": {
+      "name": "Tropical Mango Tea",
+      "description": "Sweet, vibrant mango tea served with fruity jelly bits. Sunshine in a cup!"
+    },
+    "32": {
+      "name": "Honey Passion Fruit Tea",
+      "description": "Zesty, tart passion fruit tea sweetened with raw honey to refresh and cleanse your palate."
+    },
+    "33": {
+      "name": "Blended Coffee Freeze",
+      "description": "Robust coffee blended with ice and sweet chocolate sauce, topped with rich whipped cream."
+    },
+    "34": {
+      "name": "Decadent Chocolate Freeze",
+      "description": "Rich blended chocolate frappe finished with fluffy whipped cream and glossy chocolate drizzle."
+    },
+    "35": {
+      "name": "Golden Caramel Freeze",
+      "description": "Sweet, buttery caramel blended with ice, topped with whipped cream and golden caramel syrup."
+    },
+    "36": {
+      "name": "Cookie Crunch & Cream Freeze",
+      "description": "Chocolate cookies blended with fresh milk, topped with whipped cream and crispy cookie crumbs."
+    },
+    "42": {
+      "name": "Saigon Grilled Pork Banh Mi",
+      "description": "Crispy, warm baguette stuffed with smokey grilled pork, pickled veggies, herbs, and savory sauce."
+    },
+    "43": {
+      "name": "French Butter Croissant",
+      "description": "Golden, flaky, multi-layered French croissant baked with premium butter for a melt-in-your-mouth bite."
+    },
+    "44": {
+      "name": "Romantic Italian Tiramisu",
+      "description": "Layers of coffee-soaked ladyfingers and creamy mascarpone, dusted with rich dark cocoa powder."
+    },
+    "45": {
+      "name": "Instant Wake-Up Combo",
+      "description": "Reboot your day: 1 strong, bold Phin Black Coffee paired with 1 hearty, savory Saigon Grilled Pork Banh Mi."
+    },
+    "46": {
+      "name": "Sweet Union Combo",
+      "description": "A dream treat for sweet lovers: 1 chewy Pearl Milk Tea served alongside 1 slice of delicate Italian Tiramisu."
+    },
+    "47": {
+      "name": "Chic Afternoon Tea Combo",
+      "description": "Chic and relaxing: 1 icy, zesty Peach Lemongrass Tea paired with 1 warm, flaky French Butter Croissant."
+    },
+    "48": {
+      "name": "Pate & Latte Energy Combo",
+      "description": "Fuel up your afternoon: 1 smooth, creamy Latte accompanied by 1 crispy, savory Pate Stick Bread."
+    },
+    "49": {
+      "name": "Jasmine & Cheese Escape Combo",
+      "description": "Elegant teatime escape: 1 aromatic Golden Lotus Tea paired with 1 slice of tangy Blueberry Cheesecake."
+    },
+    "50": {
+      "name": "Sweetheart Date Combo",
+      "description": "Warm and sweet: 1 foamy, rich Cappuccino served with 1 crispy French Butter Croissant."
+    },
+    "51": {
+      "name": "Creative Spark Combo",
+      "description": "Ignite your creativity: 1 sweet, creamy Bac Xiu paired with 1 melty, warm Cheese Stick Bread."
     }
   }
 }

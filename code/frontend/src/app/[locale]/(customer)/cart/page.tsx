@@ -90,7 +90,7 @@ export default function CartPage() {
                   {/* Info details */}
                   <div className="flex-grow flex flex-col gap-1 text-left">
                     <h3 className="font-bold text-base text-primary leading-tight">
-                      {item.product.name}
+                      {t(`product.items.${item.product.id}.name`, { defaultValue: item.product.name })}
                     </h3>
                     <div className="flex flex-wrap gap-2 items-center text-xs text-muted-foreground mt-1">
                       <span className="bg-secondary px-2.5 py-0.5 rounded-full font-bold">

@@ -189,8 +189,8 @@ export function ProductCard({ product, onAddToCart, viewMode = "grid", availabil
           {/* Text Area - Compact, no empty space */}
           <div className="mt-1.5 text-left flex justify-between items-end flex-grow">
             <div className="flex flex-col min-w-0 pr-1">
-              <h4 className="text-xs font-semibold text-zinc-900 line-clamp-1 group-hover:text-[#C8510A] transition-colors leading-tight" title={product.name}>
-                {product.name}
+              <h4 className="text-xs font-semibold text-zinc-900 line-clamp-1 group-hover:text-[#C8510A] transition-colors leading-tight" title={t(`product.items.${product.id}.name`, { defaultValue: product.name })}>
+                {t(`product.items.${product.id}.name`, { defaultValue: product.name })}
               </h4>
               <span className="text-[13px] font-extrabold text-[#C8510A] mt-1 block leading-none">
                 {displayPrice.toLocaleString("vi-VN")}đ
@@ -254,11 +254,11 @@ export function ProductCard({ product, onAddToCart, viewMode = "grid", availabil
                 )}
               </div>
               <h4 className="text-xs font-bold text-zinc-950 leading-snug mt-0.5 truncate group-hover:text-[#C8510A] transition-colors">
-                {product.name}
+                {t(`product.items.${product.id}.name`, { defaultValue: product.name })}
               </h4>
               {product.description ? (
                 <p className="text-[10px] text-zinc-500 line-clamp-1 leading-normal mt-0.5 font-medium">
-                  {product.description}
+                  {t(`product.items.${product.id}.description`, { defaultValue: product.description })}
                 </p>
               ) : (
                 <p className="text-[10px] text-transparent select-none line-clamp-1 leading-normal mt-0.5 font-medium">
@@ -308,7 +308,7 @@ export function ProductCard({ product, onAddToCart, viewMode = "grid", availabil
                   {t("pos.selectToppings") || "Chọn Toppings"}
                 </span>
                 <span className="text-xs font-black text-zinc-900 truncate mt-0.5 leading-tight">
-                  {product.name}
+                  {t(`product.items.${product.id}.name`, { defaultValue: product.name })}
                 </span>
               </div>
             </div>
@@ -407,10 +407,10 @@ export function ProductCard({ product, onAddToCart, viewMode = "grid", availabil
                 <span className="text-[9px] font-black uppercase text-[#C8510A] bg-[#C8510A]/10 px-2 py-0.5 rounded-md border border-[#C8510A]/10 tracking-wider inline-block">
                   {getCategoryName(categoryName)}
                 </span>
-                <h3 className="font-outfit font-black text-base text-zinc-950 mt-1 leading-tight truncate">{product.name}</h3>
+                <h3 className="font-outfit font-black text-base text-zinc-950 mt-1 leading-tight truncate">{t(`product.items.${product.id}.name`, { defaultValue: product.name })}</h3>
                 {product.description && (
                   <p className="text-[10px] text-zinc-550 mt-1 font-medium line-clamp-2 leading-normal">
-                    {product.description}
+                    {t(`product.items.${product.id}.description`, { defaultValue: product.description })}
                   </p>
                 )}
               </div>

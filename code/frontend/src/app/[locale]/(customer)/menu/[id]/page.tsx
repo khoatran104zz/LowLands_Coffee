@@ -298,7 +298,7 @@ export default function ProductDetailPage({ params }: Props) {
             <div className="md:col-span-7 flex flex-col items-start text-left gap-6">
               <div>
                 <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-primary">
-                  {product.name}
+                  {t(`product.items.${product.id}.name`, { defaultValue: product.name })}
                 </h1>
                 <div className="w-12 h-1 bg-accent rounded-full mt-3" />
               </div>
@@ -309,7 +309,7 @@ export default function ProductDetailPage({ params }: Props) {
                     {t("product.description")}
                   </h4>
                   <p className="text-sm text-muted-foreground leading-relaxed">
-                    {product.description}
+                    {t(`product.items.${product.id}.description`, { defaultValue: product.description })}
                   </p>
                 </div>
               )}
@@ -317,14 +317,14 @@ export default function ProductDetailPage({ params }: Props) {
               {product.comboProductIds && product.comboProductIds.length > 0 && (
                 <div className="w-full bg-secondary/10 border border-border/40 rounded-xl p-4">
                   <h4 className="text-xs uppercase font-bold tracking-wider text-accent mb-2">
-                    Combo bao gồm:
+                    {t("product.comboIncludes", { defaultValue: "Combo bao gồm:" })}
                   </h4>
                   <ul className="list-disc list-inside text-sm text-foreground space-y-1.5">
                     {allProducts
                       .filter((p) => product.comboProductIds?.includes(p.id))
                       .map((cp) => (
                         <li key={cp.id} className="font-semibold">
-                          {cp.name}
+                          {t(`product.items.${cp.id}.name`, { defaultValue: cp.name })}
                         </li>
                       ))}
                   </ul>

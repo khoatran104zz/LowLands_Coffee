@@ -187,10 +187,10 @@ export function FeaturedProducts() {
                   <div className="mt-3 flex flex-col justify-between flex-grow text-left">
                     <div>
                       <h3 className="font-heading font-bold text-sm text-foreground line-clamp-1 group-hover:text-[#C8510A] transition-colors leading-tight">
-                        {product.name}
+                        {t(`product.items.${product.id}.name`, { defaultValue: product.name })}
                       </h3>
                       <p className="text-xs text-muted-foreground line-clamp-2 mt-1.5 leading-relaxed">
-                        {product.description}
+                        {t(`product.items.${product.id}.description`, { defaultValue: product.description })}
                       </p>
                     </div>
 

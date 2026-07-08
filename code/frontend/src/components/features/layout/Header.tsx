@@ -18,17 +18,20 @@ const MEGA_MENU_CATEGORIES = [
     categoryId: 1,
     title: { vi: "CÀ PHÊ", en: "COFFEE" },
     subcategories: [
-      { name: { vi: "Cà Phê Truyền Thống", en: "Traditional Coffee" }, search: "Phin" },
-      { name: { vi: "PhinĐi", en: "PhinDi" }, search: "Phindi" },
+      { name: { vi: "Phin Sữa Đá", en: "Phin Condensed Milk Coffee" }, search: "Phin Sữa Đá" },
+      { name: { vi: "Phin Đen Đá", en: "Phin Black Coffee" }, search: "Phin Đen Đá" },
+      { name: { vi: "Bạc Xỉu", en: "Bac Xiu" }, search: "Bạc Xỉu" },
+      { name: { vi: "Cà Phê Ý (Latte/Capu)", en: "Espresso Drinks" }, search: "Latte" },
     ]
   },
   {
     categoryId: 2,
     title: { vi: "TRÀ", en: "TEA" },
     subcategories: [
+      { name: { vi: "Trà Đào Cam Sả", en: "Peach Lemongrass Tea" }, search: "Đào" },
       { name: { vi: "Trà Sen Vàng", en: "Golden Lotus Tea" }, search: "Sen" },
-      { name: { vi: "Trà Thạch Đào", en: "Peach Jelly Tea" }, search: "Đào" },
-      { name: { vi: "Trà Thanh Đào", en: "Peach Lemongrass Tea" }, search: "Thanh Đào" },
+      { name: { vi: "Trà Sữa Trân Châu", en: "Pearl Milk Tea" }, search: "Trân Châu" },
+      { name: { vi: "Trà Ô Long Kem Cheese", en: "Oolong Cheese Tea" }, search: "Ô Long" },
     ]
   },
   {
@@ -36,16 +39,18 @@ const MEGA_MENU_CATEGORIES = [
     title: { vi: "FREEZE", en: "FREEZE" },
     subcategories: [
       { name: { vi: "Freeze Trà Xanh", en: "Green Tea Freeze" }, search: "Trà Xanh" },
-      { name: { vi: "Freeze Cà Phê Phin", en: "Coffee Freeze" }, search: "Cà Phê Phin" },
+      { name: { vi: "Freeze Cà Phê", en: "Coffee Freeze" }, search: "Cà Phê" },
+      { name: { vi: "Freeze Socola", en: "Chocolate Freeze" }, search: "Socola" },
+      { name: { vi: "Freeze Cookies and Cream", en: "Cookies & Cream" }, search: "Cookies" },
     ]
   },
   {
     categoryId: 4,
-    title: { vi: "KHÁC", en: "OTHERS" },
+    title: { vi: "KHÁC (BÁNH)", en: "OTHERS (BAKERY)" },
     subcategories: [
-      { name: { vi: "Bánh Mì Que", en: "Crispy Stick Bread" }, search: "Bánh Mì" },
-      { name: { vi: "Bánh Ngọt", en: "Cheesecake" }, search: "Bánh Phô Mai" },
-      { name: { vi: "Cà Phê Đóng Gói", en: "Packaged Coffee" }, search: "Đóng Gói" },
+      { name: { vi: "Bánh Mì Que", en: "Crispy Stick Bread" }, search: "Bánh Mì Que" },
+      { name: { vi: "Bánh Ngọt (Tiramisu/Cheese)", en: "Sweet Cakes" }, search: "Bánh" },
+      { name: { vi: "Bánh Mì Sài Gòn", en: "Saigon Bread" }, search: "Sài Gòn" },
     ]
   }
 ];
