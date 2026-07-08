@@ -10,5 +10,6 @@ code/backend/target/
 .env
 .env.*
 !.env.example
+!.env.production.example
 
 data/minio/

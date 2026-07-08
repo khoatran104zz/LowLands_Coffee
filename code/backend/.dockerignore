@@ -1,0 +1,17 @@
+target
+.git
+.gitignore
+.gitattributes
+.idea
+.vscode
+docs
+logs
+tmp
+*.log
+*.tmp
+*.swp
+.env
+.env.*
+Dockerfile
+README.md
+HELP.md

@@ -2,12 +2,96 @@ services:
   minio:
     image: minio/minio:latest
     container_name: lowlands-minio
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    environment:
-      MINIO_ROOT_USER: lowlands_admin
-      MINIO_ROOT_PASSWORD: Lowlands@123456
-    volumes:
-      - ./data/minio:/data
     command: server /data --console-address ":9001"
+    ports:
+      - "${MINIO_API_PORT:-9000}:9000"
+      - "${MINIO_CONSOLE_PORT:-9001}:9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ACCESS_KEY:-lowlands_admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_SECRET_KEY:-Lowlands@123456}
+    volumes:
+      - minio-data:/data
+    networks:
+      - lowlands-network
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+    restart: unless-stopped
+
+  backend:
+    build:
+      context: ./code/backend
+      dockerfile: Dockerfile
+    image: lowlands-coffee-backend:local
+    container_name: lowlands-backend
+    environment:
+      DB_URL: ${DB_URL:-}
+      DB_USERNAME: ${DB_USERNAME:-}
+      DB_PASSWORD: ${DB_PASSWORD:-}
+      JWT_SECRET: ${JWT_SECRET:-}
+      JWT_ACCESS_TOKEN_EXPIRATION_MS: ${JWT_ACCESS_TOKEN_EXPIRATION_MS:-900000}
+      JWT_REFRESH_TOKEN_EXPIRATION_MS: ${JWT_REFRESH_TOKEN_EXPIRATION_MS:-604800000}
+      BOOTSTRAP_ADMIN_EMAIL: ${BOOTSTRAP_ADMIN_EMAIL:-admin@lowlands.coffee}
+      BOOTSTRAP_ADMIN_PASSWORD: ${BOOTSTRAP_ADMIN_PASSWORD:-Admin@123}
+      BOOTSTRAP_ADMIN_FULL_NAME: ${BOOTSTRAP_ADMIN_FULL_NAME:-Lowlands Admin}
+      SERVER_PORT: 8080
+      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY:-lowlands_admin}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY:-Lowlands@123456}
+      MINIO_BUCKET: ${MINIO_BUCKET:-lowlands}
+      MINIO_PUBLIC_BASE_URL: ${MINIO_PUBLIC_BASE_URL:-http://localhost:9000/lowlands}
+      STORAGE_MAX_FILE_SIZE: ${STORAGE_MAX_FILE_SIZE:-5242880}
+      VNPAY_TMN_CODE: ${VNPAY_TMN_CODE:-}
+      VNPAY_HASH_SECRET: ${VNPAY_HASH_SECRET:-}
+      VNPAY_PAYMENT_URL: ${VNPAY_PAYMENT_URL:-https://sandbox.vnpayment.vn/paymentv2/vpcpay.html}
+      VNPAY_RETURN_URL: ${VNPAY_RETURN_URL:-http://localhost:8080/api/v1/payment/vnpay/return}
+      FRONTEND_PAYMENT_RESULT_URL: ${FRONTEND_PAYMENT_RESULT_URL:-http://localhost:3000/vi/payment/result}
+      JAVA_OPTS: ${JAVA_OPTS:--XX:MaxRAMPercentage=75.0}
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    depends_on:
+      minio:
+        condition: service_healthy
+    networks:
+      - lowlands-network
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/api-docs >/dev/null 2>&1 || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 20
+      start_period: 60s
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./code/frontend
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080/api/v1}
+        NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+        NEXT_PUBLIC_MINIO_URL: ${NEXT_PUBLIC_MINIO_URL:-http://localhost:9000}
+    image: lowlands-coffee-frontend:local
+    container_name: lowlands-frontend
+    environment:
+      NODE_ENV: production
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8080/api/v1}
+      NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL:-http://localhost:3000}
+      NEXT_PUBLIC_MINIO_URL: ${NEXT_PUBLIC_MINIO_URL:-http://localhost:9000}
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    depends_on:
+      backend:
+        condition: service_started
+    networks:
+      - lowlands-network
+    restart: unless-stopped
+
+networks:
+  lowlands-network:
+    driver: bridge
+
+volumes:
+  minio-data:

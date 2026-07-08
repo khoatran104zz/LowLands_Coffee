@@ -14,3 +14,16 @@ yarn-error.log
 test
 jest.config.js
 jest.setup.js
+.idea
+.vscode
+docs
+logs
+tmp
+*.log
+*.tmp
+*.swp
+.env
+.env.*
+.npm-cache
+.swc
+tsconfig.tsbuildinfo
