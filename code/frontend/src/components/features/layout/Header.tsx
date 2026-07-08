@@ -8,7 +8,7 @@ import { useCartStore } from "@/store/cart.store";
 import { useAuthStore } from "@/store/auth.store";
 import { LanguageSwitcher } from "./LanguageSwitcher";
 import { NAV_LINKS } from "@/constants/routes";
-import { ShoppingBag, User, Menu, X, MapPin } from "lucide-react";
+import { ArrowRight, Minus, Plus, ShoppingBag, Trash2, User, Menu, X, MapPin } from "lucide-react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
@@ -62,6 +62,7 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [megaMenuOpen, setMegaMenuOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [cartPreviewOpen, setCartPreviewOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -74,8 +75,38 @@ export function Header() {
   const cartItemsCount = useCartStore((state) => 
     state.items.reduce((count, item) => count + item.quantity, 0)
   );
+  const cartItems = useCartStore((state) => state.items);
+  const updateCartQuantity = useCartStore((state) => state.updateQuantity);
+  const removeCartItem = useCartStore((state) => state.removeItem);
+  const cartSubtotal = useCartStore((state) => state.getSubtotal());
   const { isAuthenticated, user, logout } = useAuthStore();
   const showAuth = isMounted && isAuthenticated;
+  const cartPreviewItems = cartItems.slice(0, 3);
+  const extraCartItemsCount = Math.max(cartItems.length - cartPreviewItems.length, 0);
+  const cartPreviewLabels = locale === "en"
+    ? {
+        title: "Your cart",
+        empty: "Your cart is waiting for something delicious.",
+        continueShopping: "Browse menu",
+        viewCart: "View cart",
+        checkout: "Checkout",
+        moreItems: `+${extraCartItemsCount} more item${extraCartItemsCount > 1 ? "s" : ""}`,
+      }
+    : {
+        title: "Giỏ hàng của bạn",
+        empty: "Giỏ hàng đang chờ món ngon đầu tiên.",
+        continueShopping: "Xem thực đơn",
+        viewCart: "Xem giỏ hàng",
+        checkout: "Thanh toán",
+        moreItems: `+${extraCartItemsCount} món khác`,
+      };
+
+  const formatPrice = (amount: number) =>
+    new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+      maximumFractionDigits: 0,
+    }).format(amount);
 
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border bg-secondary/95 backdrop-blur-md transition-all shadow-xs">
@@ -160,14 +191,207 @@ export function Header() {
           <LanguageSwitcher />
 
           {/* Cart Icon */}
-          <Link href="/cart" className="relative p-1.5 text-primary hover:text-accent transition-colors">
-            <ShoppingBag className="h-5 w-5 xl:h-6 xl:w-6" />
-            {cartItemsCount > 0 && (
-              <span className="absolute -top-1 -right-1 flex h-4.5 w-4.5 xl:h-5 xl:w-5 items-center justify-center rounded-full bg-accent text-[9px] xl:text-[10px] font-extrabold text-accent-foreground animate-pulse">
-                {cartItemsCount}
-              </span>
-            )}
-          </Link>
+          <div
+            className="relative flex items-center"
+            onMouseEnter={() => setCartPreviewOpen(true)}
+            onMouseLeave={() => setCartPreviewOpen(false)}
+          >
+            <Link
+              href="/cart"
+              className="relative p-1.5 text-primary hover:text-accent transition-colors"
+              aria-label={t("common.cart")}
+            >
+              <ShoppingBag className="h-5 w-5 xl:h-6 xl:w-6" />
+              {cartItemsCount > 0 && (
+                <span className="absolute -top-1 -right-1 flex h-4.5 w-4.5 xl:h-5 xl:w-5 items-center justify-center rounded-full bg-accent text-[9px] xl:text-[10px] font-extrabold text-accent-foreground animate-pulse">
+                  {cartItemsCount}
+                </span>
+              )}
+            </Link>
+
+            <AnimatePresence>
+              {cartPreviewOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.98 }}
+                  transition={{ duration: 0.16 }}
+                  className="absolute right-[-132px] xl:right-[-112px] top-full z-50 mt-3 w-[360px] rounded-2xl border border-[#E8DCCA] bg-[#FFFCF8] text-left shadow-2xl before:absolute before:-top-3 before:left-0 before:right-0 before:h-3 before:content-['']"
+                >
+                  <div className="absolute right-[142px] xl:right-[122px] -top-2 h-4 w-4 rotate-45 border-l border-t border-[#E8DCCA] bg-[#FFFCF8]" />
+                  <div className="relative border-b border-[#E9DED1] bg-[#F7F0E4] px-5 py-4">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#9B7653]">
+                          Lowlands Coffee
+                        </p>
+                        <h3 className="mt-0.5 font-heading text-base font-black text-[#3A1D14]">
+                          {cartPreviewLabels.title}
+                        </h3>
+                      </div>
+                      <div className="flex h-10 w-10 items-center justify-center rounded-full border border-[#C69A5B]/40 bg-[#C69A5B]/15 text-[#C8510A]">
+                        <ShoppingBag className="h-5 w-5" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {cartItems.length === 0 ? (
+                    <div className="px-5 py-7 text-center">
+                      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-[#F4E8D7] text-[#C69A5B]">
+                        <ShoppingBag className="h-7 w-7" />
+                      </div>
+                      <p className="mt-3 text-sm font-bold text-[#3A1D14]">
+                        {cartPreviewLabels.empty}
+                      </p>
+                      <Link
+                        href="/menu"
+                        onClick={() => setCartPreviewOpen(false)}
+                        className="mt-5 inline-flex h-10 items-center justify-center rounded-full bg-[#3A1D14] px-5 text-sm font-black text-[#FFF8EC] transition-colors hover:bg-[#2B130D]"
+                      >
+                        {cartPreviewLabels.continueShopping}
+                      </Link>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="max-h-[330px] overflow-y-auto px-4 py-3">
+                        <div className="space-y-3">
+                          {cartPreviewItems.map((item) => {
+                            const toppingsPrice = item.toppings.reduce(
+                              (sum, cartTopping) => sum + Number(cartTopping.topping.price) * cartTopping.quantity,
+                              0
+                            );
+                            const singleItemPrice = Number(item.variant.price) + toppingsPrice;
+                            const totalItemPrice = singleItemPrice * item.quantity;
+                            const visibleToppings = item.toppings.filter((cartTopping) => cartTopping.quantity > 0);
+
+                            return (
+                              <div
+                                key={item.id}
+                                className="grid grid-cols-[64px_1fr_auto] gap-3 rounded-xl border border-[#E9DED1] bg-white/80 p-3 shadow-sm"
+                              >
+                                <div className="relative h-16 w-16 overflow-hidden rounded-xl bg-[#F4E8D7]">
+                                  {item.product.imageUrl ? (
+                                    <Image
+                                      src={item.product.imageUrl}
+                                      alt={item.product.name}
+                                      fill
+                                      sizes="64px"
+                                      className="object-cover"
+                                    />
+                                  ) : (
+                                    <div className="absolute inset-0 flex items-center justify-center text-[#C69A5B]">
+                                      <ShoppingBag className="h-7 w-7" />
+                                    </div>
+                                  )}
+                                </div>
+
+                                <div className="min-w-0">
+                                  <h4 className="line-clamp-2 text-sm font-black leading-snug text-[#3A1D14]">
+                                    {t(`product.items.${item.product.id}.name`, { defaultValue: item.product.name })}
+                                  </h4>
+                                  <div className="mt-1 flex flex-wrap gap-1.5">
+                                    <span className="rounded-full bg-[#F4E8D7] px-2 py-0.5 text-[10px] font-black text-[#7B4A2A]">
+                                      Size {item.variant.size}
+                                    </span>
+                                    {visibleToppings.slice(0, 2).map(({ topping, quantity }) => (
+                                      <span
+                                        key={topping.id}
+                                        className="rounded-full bg-[#C8510A]/10 px-2 py-0.5 text-[10px] font-bold text-[#C8510A]"
+                                      >
+                                        +{topping.name} x{quantity}
+                                      </span>
+                                    ))}
+                                  </div>
+                                  <div className="mt-2 flex items-center gap-2">
+                                    <button
+                                      type="button"
+                                      onClick={() => updateCartQuantity(item.id, item.quantity - 1)}
+                                      className="flex h-6 w-6 items-center justify-center rounded-full border border-[#E0CCB5] text-[#7B4A2A] transition-colors hover:border-[#C8510A] hover:bg-[#C8510A]/10 hover:text-[#C8510A]"
+                                      aria-label="Decrease quantity"
+                                    >
+                                      <Minus className="h-3 w-3" />
+                                    </button>
+                                    <span className="min-w-5 text-center text-xs font-black text-[#3A1D14]">
+                                      {item.quantity}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => updateCartQuantity(item.id, item.quantity + 1)}
+                                      className="flex h-6 w-6 items-center justify-center rounded-full border border-[#E0CCB5] text-[#7B4A2A] transition-colors hover:border-[#C8510A] hover:bg-[#C8510A]/10 hover:text-[#C8510A]"
+                                      aria-label="Increase quantity"
+                                    >
+                                      <Plus className="h-3 w-3" />
+                                    </button>
+                                  </div>
+                                </div>
+
+                                <div className="flex flex-col items-end justify-between">
+                                  <button
+                                    type="button"
+                                    onClick={() => removeCartItem(item.id)}
+                                    className="rounded-full p-1.5 text-[#B4A090] transition-colors hover:bg-[#C8510A]/10 hover:text-[#C8510A]"
+                                    aria-label="Remove item"
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </button>
+                                  <div className="text-right">
+                                    <p className="text-sm font-black text-[#C8510A]">
+                                      {formatPrice(totalItemPrice)}
+                                    </p>
+                                    <p className="text-[10px] font-semibold text-[#8A7568]">
+                                      {formatPrice(singleItemPrice)}/món
+                                    </p>
+                                  </div>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {extraCartItemsCount > 0 && (
+                          <Link
+                            href="/cart"
+                            onClick={() => setCartPreviewOpen(false)}
+                            className="mt-3 block rounded-xl border border-dashed border-[#D8C3AA] bg-[#F7F0E4]/70 px-4 py-2 text-center text-xs font-black text-[#7B4A2A] hover:border-[#C8510A] hover:text-[#C8510A]"
+                          >
+                            {cartPreviewLabels.moreItems}
+                          </Link>
+                        )}
+                      </div>
+
+                      <div className="border-t border-[#E9DED1] bg-[#F7F0E4] px-5 py-4">
+                        <div className="mb-3 flex items-center justify-between">
+                          <span className="text-sm font-black text-[#6F5A4F]">
+                            {t("product.cart.total")}
+                          </span>
+                          <span className="text-xl font-black text-[#C8510A]">
+                            {formatPrice(cartSubtotal)}
+                          </span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-2">
+                          <Link
+                            href="/cart"
+                            onClick={() => setCartPreviewOpen(false)}
+                            className="inline-flex h-11 items-center justify-center rounded-full border border-[#C69A5B]/45 bg-white text-sm font-black text-[#3A1D14] transition-colors hover:bg-[#FFF8EC] hover:text-[#C8510A]"
+                          >
+                            {cartPreviewLabels.viewCart}
+                          </Link>
+                          <Link
+                            href="/checkout"
+                            onClick={() => setCartPreviewOpen(false)}
+                            className="inline-flex h-11 items-center justify-center gap-2 rounded-full bg-[#3A1D14] text-sm font-black text-[#FFF8EC] shadow-sm transition-colors hover:bg-[#2B130D]"
+                          >
+                            {cartPreviewLabels.checkout}
+                            <ArrowRight className="h-4 w-4" />
+                          </Link>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
 
           {/* Auth Menu */}
           {showAuth ? (

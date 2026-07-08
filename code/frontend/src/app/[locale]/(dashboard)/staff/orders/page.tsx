@@ -125,6 +125,14 @@ const getOrderPriority = (order: Order) => {
 
 const getHttpStatus = (error: unknown) => (error as { response?: { status?: number } }).response?.status;
 
+const getOptimisticStatus = (action: OrderAction) => {
+  if (action === "confirm") return "confirmed";
+  if (action === "prepare") return "preparing";
+  if (action === "ready") return "ready";
+  if (action === "complete") return "completed";
+  return "cancelled";
+};
+
 export default function StaffOrdersPage() {
   const { t } = useTranslation();
   const confirm = useConfirm();
@@ -142,7 +150,7 @@ export default function StaffOrdersPage() {
   const [filter, setFilter] = useState<OrderFilter>("active");
   const [orders, setOrders] = useState<Order[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isUpdating, setIsUpdating] = useState(false);
+  const [updatingOrderIds, setUpdatingOrderIds] = useState<Set<number>>(new Set());
   const [apiError, setApiError] = useState<string | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
@@ -245,7 +253,7 @@ export default function StaffOrdersPage() {
     }, 0);
     const intervalId = window.setInterval(() => {
       void loadOrders(true);
-    }, 15000);
+    }, 5000);
 
     return () => {
       window.clearTimeout(initialLoadId);
@@ -312,7 +320,20 @@ export default function StaffOrdersPage() {
       if (!accepted) return;
     }
 
-    setIsUpdating(true);
+    const optimisticOrder: Order = {
+      ...order,
+      status: getOptimisticStatus(action),
+      updatedAt: new Date().toISOString(),
+    };
+
+    setUpdatingOrderIds((current) => {
+      const next = new Set(current);
+      next.add(order.id as number);
+      return next;
+    });
+    setOrders((current) => current.map((item) => (item.id === order.id ? optimisticOrder : item)));
+    setSelectedOrder((current) => (current?.id === order.id ? optimisticOrder : current));
+
     try {
       let updatedOrder = order;
       if (action === "confirm") updatedOrder = await confirmOrder(order.id);
@@ -324,13 +345,19 @@ export default function StaffOrdersPage() {
       setOrders((current) => current.map((item) => (item.id === updatedOrder.id ? updatedOrder : item)));
       setSelectedOrder(updatedOrder);
       toast.success(`Đã cập nhật ${updatedOrder.orderCode || `#${updatedOrder.id}`}: ${getStatusLabel(updatedOrder.status)}`);
-      await loadOrders(true);
+      void loadOrders(true);
     } catch (error) {
       console.error("Failed to update order status", error);
+      setOrders((current) => current.map((item) => (item.id === order.id ? order : item)));
+      setSelectedOrder((current) => (current?.id === order.id ? order : current));
       const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message;
       toast.error(message || "Không thể cập nhật trạng thái đơn hàng.");
     } finally {
-      setIsUpdating(false);
+      setUpdatingOrderIds((current) => {
+        const next = new Set(current);
+        next.delete(order.id as number);
+        return next;
+      });
     }
   };
 
@@ -352,13 +379,14 @@ export default function StaffOrdersPage() {
   const renderOrderActions = (order: Order, compact = false) => {
     const status = normalizeStatus(order.status);
     const className = compact ? "h-8 px-2 text-[10px]" : "h-9 px-3 text-xs";
+    const isOrderUpdating = order.id ? updatingOrderIds.has(order.id) : false;
 
     return (
       <div className="flex flex-wrap justify-end gap-1.5">
         {status === "pending" && (
           <Button
             type="button"
-            disabled={isUpdating}
+            disabled={isOrderUpdating}
             onClick={() => updateOrderStatus(order, "confirm")}
             className={`${className} rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold`}
           >
@@ -369,7 +397,7 @@ export default function StaffOrdersPage() {
         {status === "confirmed" && (
           <Button
             type="button"
-            disabled={isUpdating}
+            disabled={isOrderUpdating}
             onClick={() => updateOrderStatus(order, "prepare")}
             className={`${className} rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-bold`}
           >
@@ -380,7 +408,7 @@ export default function StaffOrdersPage() {
         {status === "preparing" && (
           <Button
             type="button"
-            disabled={isUpdating}
+            disabled={isOrderUpdating}
             onClick={() => updateOrderStatus(order, "ready")}
             className={`${className} rounded-lg bg-sky-600 hover:bg-sky-700 text-white font-bold`}
           >
@@ -391,7 +419,7 @@ export default function StaffOrdersPage() {
         {status === "ready" && (
           <Button
             type="button"
-            disabled={isUpdating}
+            disabled={isOrderUpdating}
             onClick={() => updateOrderStatus(order, "complete")}
             className={`${className} rounded-lg bg-emerald-700 hover:bg-emerald-800 text-white font-bold`}
           >
@@ -402,7 +430,7 @@ export default function StaffOrdersPage() {
         {!["completed", "cancelled"].includes(status) && (
           <Button
             type="button"
-            disabled={isUpdating}
+            disabled={isOrderUpdating}
             variant="outline"
             onClick={() => updateOrderStatus(order, "cancel")}
             className={`${className} rounded-lg border-rose-200 text-rose-700 hover:bg-rose-50 font-bold`}
@@ -446,7 +474,7 @@ export default function StaffOrdersPage() {
 
           <Button
             onClick={() => loadOrders()}
-            disabled={isLoading || isUpdating || !canLoadStaffOrders}
+            disabled={isLoading || !canLoadStaffOrders}
             className="h-10 rounded-lg bg-[#C8510A] px-4 text-xs font-bold text-white hover:bg-[#a84408] self-start lg:self-auto"
           >
             <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />

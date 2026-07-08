@@ -37,6 +37,15 @@ interface ReceiptData extends Order {
 
 type ReceiptItem = Order["items"][number];
 type ReceiptTopping = ReceiptItem["toppings"][number];
+type OnlineOrderAction = "confirm" | "prepare" | "ready" | "complete" | "cancel";
+
+const getOptimisticOnlineOrderStatus = (action: OnlineOrderAction) => {
+  if (action === "confirm") return "confirmed";
+  if (action === "prepare") return "preparing";
+  if (action === "ready") return "ready";
+  if (action === "complete") return "completed";
+  return "cancelled";
+};
 
 const playNotificationSound = () => {
   if (typeof window === "undefined") return;
@@ -137,7 +146,7 @@ export default function StaffPOSPage() {
   const [todayOrders, setTodayOrders] = useState<Order[]>([]);
   const [isLoadingTodayOrders, setIsLoadingTodayOrders] = useState(false);
   const [selectedIncomingOrder, setSelectedIncomingOrder] = useState<Order | null>(null);
-  const [isOrderActionLoading, setIsOrderActionLoading] = useState(false);
+  const [updatingOnlineOrderIds, setUpdatingOnlineOrderIds] = useState<Set<number>>(new Set());
   
   // Checkout success modal
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
@@ -149,9 +158,11 @@ export default function StaffPOSPage() {
   const sortDropdownRef = useRef<HTMLDivElement>(null);
   const prevPendingRef = useRef<number | null>(null);
 
-  const loadTodayOrders = useCallback(async () => {
+  const loadTodayOrders = useCallback(async (silent = false) => {
     if (!branchId) return;
-    setIsLoadingTodayOrders(true);
+    if (!silent) {
+      setIsLoadingTodayOrders(true);
+    }
     try {
       const fetched = await getOrders({ storeId: branchId, page: 0, size: 100 });
       const todayStr = new Date().toISOString().slice(0, 10);
@@ -177,7 +188,9 @@ export default function StaffPOSPage() {
     } catch (error) {
       console.error("Failed to load today's orders", error);
     } finally {
-      setIsLoadingTodayOrders(false);
+      if (!silent) {
+        setIsLoadingTodayOrders(false);
+      }
     }
   }, [branchId]);
 
@@ -198,8 +211,8 @@ export default function StaffPOSPage() {
         void loadTodayOrders();
       }, 0);
       const intervalId = window.setInterval(() => {
-        void loadTodayOrders();
-      }, 15000);
+        void loadTodayOrders(true);
+      }, 5000);
       return () => {
         window.clearTimeout(initialLoadId);
         window.clearInterval(intervalId);
@@ -376,10 +389,7 @@ export default function StaffPOSPage() {
     return () => window.clearTimeout(syncId);
   }, [selectedIncomingOrder?.id, todayOrders]);
 
-  const updateOnlineOrderStatus = async (
-    order: Order,
-    action: "confirm" | "prepare" | "ready" | "complete" | "cancel"
-  ) => {
+  const updateOnlineOrderStatus = async (order: Order, action: OnlineOrderAction) => {
     if (!order.id) return;
 
     if (action === "cancel") {
@@ -393,7 +403,22 @@ export default function StaffPOSPage() {
       if (!accepted) return;
     }
 
-    setIsOrderActionLoading(true);
+    const optimisticOrder: Order = {
+      ...order,
+      status: getOptimisticOnlineOrderStatus(action),
+      updatedAt: new Date().toISOString(),
+    };
+
+    setUpdatingOnlineOrderIds((current) => {
+      const next = new Set(current);
+      next.add(order.id as number);
+      return next;
+    });
+    setTodayOrders((current) =>
+      current.map((item) => (item.id === order.id ? optimisticOrder : item))
+    );
+    setSelectedIncomingOrder((current) => (current?.id === order.id ? optimisticOrder : current));
+
     try {
       let updatedOrder: Order = order;
       if (action === "confirm") updatedOrder = await confirmOrder(order.id);
@@ -407,27 +432,36 @@ export default function StaffPOSPage() {
       );
       setSelectedIncomingOrder(updatedOrder);
       toast.success(`Đơn ${updatedOrder.orderCode || `#${updatedOrder.id}`} đã chuyển sang: ${getStatusLabel(updatedOrder.status)}`);
-      await loadTodayOrders();
+      void loadTodayOrders(true);
       if (action === "complete") {
-        await loadProductAvailability();
+        void loadProductAvailability();
       }
     } catch (error) {
       console.error("Failed to update online order status", error);
+      setTodayOrders((current) =>
+        current.map((item) => (item.id === order.id ? order : item))
+      );
+      setSelectedIncomingOrder((current) => (current?.id === order.id ? order : current));
       const message = (error as { response?: { data?: { message?: string } } }).response?.data?.message;
       toast.error(message || "Không thể cập nhật trạng thái đơn hàng.");
     } finally {
-      setIsOrderActionLoading(false);
+      setUpdatingOnlineOrderIds((current) => {
+        const next = new Set(current);
+        next.delete(order.id as number);
+        return next;
+      });
     }
   };
 
   const renderOrderActions = (order: Order, compact = false) => {
     const sizeClass = compact ? "h-7 px-2 text-[10px]" : "h-9 px-3 text-xs";
+    const isOrderUpdating = order.id ? updatingOnlineOrderIds.has(order.id) : false;
     return (
       <div className="flex flex-wrap justify-end gap-1.5">
         {order.status === "pending" && (
           <Button
             type="button"
-            disabled={isOrderActionLoading}
+            disabled={isOrderUpdating}
             onClick={() => updateOnlineOrderStatus(order, "confirm")}
             className={`${sizeClass} bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg font-bold`}
           >
@@ -438,7 +472,7 @@ export default function StaffPOSPage() {
         {order.status === "confirmed" && (
           <Button
             type="button"
-            disabled={isOrderActionLoading}
+            disabled={isOrderUpdating}
             onClick={() => updateOnlineOrderStatus(order, "prepare")}
             className={`${sizeClass} bg-orange-600 hover:bg-orange-700 text-white rounded-lg font-bold`}
           >
@@ -449,7 +483,7 @@ export default function StaffPOSPage() {
         {order.status === "preparing" && (
           <Button
             type="button"
-            disabled={isOrderActionLoading}
+            disabled={isOrderUpdating}
             onClick={() => updateOnlineOrderStatus(order, "ready")}
             className={`${sizeClass} bg-sky-600 hover:bg-sky-700 text-white rounded-lg font-bold`}
           >
@@ -460,7 +494,7 @@ export default function StaffPOSPage() {
         {order.status === "ready" && (
           <Button
             type="button"
-            disabled={isOrderActionLoading}
+            disabled={isOrderUpdating}
             onClick={() => updateOnlineOrderStatus(order, "complete")}
             className={`${sizeClass} bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg font-bold`}
           >
@@ -471,7 +505,7 @@ export default function StaffPOSPage() {
         {order.status && !["completed", "cancelled"].includes(order.status) && (
           <Button
             type="button"
-            disabled={isOrderActionLoading}
+            disabled={isOrderUpdating}
             variant="outline"
             onClick={() => updateOnlineOrderStatus(order, "cancel")}
             className={`${sizeClass} border-rose-200 text-rose-700 hover:bg-rose-50 rounded-lg font-bold`}
