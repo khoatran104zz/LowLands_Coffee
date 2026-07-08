@@ -202,7 +202,7 @@ export function FeaturedProducts() {
                         {t(`product.items.${product.id}.name`, { defaultValue: product.name })}
                       </h3>
                       <p className="text-xs text-muted-foreground line-clamp-2 mt-1.5 leading-relaxed">
-                        {t(`product.items.${product.id}.description`, { defaultValue: product.description })}
+                        {t(`product.items.${product.id}.description`, { defaultValue: product.description ?? "" })}
                       </p>
                     </div>
 
