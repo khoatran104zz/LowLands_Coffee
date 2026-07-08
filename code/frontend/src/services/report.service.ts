@@ -15,6 +15,11 @@ export interface ReportFilterParams {
   keyword?: string;
 }
 
+export interface ReportExcelDownload {
+  blob: Blob;
+  filename: string;
+}
+
 export interface ReportMetric {
   key: string;
   label: string;
@@ -147,6 +152,14 @@ const cleanParams = (params: ReportFilterParams): ReportFilterParams => {
 
 const scopePrefix = (isAdmin: boolean) => (isAdmin ? "/admin/reports" : "/manager/reports");
 
+const excelFilenameFromHeader = (contentDisposition: string | undefined): string => {
+  if (!contentDisposition) {
+    return "Report_Export.xlsx";
+  }
+  const match = contentDisposition.match(/filename="?([^";]+)"?/i);
+  return match?.[1] ?? "Report_Export.xlsx";
+};
+
 export const getRevenueReport = async (
   isAdmin: boolean,
   params: ReportFilterParams
@@ -206,4 +219,23 @@ export const getIngredientConsumptionReport = async (
     { params: cleanParams(params) }
   );
   return response.data.data;
+};
+
+export const exportReportExcel = async (
+  isAdmin: boolean,
+  reportType: string,
+  params: ReportFilterParams
+): Promise<ReportExcelDownload> => {
+  const response = await axiosInstance.get<Blob>(`${scopePrefix(isAdmin)}/export/excel`, {
+    params: {
+      reportType,
+      ...cleanParams(params)
+    },
+    responseType: "blob"
+  });
+
+  return {
+    blob: response.data,
+    filename: excelFilenameFromHeader(response.headers["content-disposition"])
+  };
 };

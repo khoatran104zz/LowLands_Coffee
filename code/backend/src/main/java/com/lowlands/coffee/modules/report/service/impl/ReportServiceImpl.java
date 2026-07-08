@@ -11,6 +11,7 @@ import com.lowlands.coffee.modules.report.dto.response.ReportResponses.MetricRes
 import com.lowlands.coffee.modules.report.dto.response.ReportResponses.OrderReportResponse;
 import com.lowlands.coffee.modules.report.dto.response.ReportResponses.OrderRowResponse;
 import com.lowlands.coffee.modules.report.dto.response.ReportResponses.PaymentReportResponse;
+import com.lowlands.coffee.modules.report.dto.response.ReportResponses.PaymentDetailRowResponse;
 import com.lowlands.coffee.modules.report.dto.response.ReportResponses.PaymentRowResponse;
 import com.lowlands.coffee.modules.report.dto.response.ReportResponses.RevenueReportResponse;
 import com.lowlands.coffee.modules.report.dto.response.ReportResponses.RevenueRowResponse;
@@ -173,7 +174,8 @@ public class ReportServiceImpl implements ReportService {
                         order.amount(),
                         order.status(),
                         order.paymentMethod(),
-                        order.paymentStatus()
+                        order.paymentStatus(),
+                        order.completedAt()
                 ))
                 .toList();
 
@@ -213,7 +215,20 @@ public class ReportServiceImpl implements ReportService {
                         metricCount("refunded", "Refunded", summary.refunded())
                 ),
                 rows.stream().map(row -> new ChartPointResponse(row.paymentMethod() + " " + row.paymentStatus(), row.revenue(), null)).toList(),
-                rows
+                rows,
+                reportQueryRepository.findPaymentDetailRows(window.start(), window.end(), storeId, paymentMethod).stream()
+                        .map(row -> new PaymentDetailRowResponse(
+                                row.paymentId(),
+                                row.paymentNumber(),
+                                row.orderCode(),
+                                row.storeId(),
+                                row.storeName(),
+                                row.paymentMethod(),
+                                row.paymentStatus(),
+                                row.amount(),
+                                row.paidAt()
+                        ))
+                        .toList()
         );
     }
 
@@ -252,7 +267,8 @@ public class ReportServiceImpl implements ReportService {
                         receipt.createdByName(),
                         receipt.status(),
                         receipt.amount(),
-                        receipt.createdAt()
+                        receipt.createdAt(),
+                        receipt.totalItems()
                 ))
                 .toList();
 

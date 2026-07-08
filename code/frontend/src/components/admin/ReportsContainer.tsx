@@ -18,11 +18,11 @@ import {
   XCircle,
   type LucideIcon
 } from "lucide-react";
-import axiosInstance from "@/lib/axios";
 import { useTranslation } from "@/hooks/useTranslation";
 import { getStores } from "@/services/store.service";
 import { Store } from "@/types";
 import {
+  exportReportExcel,
   getGoodsReceiptReport,
   getIngredientConsumptionReport,
   getInventoryReport,
@@ -172,17 +172,20 @@ export function ReportsContainer({ isAdmin }: ReportsContainerProps) {
   };
 
   const handleExport = async (format: "EXCEL" | "PDF") => {
+    if (format !== "EXCEL") {
+      toast.error("PDF export is not available in this sprint.");
+      return;
+    }
+
     setIsExporting(true);
     try {
-      await axiosInstance.post("/reports/export", {
-        reportType: activeTab,
-        exportFormat: format,
-        filters: JSON.stringify(filters)
-      });
-      toast.info("Export file will be implemented in a later sprint.");
+      const reportFilters = isAdmin ? filters : omitStoreId(filters);
+      const file = await exportReportExcel(isAdmin, activeTab, reportFilters);
+      downloadBlob(file.blob, file.filename);
+      toast.success("Export Excel successful.");
     } catch (exportError) {
-      console.error("Failed to log report export", exportError);
-      toast.error("Cannot log export request.");
+      console.error("Failed to export report", exportError);
+      toast.error("Export Excel failed.");
     } finally {
       setIsExporting(false);
     }
@@ -231,7 +234,7 @@ export function ReportsContainer({ isAdmin }: ReportsContainerProps) {
             <Download className="h-4 w-4 mr-2" />
             {t("admin.reports.btnExportExcel")}
           </Button>
-          <Button variant="outline" size="sm" onClick={() => void handleExport("PDF")} disabled={isExporting}>
+          <Button variant="outline" size="sm" onClick={() => void handleExport("PDF")} disabled>
             <Download className="h-4 w-4 mr-2" />
             {t("admin.reports.btnExportPdf")}
           </Button>
@@ -643,6 +646,17 @@ function omitStoreId(params: ReportFilterParams): ReportFilterParams {
     orderStatus: params.orderStatus,
     keyword: params.keyword
   };
+}
+
+function downloadBlob(blob: Blob, filename: string) {
+  const url = window.URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = filename;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  window.URL.revokeObjectURL(url);
 }
 
 const inputClassName = "w-full h-10 rounded-lg border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 px-3 text-xs font-semibold outline-none focus:border-amber-700";

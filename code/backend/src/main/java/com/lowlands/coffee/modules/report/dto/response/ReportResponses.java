@@ -45,7 +45,8 @@ public final class ReportResponses {
             BigDecimal amount,
             String status,
             String paymentMethod,
-            String paymentStatus
+            String paymentStatus,
+            LocalDateTime completedAt
     ) {
     }
 
@@ -66,10 +67,24 @@ public final class ReportResponses {
     ) {
     }
 
+    public record PaymentDetailRowResponse(
+            Long paymentId,
+            String paymentNumber,
+            String orderCode,
+            Long storeId,
+            String storeName,
+            String paymentMethod,
+            String paymentStatus,
+            BigDecimal amount,
+            LocalDateTime paidAt
+    ) {
+    }
+
     public record PaymentReportResponse(
             List<MetricResponse> summary,
             List<ChartPointResponse> chart,
-            List<PaymentRowResponse> rows
+            List<PaymentRowResponse> rows,
+            List<PaymentDetailRowResponse> details
     ) {
     }
 
@@ -106,7 +121,8 @@ public final class ReportResponses {
             String createdByName,
             String status,
             BigDecimal amount,
-            LocalDateTime createdAt
+            LocalDateTime createdAt,
+            long totalItems
     ) {
     }
 

@@ -110,7 +110,8 @@ public class ReportQueryRepository {
                     o.total_amount,
                     o.status,
                     p.payment_method,
-                    p.payment_status
+                    p.payment_status,
+                    case when o.status = 'COMPLETED' then o.updated_at else null end
                 from orders o
                 join stores s on s.id = o.store_id
                 left join users u on u.id = o.user_id
@@ -121,7 +122,7 @@ public class ReportQueryRepository {
                 order by o.created_at desc
                 """;
         return list(sql, params(start, end, storeId, orderStatus, keywordLike(keyword), null)).stream()
-                .map(row -> new OrderReportRow(longValue(row[0]), (String) row[1], (String) row[2], localDateTime(row[3]), longValue(row[4]), (String) row[5], decimal(row[6]), (String) row[7], (String) row[8], (String) row[9]))
+                .map(row -> new OrderReportRow(longValue(row[0]), (String) row[1], (String) row[2], localDateTime(row[3]), longValue(row[4]), (String) row[5], decimal(row[6]), (String) row[7], (String) row[8], (String) row[9], nullableLocalDateTime(row[10])))
                 .toList();
     }
 
@@ -159,6 +160,31 @@ public class ReportQueryRepository {
                 """;
         return list(sql, params(start, end, storeId, null, null, paymentMethod)).stream()
                 .map(row -> new PaymentGroupRow((String) row[0], (String) row[1], longValue(row[2]), decimal(row[3]), decimal(row[4])))
+                .toList();
+    }
+
+    public List<PaymentDetailReportRow> findPaymentDetailRows(LocalDateTime start, LocalDateTime end, Long storeId, String paymentMethod) {
+        String sql = """
+                select
+                    p.id,
+                    cast(p.id as varchar),
+                    o.order_code,
+                    s.id,
+                    s.name,
+                    p.payment_method,
+                    p.payment_status,
+                    p.amount,
+                    p.paid_at
+                from payments p
+                join orders o on o.id = p.order_id
+                join stores s on s.id = o.store_id
+                where o.created_at >= :start
+                  and o.created_at < :end
+                """ + storeFilter("o", storeId) + paymentMethodFilter(paymentMethod) + """
+                order by coalesce(p.paid_at, o.created_at) desc, p.id desc
+                """;
+        return list(sql, params(start, end, storeId, null, null, paymentMethod)).stream()
+                .map(row -> new PaymentDetailReportRow(longValue(row[0]), (String) row[1], (String) row[2], longValue(row[3]), (String) row[4], (String) row[5], (String) row[6], decimal(row[7]), nullableLocalDateTime(row[8])))
                 .toList();
     }
 
@@ -242,18 +268,20 @@ public class ReportQueryRepository {
 
     public List<GoodsReceiptReportRow> findGoodsReceiptRows(LocalDateTime start, LocalDateTime end, Long storeId, String keyword) {
         String sql = """
-                select gr.id, gr.receipt_code, sup.id, sup.name, s.id, s.name, u.full_name, gr.status, gr.total_amount, gr.created_at
+                select gr.id, gr.receipt_code, sup.id, sup.name, s.id, s.name, u.full_name, gr.status, gr.total_amount, gr.created_at, count(gri.id)
                 from goods_receipts gr
                 join suppliers sup on sup.id = gr.supplier_id
                 join stores s on s.id = gr.store_id
                 join users u on u.id = gr.created_by
+                left join goods_receipt_items gri on gri.receipt_id = gr.id
                 where gr.created_at >= :start
                   and gr.created_at < :end
                 """ + storeFilter("gr", storeId) + goodsReceiptKeywordFilter(keyword) + """
+                group by gr.id, gr.receipt_code, sup.id, sup.name, s.id, s.name, u.full_name, gr.status, gr.total_amount, gr.created_at
                 order by gr.created_at desc
                 """;
         return list(sql, params(start, end, storeId, null, keywordLike(keyword), null)).stream()
-                .map(row -> new GoodsReceiptReportRow(longValue(row[0]), (String) row[1], longValue(row[2]), (String) row[3], longValue(row[4]), (String) row[5], (String) row[6], (String) row[7], decimal(row[8]), localDateTime(row[9])))
+                .map(row -> new GoodsReceiptReportRow(longValue(row[0]), (String) row[1], longValue(row[2]), (String) row[3], longValue(row[4]), (String) row[5], (String) row[6], (String) row[7], decimal(row[8]), localDateTime(row[9]), longValue(row[10])))
                 .toList();
     }
 
@@ -455,6 +483,10 @@ public class ReportQueryRepository {
         return LocalDateTime.parse(value.toString().replace(" ", "T"));
     }
 
+    private LocalDateTime nullableLocalDateTime(Object value) {
+        return value == null ? null : localDateTime(value);
+    }
+
     private record QueryParams(LocalDateTime start, LocalDateTime end, Long storeId, String status, String keyword, String paymentMethod) {
     }
 
@@ -467,10 +499,13 @@ public class ReportQueryRepository {
     public record OrderSummaryRow(long total, long completed, long preparing, long ready, long cancelled) {
     }
 
-    public record OrderReportRow(Long orderId, String orderCode, String customerName, LocalDateTime createdAt, Long storeId, String storeName, BigDecimal amount, String status, String paymentMethod, String paymentStatus) {
+    public record OrderReportRow(Long orderId, String orderCode, String customerName, LocalDateTime createdAt, Long storeId, String storeName, BigDecimal amount, String status, String paymentMethod, String paymentStatus, LocalDateTime completedAt) {
     }
 
     public record PaymentGroupRow(String paymentMethod, String paymentStatus, long orderCount, BigDecimal amount, BigDecimal revenue) {
+    }
+
+    public record PaymentDetailReportRow(Long paymentId, String paymentNumber, String orderCode, Long storeId, String storeName, String paymentMethod, String paymentStatus, BigDecimal amount, LocalDateTime paidAt) {
     }
 
     public record PaymentSummaryRow(BigDecimal paidRevenue, long paidCompletedOrders, long unpaid, long failed, long refunded) {
@@ -479,7 +514,7 @@ public class ReportQueryRepository {
     public record InventoryAggregateRow(Long storeId, String storeName, Long ingredientId, String ingredientCode, String ingredientName, String unit, BigDecimal minStock, BigDecimal closing, BigDecimal inQuantity, BigDecimal outQuantity, BigDecimal adjustment) {
     }
 
-    public record GoodsReceiptReportRow(Long id, String receiptCode, Long supplierId, String supplierName, Long storeId, String storeName, String createdByName, String status, BigDecimal amount, LocalDateTime createdAt) {
+    public record GoodsReceiptReportRow(Long id, String receiptCode, Long supplierId, String supplierName, Long storeId, String storeName, String createdByName, String status, BigDecimal amount, LocalDateTime createdAt, long totalItems) {
     }
 
     public record GoodsReceiptSummaryRow(long total, long completed, long suppliers, BigDecimal completedValue) {
