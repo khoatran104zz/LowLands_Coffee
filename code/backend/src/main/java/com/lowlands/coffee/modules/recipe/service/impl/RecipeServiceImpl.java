@@ -62,6 +62,14 @@ public class RecipeServiceImpl implements RecipeService {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    public List<RecipeResponse> findByProductId(Long productId) {
+        return recipeRepository.findByProductVariant_Product_IdAndStatus(productId, ACTIVE).stream()
+                .map(recipeMapper::toResponse)
+                .toList();
+    }
+
+    @Override
     public RecipeResponse create(RecipeCreateRequest request) {
         validateIngredientDuplicates(request.getIngredients());
         String code = request.getCode().trim();

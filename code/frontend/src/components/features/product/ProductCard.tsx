@@ -7,6 +7,7 @@ import { ArrowRight, ShoppingBag, ShoppingCart, Sparkles, Tag, Gift } from "luci
 import Image from "next/image";
 import { useCartStore } from "@/store/cart.store";
 import { toast } from "sonner";
+import { PRODUCT_BADGES, BADGE_STYLES } from "@/lib/productBadges";
 
 interface ProductCardProps {
   product: Product;
@@ -17,6 +18,7 @@ export function ProductCard({ product }: ProductCardProps) {
   const addItem = useCartStore((state) => state.addItem);
 
   const isCombo = (product.comboProductIds && product.comboProductIds.length > 0) || false;
+  const badge = PRODUCT_BADGES[product.id];
 
   const startingPrice =
     product.variants && product.variants.length > 0
@@ -156,7 +158,15 @@ export function ProductCard({ product }: ProductCardProps) {
 
   // ─── REGULAR CARD ────────────────────────────────────────────────────────────
   return (
-    <div className="group flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm hover:shadow-lg hover:border-accent/30 transition-all duration-300 hover:-translate-y-1 h-full">
+    <div className="group relative flex flex-col overflow-hidden rounded-2xl border border-border/60 bg-card shadow-sm hover:shadow-lg hover:border-accent/30 transition-all duration-300 hover:-translate-y-1 h-full">
+
+      {/* Badge overlay (top-left) */}
+      {badge && (
+        <div className={`absolute top-2.5 left-2.5 z-20 flex items-center gap-1 text-[9px] font-black uppercase tracking-wide px-2 py-1 rounded-full shadow-md ${BADGE_STYLES[badge.type]}`}>
+          {t(badge.labelKey)}
+        </div>
+      )}
+
       {/* Product Image — fixed square aspect */}
       <div className="relative aspect-square w-full bg-secondary/20 overflow-hidden shrink-0">
         {product.imageUrl ? (

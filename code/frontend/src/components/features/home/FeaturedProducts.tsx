@@ -8,6 +8,7 @@ import { getCategories, getProducts } from "@/services/product.service";
 import { Category, Product } from "@/types";
 import { Plus, ShoppingCart } from "lucide-react";
 import { toast } from "sonner";
+import { PRODUCT_BADGES, BADGE_STYLES } from "@/lib/productBadges";
 
 export function FeaturedProducts() {
   const { t } = useTranslation();
@@ -171,6 +172,17 @@ export function FeaturedProducts() {
                         {product.name.slice(0, 2)}
                       </div>
                     )}
+
+                    {/* Badge overlay */}
+                    {(() => {
+                      const badge = PRODUCT_BADGES[product.id];
+                      if (!badge) return null;
+                      return (
+                        <div className={`absolute top-2 left-2 z-10 text-[9px] font-black px-2 py-0.5 rounded-full shadow-sm uppercase tracking-wide ${BADGE_STYLES[badge.type]}`}>
+                          {t(badge.labelKey)}
+                        </div>
+                      );
+                    })()}
 
                     <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center pointer-events-none md:pointer-events-auto">
                       <motion.button

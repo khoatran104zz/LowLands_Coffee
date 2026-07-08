@@ -12,6 +12,8 @@ public interface RecipeService {
 
     RecipeResponse findById(Long id);
 
+    List<RecipeResponse> findByProductId(Long productId);
+
     RecipeResponse create(RecipeCreateRequest request);
 
     RecipeResponse update(Long id, RecipeUpdateRequest request);

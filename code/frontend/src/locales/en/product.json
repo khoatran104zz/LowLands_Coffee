@@ -20,6 +20,19 @@
   "outOfStock": "Product temporarily out of stock!",
   "defaultDescription": "Signature delicious flavor only available at Lowlands Coffee.",
   "comboIncludes": "Combo includes:",
+  "badge": {
+    "hot": "🔥 Best Seller",
+    "new": "✨ New",
+    "special": "⭐ Signature"
+  },
+  "recipe": {
+    "title": "Recipe & Ingredients",
+    "subtitle": "Ingredients for selected size",
+    "ingredient": "Ingredient",
+    "quantity": "Quantity",
+    "noRecipe": "Recipe coming soon.",
+    "loading": "Loading recipe..."
+  },
   "cart": {
     "title": "Your Cart",
     "empty": "Your cart is empty.",

@@ -20,6 +20,19 @@
   "outOfStock": "Sản phẩm tạm thời hết hàng!",
   "defaultDescription": "Hương vị thơm ngon đặc trưng chỉ có tại Lowlands Coffee.",
   "comboIncludes": "Combo bao gồm:",
+  "badge": {
+    "hot": "🔥 Bán Chạy",
+    "new": "✨ Mới",
+    "special": "⭐ Đặc Biệt"
+  },
+  "recipe": {
+    "title": "Công Thức Pha Chế",
+    "subtitle": "Nguyên liệu theo size đã chọn",
+    "ingredient": "Nguyên liệu",
+    "quantity": "Số lượng",
+    "noRecipe": "Công thức pha chế đang được cập nhật.",
+    "loading": "Đang tải công thức..."
+  },
   "cart": {
     "title": "Giỏ Hàng Của Bạn",
     "empty": "Giỏ hàng của bạn đang trống.",

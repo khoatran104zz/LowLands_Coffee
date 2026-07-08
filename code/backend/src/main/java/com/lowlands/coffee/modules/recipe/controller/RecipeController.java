@@ -30,6 +30,11 @@ public class RecipeController {
         this.recipeService = recipeService;
     }
 
+    @GetMapping("/by-product/{productId}")
+    public ApiResponse<List<RecipeResponse>> findByProductId(@PathVariable Long productId) {
+        return ApiResponse.success(recipeService.findByProductId(productId));
+    }
+
     @GetMapping
     @PreAuthorize("hasAuthority('RECIPE_VIEW')")
     public ApiResponse<List<RecipeResponse>> findAll() {

@@ -4,7 +4,7 @@ import { useEffect, use, useState } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
 import Image from "next/image";
 import { toast } from "sonner";
-import { AlertCircle, ArrowLeft, MessageSquare, Minus, Plus, ShoppingBag, Star } from "lucide-react";
+import { AlertCircle, ArrowLeft, FlaskConical, MessageSquare, Minus, Plus, ShoppingBag, Star } from "lucide-react";
 import {
   getProductById,
   getProductReviewEligibility,
@@ -14,12 +14,15 @@ import {
   ProductReviewSummary,
   submitProductReview,
 } from "@/services/product.service";
+import { getRecipesByProductId } from "@/services/recipe.service";
+import type { Recipe } from "@/services/recipe.service";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useCartStore } from "@/store/cart.store";
 import { useAuthStore } from "@/store/auth.store";
 import { Product, ProductVariant, Topping } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { PRODUCT_BADGES, BADGE_STYLES } from "@/lib/productBadges";
 
 interface Props {
   params: Promise<{
@@ -59,6 +62,8 @@ export default function ProductDetailPage({ params }: Props) {
   const [reviewComment, setReviewComment] = useState("");
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
+  const [recipesLoading, setRecipesLoading] = useState(false);
 
   const addItemToCart = useCartStore((state) => state.addItem);
   const { isAuthenticated, hasHydrated } = useAuthStore();
@@ -90,6 +95,12 @@ export default function ProductDetailPage({ params }: Props) {
         setSelectedVariant(data.variants?.[0] ?? null);
         setSelectedToppings(data.toppings?.map((topping) => ({ topping, quantity: 0 })) ?? []);
         void loadReviews();
+        // Load recipes
+        setRecipesLoading(true);
+        getRecipesByProductId(productId)
+          .then((r) => setRecipes(r ?? []))
+          .catch(() => setRecipes([]))
+          .finally(() => setRecipesLoading(false));
       } catch (loadError) {
         console.error("Failed to load product details from backend", loadError);
         setProduct(null);
@@ -297,9 +308,21 @@ export default function ProductDetailPage({ params }: Props) {
 
             <div className="md:col-span-7 flex flex-col items-start text-left gap-6">
               <div>
-                <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-primary">
-                  {t(`product.items.${product.id}.name`, { defaultValue: product.name })}
-                </h1>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <h1 className="font-heading font-extrabold text-2xl sm:text-3xl text-primary">
+                    {t(`product.items.${product.id}.name`, { defaultValue: product.name })}
+                  </h1>
+                  {/* Badge on product detail page */}
+                  {(() => {
+                    const badge = PRODUCT_BADGES[product.id];
+                    if (!badge) return null;
+                    return (
+                      <span className={`inline-flex items-center text-[10px] font-black uppercase tracking-wide px-2.5 py-1 rounded-full shadow-sm ${BADGE_STYLES[badge.type]}`}>
+                        {t(badge.labelKey)}
+                      </span>
+                    );
+                  })()}
+                </div>
                 <div className="w-12 h-1 bg-accent rounded-full mt-3" />
               </div>
 
@@ -450,6 +473,77 @@ export default function ProductDetailPage({ params }: Props) {
               </div>
             </div>
           </div>
+
+          {/* ── RECIPE SECTION ──────────────────────────────────────────── */}
+          {(recipesLoading || recipes.length > 0) && (
+            <section className="mt-10 rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
+              <div className="flex items-center gap-3 mb-5">
+                <div className="rounded-full bg-emerald-500/10 p-2.5 text-emerald-600 dark:text-emerald-400">
+                  <FlaskConical className="h-5 w-5" />
+                </div>
+                <div>
+                  <h2 className="font-heading font-extrabold text-lg text-primary">
+                    {t("product.recipe.title")}
+                  </h2>
+                  <p className="text-xs text-muted-foreground">
+                    {selectedVariant ? `Size ${selectedVariant.size}` : t("product.recipe.subtitle")}
+                  </p>
+                </div>
+              </div>
+
+              {recipesLoading ? (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground animate-pulse">
+                  <span className="h-4 w-4 rounded-full bg-muted block" />
+                  {t("product.recipe.loading")}
+                </div>
+              ) : (() => {
+                const activeRecipe = selectedVariant
+                  ? recipes.find((r) => r.productVariantId === selectedVariant.id)
+                  : recipes[0];
+
+                if (!activeRecipe || activeRecipe.ingredients.length === 0) {
+                  return (
+                    <p className="text-sm text-muted-foreground italic">{t("product.recipe.noRecipe")}</p>
+                  );
+                }
+
+                return (
+                  <div className="overflow-hidden rounded-xl border border-border/60">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="border-b border-border/40 bg-muted/50">
+                          <th className="text-left px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                            {t("product.recipe.ingredient")}
+                          </th>
+                          <th className="text-right px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                            {t("product.recipe.quantity")}
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {activeRecipe.ingredients.map((ing, idx) => (
+                          <tr
+                            key={ing.id ?? idx}
+                            className={`border-b border-border/30 last:border-0 ${
+                              idx % 2 === 0 ? "bg-background" : "bg-muted/20"
+                            }`}
+                          >
+                            <td className="px-4 py-2.5 font-semibold text-foreground">
+                              {ing.ingredientName ?? ing.ingredientCode}
+                            </td>
+                            <td className="px-4 py-2.5 text-right text-muted-foreground font-semibold">
+                              {ing.quantity} {ing.unit}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              })()}
+            </section>
+          )}
+
           <section className="mt-14 border-t border-border/60 pt-10">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
               <div className="lg:col-span-4 rounded-2xl border border-border/80 bg-card p-6 shadow-sm">

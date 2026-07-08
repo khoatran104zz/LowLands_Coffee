@@ -27,4 +27,7 @@ public interface RecipeRepository extends JpaRepository<RecipeEntity, Long> {
 
     @EntityGraph(attributePaths = {"productVariant", "ingredients", "ingredients.ingredient"})
     Optional<RecipeEntity> findByProductVariant_IdAndStatus(Long productVariantId, String status);
+
+    @EntityGraph(attributePaths = {"productVariant", "ingredients", "ingredients.ingredient"})
+    List<RecipeEntity> findByProductVariant_Product_IdAndStatus(Long productId, String status);
 }
