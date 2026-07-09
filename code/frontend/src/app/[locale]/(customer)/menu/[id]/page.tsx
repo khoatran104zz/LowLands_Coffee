@@ -96,12 +96,13 @@ export default function ProductDetailPage({ params }: Props) {
         setAllProducts(productsList || []);
         setSelectedVariant(data.variants?.[0] ?? null);
         setSelectedToppings(data.toppings?.map((topping) => ({ topping, quantity: 0 })) ?? []);
-        // Init combo selections: default to first variant of each combo product
+        // Init combo selections: default to size M (or first available active) variant of each combo product
         if (data.comboProductIds && data.comboProductIds.length > 0) {
           const comboProducts = productsList?.filter((p) => data.comboProductIds!.includes(p.id)) ?? [];
           const defaultSelections: Record<number, ProductVariant> = {};
           comboProducts.forEach((cp) => {
-            const firstVariant = cp.variants?.find((v) => v.status === "active") ?? cp.variants?.[0];
+            const sizeMVariant = cp.variants?.find((v) => v.size === "M" && v.status === "active");
+            const firstVariant = sizeMVariant ?? cp.variants?.find((v) => v.status === "active") ?? cp.variants?.[0];
             if (firstVariant) defaultSelections[cp.id] = firstVariant;
           });
           setComboSelections(defaultSelections);
@@ -176,15 +177,23 @@ export default function ProductDetailPage({ params }: Props) {
 
   const isCombo = (product?.comboProductIds?.length ?? 0) > 0;
 
-  // Calculate combo price dynamically based on selected variants per item
+  // Calculate combo price based on the combo product's own variant price and fix-sized components
   const calculateComboPrice = (): { comboPrice: number; originalPrice: number; savingsPct: number } => {
     if (!isCombo || !product) return { comboPrice: 0, originalPrice: 0, savingsPct: 0 };
-    const discount = Number(product.discountPercentage ?? 10);
+    
+    // Combo price is fixed from the combo's own variant (e.g. Size M of the combo product itself)
+    const comboPrice = Number(selectedVariant?.price || product.variants?.[0]?.price || 0);
+    
+    // Original price is the sum of the fixed variants of the combo components
     const originalPrice = Object.values(comboSelections).reduce(
       (sum, v) => sum + Number(v.price), 0
     );
-    const comboPrice = Math.round(originalPrice * (1 - discount / 100));
-    const savingsPct = originalPrice > 0 ? Math.round(((originalPrice - comboPrice) / originalPrice) * 100) : 0;
+    
+    // Calculate savings percentage using the percentage defined in admin/db or computed
+    const savingsPct = product.discountPercentage 
+      ? Number(product.discountPercentage)
+      : (originalPrice > 0 ? Math.round(((originalPrice - comboPrice) / originalPrice) * 100) : 0);
+      
     return { comboPrice, originalPrice, savingsPct };
   };
 
@@ -424,17 +433,16 @@ export default function ProductDetailPage({ params }: Props) {
                     );
                   })()}
 
-                  {/* Per-item size selectors */}
+                  {/* Per-item size description */}
                   <div className="space-y-3">
-                    <h4 className="text-xs uppercase font-bold tracking-wider text-muted-foreground">Chọn size cho từng món</h4>
+                    <h4 className="text-xs uppercase font-bold tracking-wider text-muted-foreground">Thông tin các món đi kèm</h4>
                     {allProducts
                       .filter((p) => product.comboProductIds?.includes(p.id))
                       .map((cp) => {
-                        const activeVariants = cp.variants?.filter((v) => v.status === "active") ?? [];
                         const selected = comboSelections[cp.id];
                         return (
-                          <div key={cp.id} className="border border-border/60 rounded-xl p-3 bg-card">
-                            <div className="flex items-center gap-2 mb-2">
+                          <div key={cp.id} className="border border-border/60 rounded-xl p-3 bg-card flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-2">
                               {cp.imageUrl && (
                                 <div className="w-8 h-8 rounded-lg overflow-hidden border border-border/40 shrink-0">
                                   <img src={cp.imageUrl} alt={cp.name} className="w-full h-full object-cover" />
@@ -444,23 +452,9 @@ export default function ProductDetailPage({ params }: Props) {
                                 {t(`product.items.${cp.id}.name`, { defaultValue: cp.name })}
                               </span>
                             </div>
-                            {activeVariants.length > 0 ? (
-                              <div className="flex gap-2 flex-wrap">
-                                {activeVariants.map((variant) => (
-                                  <button
-                                    key={variant.id}
-                                    type="button"
-                                    onClick={() => setComboSelections((prev) => ({ ...prev, [cp.id]: variant }))}
-                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all ${
-                                      selected?.id === variant.id
-                                        ? "border-primary bg-primary/10 text-primary shadow-sm"
-                                        : "border-border text-muted-foreground hover:border-primary/50"
-                                    }`}
-                                  >
-                                    <span>Size {variant.size}</span>
-                                    <span className="opacity-70">{formatPrice(Number(variant.price))}</span>
-                                  </button>
-                                ))}
+                            {selected ? (
+                              <div className="text-xs font-semibold text-muted-foreground">
+                                Size cố định: <span className="text-[#C8510A] font-bold">Size {selected.size}</span>
                               </div>
                             ) : (
                               <span className="text-xs text-muted-foreground italic">Không có size khả dụng</span>

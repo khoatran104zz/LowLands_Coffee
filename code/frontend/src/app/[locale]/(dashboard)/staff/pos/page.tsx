@@ -7,7 +7,7 @@ import {
   ClipboardList, Clock, XCircle, ChefHat, PackageCheck,
   User, Truck, CreditCard, Tag, Store
 } from "lucide-react";
-import { Product, ProductVariant, Topping, CartItem, Order } from "@/types";
+import { Product, ProductVariant, Topping, CartItem, Order, Promotion } from "@/types";
 import { useDashboardStore } from "@/store/dashboardStore";
 import { ProductCard } from "@/components/pos/ProductCard";
 import { POSCart } from "@/components/pos/POSCart";
@@ -26,6 +26,7 @@ import { cancelOrder, completeOrder, confirmOrder, getOrders, prepareOrder, read
 import { getStaffProductAvailability, ProductAvailability } from "@/services/product.service";
 import { StatusBadge } from "@/components/admin/StatusBadge";
 import { buildOrderTrackingUrl, printOrderAsPdf } from "@/lib/order-print";
+import { getActivePromotions } from "@/services/promotion.service";
 
 interface ReceiptData extends Order {
   cashReceived?: number;
@@ -148,6 +149,9 @@ export default function StaffPOSPage() {
   const [selectedIncomingOrder, setSelectedIncomingOrder] = useState<Order | null>(null);
   const [updatingOnlineOrderIds, setUpdatingOnlineOrderIds] = useState<Set<number>>(new Set());
   
+  // Active promotions state for POS
+  const [activePromotions, setActivePromotions] = useState<Promotion[]>([]);
+
   // Checkout success modal
   const [isReceiptOpen, setIsReceiptOpen] = useState(false);
   const [receiptData, setReceiptData] = useState<ReceiptData | null>(null);
@@ -157,6 +161,19 @@ export default function StaffPOSPage() {
   const [availabilityByVariantId, setAvailabilityByVariantId] = useState<Record<number, ProductAvailability>>({});
   const sortDropdownRef = useRef<HTMLDivElement>(null);
   const prevPendingRef = useRef<number | null>(null);
+
+  // Fetch promotions
+  useEffect(() => {
+    const fetchPromos = async () => {
+      try {
+        const data = await getActivePromotions();
+        setActivePromotions(data || []);
+      } catch (err) {
+        console.error("Failed to load promotions for POS", err);
+      }
+    };
+    void fetchPromos();
+  }, []);
 
   const loadTodayOrders = useCallback(async (silent = false) => {
     if (!branchId) return;
@@ -809,15 +826,6 @@ export default function StaffPOSPage() {
 
           <div className="border-t border-border/40 my-1.5" />
 
-          {/* System items */}
-          <button
-            onClick={() => toast.info(t("pos.promotionsDev"))}
-            className="px-2.5 py-1.5 rounded-lg text-xs font-bold text-left whitespace-nowrap transition-all w-full flex items-center gap-2 bg-transparent hover:bg-muted/10 text-foreground"
-          >
-            <Ticket className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-            <span>{t("pos.promotions")}</span>
-          </button>
-
           <button
             onClick={() => toast.info(t("pos.customersDev"))}
             className="px-2.5 py-1.5 rounded-lg text-xs font-bold text-left whitespace-nowrap transition-all w-full flex items-center gap-2 bg-transparent hover:bg-muted/10 text-foreground"
@@ -836,14 +844,6 @@ export default function StaffPOSPage() {
           >
             <History className="h-3.5 w-3.5 shrink-0" />
             <span>{t("pos.orderHistory")}</span>
-          </button>
-
-          <button
-            onClick={() => toast.info(t("pos.reportsDev"))}
-            className="px-2.5 py-1.5 rounded-lg text-xs font-bold text-left whitespace-nowrap transition-all w-full flex items-center gap-2 bg-transparent hover:bg-muted/10 text-foreground"
-          >
-            <BarChart2 className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-            <span>{t("pos.reports")}</span>
           </button>
 
           <button
@@ -1026,103 +1026,20 @@ export default function StaffPOSPage() {
                   {t("pos.promotionsAndServices")}
                 </h3>
                 <div className="flex items-center overflow-x-auto gap-2 scrollbar-none pb-0.5">
-                  <button 
-                    onClick={() => toast.success(t("pos.discount10Applied"))}
-                    className="flex items-center shrink-0 space-x-1 px-2.5 py-1 bg-background border border-border hover:bg-[#FAF8F5] rounded-lg text-[11px] font-bold transition-all text-[#C8510A] border-[#C8510A]/20"
-                  >
-                    <span>{t("pos.promo10") || "Giảm 10%"}</span>
-                  </button>
-                  <button 
-                    onClick={() => toast.success(t("pos.discount20Applied"))}
-                    className="flex items-center shrink-0 space-x-1 px-2.5 py-1 bg-background border border-border hover:bg-[#FAF8F5] rounded-lg text-[11px] font-bold transition-all text-[#C8510A] border-[#C8510A]/20"
-                  >
-                    <span>{t("pos.promo20") || "Giảm 20%"}</span>
-                  </button>
-                  <button 
-                    onClick={() => toast.success(t("pos.buy1get1Applied"))}
-                    className="flex items-center shrink-0 space-x-1 px-2.5 py-1 bg-background border border-border hover:bg-[#FAF8F5] rounded-lg text-[11px] font-bold transition-all text-[#C8510A] border-[#C8510A]/20"
-                  >
-                    <span>{t("pos.promoBOGO") || "Mua 1 tặng 1"}</span>
-                  </button>
-                  <button 
-                    onClick={() => toast.success(t("pos.freeshipApplied"))}
-                    className="flex items-center shrink-0 space-x-1 px-2.5 py-1 bg-background border border-border hover:bg-[#FAF8F5] rounded-lg text-[11px] font-bold transition-all text-[#C8510A] border-[#C8510A]/20"
-                  >
-                    <span>{t("pos.promoFreeship") || "Freeship"}</span>
-                  </button>
-                  <button 
-                    onClick={() => toast.success(t("pos.serviceFeeApplied"))}
-                    className="flex items-center shrink-0 space-x-1 px-2.5 py-1 bg-background border border-border hover:bg-[#FAF8F5] rounded-lg text-[11px] font-bold transition-all text-[#C8510A] border-[#C8510A]/20"
-                  >
-                    <span>{t("pos.promoServiceFee") || "Phí phục vụ"}</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Grouped Cashier Quick Actions Footer */}
-              <div className="flex flex-col sm:flex-row items-stretch justify-between gap-3 mt-2.5 bg-card border border-border/80 rounded-xl p-2.5 shadow-2xs bg-white shrink-0">
-                {/* Ops Group */}
-                <div className="flex flex-1 items-center gap-2 border-r border-border/40 pr-2.5 last:border-none">
-                  <span className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest mr-1 select-none font-outfit [writing-mode:vertical-lr] rotate-180 hidden sm:inline-block">
-                    {t("pos.opsGroup") || "VẬN HÀNH"}
-                  </span>
-                  <div className="grid grid-cols-2 gap-1.5 w-full">
+                  {activePromotions.map((promo) => (
                     <button 
-                      onClick={() => toast.success(t("pos.drawerOpened"))}
-                      className="flex items-center justify-center py-1.5 px-1 border border-border hover:bg-[#FAF8F5] rounded-lg text-[10px] font-bold text-zinc-600 transition-all active:scale-95"
+                      key={promo.id}
+                      onClick={() => {
+                        window.dispatchEvent(new CustomEvent("pos-apply-external-promo", { detail: promo.code }));
+                      }}
+                      className="flex items-center shrink-0 space-x-1 px-2.5 py-1 bg-background border border-border hover:bg-[#FAF8F5] rounded-lg text-[11px] font-bold transition-all text-[#C8510A] border-[#C8510A]/20"
                     >
-                      <span>{t("pos.openDrawer")}</span>
+                      <span>{promo.code}</span>
                     </button>
-                    <button 
-                      onClick={() => toast.info(t("pos.splitBillDev"))}
-                      className="flex items-center justify-center py-1.5 px-1 border border-border hover:bg-[#FAF8F5] rounded-lg text-[10px] font-bold text-zinc-600 transition-all active:scale-95"
-                    >
-                      <span>{t("pos.splitBill")}</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Customer Group */}
-                <div className="flex flex-1 items-center gap-2 border-r border-border/40 pr-2.5 last:border-none">
-                  <span className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest mr-1 select-none font-outfit [writing-mode:vertical-lr] rotate-180 hidden sm:inline-block">
-                    {t("pos.customerGroup") || "KHÁCH"}
-                  </span>
-                  <div className="grid grid-cols-2 gap-1.5 w-full">
-                    <button 
-                      onClick={() => toast.info(t("pos.findCustomerDev"))}
-                      className="flex items-center justify-center py-1.5 px-1 border border-border hover:bg-[#FAF8F5] rounded-lg text-[10px] font-bold text-zinc-600 transition-all active:scale-95"
-                    >
-                      <span>{t("pos.findCustomer")}</span>
-                    </button>
-                    <button 
-                      onClick={() => toast.info(t("pos.note") + "...")}
-                      className="flex items-center justify-center py-1.5 px-1 border border-border hover:bg-[#FAF8F5] rounded-lg text-[10px] font-bold text-zinc-600 transition-all active:scale-95"
-                    >
-                      <span>{t("pos.note")}</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Receipt and Danger Group */}
-                <div className="flex flex-1 items-center gap-2">
-                  <span className="text-[9px] font-extrabold text-zinc-400 uppercase tracking-widest mr-1 select-none font-outfit [writing-mode:vertical-lr] rotate-180 hidden sm:inline-block">
-                    {t("pos.receiptGroup") || "HÓA ĐƠN"}
-                  </span>
-                  <div className="grid grid-cols-2 gap-1.5 w-full">
-                    <button 
-                      onClick={() => toast.success(t("pos.provisionalPrinted"))}
-                      className="flex items-center justify-center py-1.5 px-1 border border-border hover:bg-[#FAF8F5] hover:border-amber-600/30 hover:text-[#C8510A] rounded-lg text-[10px] font-bold text-zinc-600 transition-all active:scale-95"
-                    >
-                      <span>{t("pos.printProvisional")}</span>
-                    </button>
-                    <button 
-                      onClick={handleClearCart}
-                      disabled={cart.length === 0}
-                      className="flex items-center justify-center py-1.5 px-1 border border-rose-200 bg-rose-50/20 hover:bg-rose-50 disabled:opacity-50 disabled:cursor-not-allowed text-rose-700 rounded-lg text-[10px] font-bold transition-all active:scale-95"
-                    >
-                      <span>{t("pos.cancelOrder")}</span>
-                    </button>
-                  </div>
+                  ))}
+                  {activePromotions.length === 0 && (
+                    <span className="text-[10px] text-muted-foreground italic font-semibold">Không có mã giảm giá nào đang hoạt động.</span>
+                  )}
                 </div>
               </div>
             </>

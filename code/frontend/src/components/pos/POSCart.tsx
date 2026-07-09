@@ -205,6 +205,20 @@ export function POSCart({
     void fetchAvailable();
   }, [items, subtotal, appliedPromo?.code]);
 
+  // Listen to external promo events (e.g. from POS active promotions banner)
+  useEffect(() => {
+    const handleExternalPromo = (e: Event) => {
+      const customEvent = e as CustomEvent<string>;
+      if (customEvent.detail) {
+        void handleSelectPromo(customEvent.detail);
+      }
+    };
+    window.addEventListener("pos-apply-external-promo", handleExternalPromo);
+    return () => {
+      window.removeEventListener("pos-apply-external-promo", handleExternalPromo);
+    };
+  }, [items, subtotal, availablePromotions]);
+
   const handleSelectPromo = async (promoCodeSelected: string) => {
     if (!promoCodeSelected) {
       setAppliedPromo(null);
