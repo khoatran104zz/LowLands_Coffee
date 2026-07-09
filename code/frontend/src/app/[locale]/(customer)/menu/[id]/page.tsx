@@ -4,7 +4,7 @@ import { useEffect, use, useState } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
 import Image from "next/image";
 import { toast } from "sonner";
-import { AlertCircle, ArrowLeft, FlaskConical, MessageSquare, Minus, Plus, ShoppingBag, Star } from "lucide-react";
+import { AlertCircle, ArrowLeft, MessageSquare, Minus, Plus, ShoppingBag, Star } from "lucide-react";
 import {
   getProductById,
   getProductReviewEligibility,
@@ -14,8 +14,6 @@ import {
   ProductReviewSummary,
   submitProductReview,
 } from "@/services/product.service";
-import { getRecipesByProductId } from "@/services/recipe.service";
-import type { Recipe } from "@/services/recipe.service";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useCartStore } from "@/store/cart.store";
 import { useAuthStore } from "@/store/auth.store";
@@ -62,8 +60,6 @@ export default function ProductDetailPage({ params }: Props) {
   const [reviewComment, setReviewComment] = useState("");
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
-  const [recipes, setRecipes] = useState<Recipe[]>([]);
-  const [recipesLoading, setRecipesLoading] = useState(false);
   // Combo: per-item variant selections (keyed by product ID)
   const [comboSelections, setComboSelections] = useState<Record<number, ProductVariant>>({});
 
@@ -108,12 +104,6 @@ export default function ProductDetailPage({ params }: Props) {
           setComboSelections(defaultSelections);
         }
         void loadReviews();
-        // Load recipes
-        setRecipesLoading(true);
-        getRecipesByProductId(productId)
-          .then((r) => setRecipes(r ?? []))
-          .catch(() => setRecipes([]))
-          .finally(() => setRecipesLoading(false));
       } catch (loadError) {
         console.error("Failed to load product details from backend", loadError);
         setProduct(null);
@@ -181,18 +171,16 @@ export default function ProductDetailPage({ params }: Props) {
   const calculateComboPrice = (): { comboPrice: number; originalPrice: number; savingsPct: number } => {
     if (!isCombo || !product) return { comboPrice: 0, originalPrice: 0, savingsPct: 0 };
     
-    // Combo price is fixed from the combo's own variant (e.g. Size M of the combo product itself)
-    const comboPrice = Number(selectedVariant?.price || product.variants?.[0]?.price || 0);
-    
     // Original price is the sum of the fixed variants of the combo components
     const originalPrice = Object.values(comboSelections).reduce(
       (sum, v) => sum + Number(v.price), 0
     );
     
-    // Calculate savings percentage using the percentage defined in admin/db or computed
-    const savingsPct = product.discountPercentage 
-      ? Number(product.discountPercentage)
-      : (originalPrice > 0 ? Math.round(((originalPrice - comboPrice) / originalPrice) * 100) : 0);
+    // Savings percentage defined in DB
+    const savingsPct = Number(product.discountPercentage ?? 10);
+    
+    // Combo price is calculated dynamically from originalPrice and savingsPct
+    const comboPrice = Math.round(originalPrice * (1 - savingsPct / 100));
       
     return { comboPrice, originalPrice, savingsPct };
   };
@@ -579,75 +567,6 @@ export default function ProductDetailPage({ params }: Props) {
             </div>
           </div>
 
-          {/* ── RECIPE SECTION ──────────────────────────────────────────── */}
-          {(recipesLoading || recipes.length > 0) && (
-            <section className="mt-10 rounded-2xl border border-border/60 bg-card p-6 shadow-sm">
-              <div className="flex items-center gap-3 mb-5">
-                <div className="rounded-full bg-emerald-500/10 p-2.5 text-emerald-600 dark:text-emerald-400">
-                  <FlaskConical className="h-5 w-5" />
-                </div>
-                <div>
-                  <h2 className="font-heading font-extrabold text-lg text-primary">
-                    {t("product.recipe.title")}
-                  </h2>
-                  <p className="text-xs text-muted-foreground">
-                    {selectedVariant ? `Size ${selectedVariant.size}` : t("product.recipe.subtitle")}
-                  </p>
-                </div>
-              </div>
-
-              {recipesLoading ? (
-                <div className="flex items-center gap-2 text-sm text-muted-foreground animate-pulse">
-                  <span className="h-4 w-4 rounded-full bg-muted block" />
-                  {t("product.recipe.loading")}
-                </div>
-              ) : (() => {
-                const activeRecipe = selectedVariant
-                  ? recipes.find((r) => r.productVariantId === selectedVariant.id)
-                  : recipes[0];
-
-                if (!activeRecipe || activeRecipe.ingredients.length === 0) {
-                  return (
-                    <p className="text-sm text-muted-foreground italic">{t("product.recipe.noRecipe")}</p>
-                  );
-                }
-
-                return (
-                  <div className="overflow-hidden rounded-xl border border-border/60">
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-border/40 bg-muted/50">
-                          <th className="text-left px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                            {t("product.recipe.ingredient")}
-                          </th>
-                          <th className="text-right px-4 py-2.5 text-xs font-bold uppercase tracking-wider text-muted-foreground">
-                            {t("product.recipe.quantity")}
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {activeRecipe.ingredients.map((ing, idx) => (
-                          <tr
-                            key={ing.id ?? idx}
-                            className={`border-b border-border/30 last:border-0 ${
-                              idx % 2 === 0 ? "bg-background" : "bg-muted/20"
-                            }`}
-                          >
-                            <td className="px-4 py-2.5 font-semibold text-foreground">
-                              {ing.ingredientName ?? ing.ingredientCode}
-                            </td>
-                            <td className="px-4 py-2.5 text-right text-muted-foreground font-semibold">
-                              {ing.quantity} {ing.unit}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                );
-              })()}
-            </section>
-          )}
 
           <section className="mt-14 border-t border-border/60 pt-10">
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
