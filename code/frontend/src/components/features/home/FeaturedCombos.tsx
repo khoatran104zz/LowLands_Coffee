@@ -32,7 +32,8 @@ export function FeaturedCombos() {
           const filtered = productList.filter(
             (p) => p.categoryId === comboCategory.id && p.status === "active"
           );
-          setComboProducts(filtered);
+          // Limit to 6 items (2 rows of 3 items on desktop)
+          setComboProducts(filtered.slice(0, 6));
         }
       } catch (err) {
         console.error("Failed to load featured combos", err);
@@ -83,8 +84,8 @@ export function FeaturedCombos() {
           <div className="w-16 h-1 bg-gradient-to-r from-amber-500 to-orange-500 rounded-full mx-auto mt-6" />
         </div>
 
-        {/* Combos Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
+        {/* Combos Grid: 3 columns on large screens */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {comboProducts.map((combo, idx) => {
             const discount = combo.discountPercentage || 10;
             
@@ -110,7 +111,7 @@ export function FeaturedCombos() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: "-100px" }}
                 transition={{ duration: 0.6, delay: idx * 0.15 }}
-                className="group relative rounded-3xl border border-amber-300/40 dark:border-amber-900/30 bg-card/60 dark:bg-card/20 backdrop-blur-md hover:bg-card dark:hover:bg-card/40 shadow-md hover:shadow-xl transition-all duration-500 overflow-hidden flex flex-col sm:flex-row min-h-[280px]"
+                className="group relative rounded-3xl border border-amber-300/40 dark:border-amber-900/30 bg-card/60 dark:bg-card/20 backdrop-blur-md hover:bg-card dark:hover:bg-card/40 shadow-md hover:shadow-xl transition-all duration-500 overflow-hidden flex flex-col min-h-[460px]"
               >
                 {/* Sale tag */}
                 <div className="absolute top-4 left-4 z-20 flex flex-col gap-1.5">
@@ -125,8 +126,8 @@ export function FeaturedCombos() {
                   )}
                 </div>
 
-                {/* Left side: Image */}
-                <div className="relative aspect-[4/3] sm:aspect-square w-full sm:w-2/5 md:w-5/12 bg-muted overflow-hidden shrink-0">
+                {/* Top side: Image */}
+                <div className="relative aspect-[16/10] w-full bg-muted overflow-hidden shrink-0">
                   {combo.imageUrl ? (
                     <img
                       src={combo.imageUrl}
@@ -139,17 +140,17 @@ export function FeaturedCombos() {
                     </div>
                   )}
                   {/* Decorative soft mask */}
-                  <div className="absolute inset-0 bg-gradient-to-t sm:bg-gradient-to-r from-transparent via-transparent to-card/10" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
                 </div>
 
-                {/* Right side: Details */}
-                <div className="p-6 sm:p-8 flex flex-col justify-between flex-grow text-left relative z-10">
+                {/* Bottom side: Details */}
+                <div className="p-6 flex flex-col justify-between flex-grow text-left relative z-10">
                   <div className="space-y-4">
                     <div>
-                      <h3 className="font-heading font-black text-xl text-primary group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors uppercase tracking-tight">
+                      <h3 className="font-heading font-black text-lg text-primary group-hover:text-amber-700 dark:group-hover:text-amber-400 transition-colors uppercase tracking-tight line-clamp-1">
                         {combo.name}
                       </h3>
-                      <p className="text-xs text-muted-foreground mt-2 leading-relaxed font-semibold">
+                      <p className="text-xs text-muted-foreground mt-2 leading-relaxed font-semibold line-clamp-2">
                         {combo.description}
                       </p>
                     </div>
@@ -168,15 +169,15 @@ export function FeaturedCombos() {
                                   +
                                 </span>
                               )}
-                              <div className="inline-flex items-center gap-1.5 bg-secondary/40 dark:bg-secondary/10 border border-border/40 px-2.5 py-1 rounded-full text-xs font-bold text-foreground">
+                              <div className="inline-flex items-center gap-1 bg-secondary/40 dark:bg-secondary/10 border border-border/40 px-2 py-0.5 rounded-full text-[11px] font-bold text-foreground">
                                 {item.imageUrl && (
                                   <img
                                     src={item.imageUrl}
                                     alt={item.name}
-                                    className="w-4 h-4 rounded-full object-cover"
+                                    className="w-3.5 h-3.5 rounded-full object-cover"
                                   />
                                 )}
-                                <span>{item.name}</span>
+                                <span className="truncate max-w-[100px]">{item.name}</span>
                               </div>
                             </React.Fragment>
                           ))}
@@ -186,17 +187,17 @@ export function FeaturedCombos() {
                   </div>
 
                   {/* Pricing and Action */}
-                  <div className="mt-6 pt-4 border-t border-border/40 flex items-end justify-between gap-4">
+                  <div className="mt-6 pt-4 border-t border-border/40 flex items-end justify-between gap-2">
                     <div>
-                      <span className="text-[10px] uppercase font-bold tracking-wider text-muted-foreground block">
+                      <span className="text-[9px] uppercase font-bold tracking-wider text-muted-foreground block">
                         Giá trọn gói từ
                       </span>
-                      <div className="flex items-baseline gap-2 mt-1">
-                        <span className="text-2xl font-black text-primary leading-none">
+                      <div className="flex items-baseline gap-1.5 mt-1">
+                        <span className="text-xl font-black text-primary leading-none">
                           {formatPrice(comboPrice || Number(combo.variants?.[0]?.price) || 0)}
                         </span>
                         {originalPrice > comboPrice && (
-                          <span className="text-xs text-muted-foreground line-through font-semibold">
+                          <span className="text-[10px] text-muted-foreground line-through font-semibold">
                             {formatPrice(originalPrice)}
                           </span>
                         )}
@@ -204,9 +205,9 @@ export function FeaturedCombos() {
                     </div>
 
                     <Link href={`/menu/${combo.id}`}>
-                      <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-xs font-black px-4 py-3 rounded-xl shadow-md shadow-orange-500/20 hover:shadow-lg transition-all duration-300 cursor-pointer uppercase tracking-wider group-hover:translate-x-1">
+                      <div className="inline-flex items-center gap-1 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white text-[11px] font-black px-3.5 py-2.5 rounded-xl shadow-md shadow-orange-500/20 hover:shadow-lg transition-all duration-300 cursor-pointer uppercase tracking-wider shrink-0">
                         <span>Chọn Món</span>
-                        <ArrowRight className="h-3.5 w-3.5" />
+                        <ArrowRight className="h-3 w-3" />
                       </div>
                     </Link>
                   </div>
