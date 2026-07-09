@@ -209,6 +209,20 @@ export default function AdminProductsPage() {
     }
   };
 
+  // Calculate total original price of selected combo items based on their Size M (or active default) variant
+  const calculateAdminComboOriginalPrice = (): number => {
+    let total = 0;
+    formComboProductIds.forEach((id) => {
+      const p = products.find((prod) => prod.id === id);
+      if (p && p.variants && p.variants.length > 0) {
+        const sizeM = p.variants.find((v) => v.size === "M" && v.status === "active");
+        const selectedVar = sizeM ?? p.variants.find((v) => v.status === "active") ?? p.variants[0];
+        total += Number(selectedVar.price || 0);
+      }
+    });
+    return total;
+  };
+
   // Submit product
   const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -242,11 +256,14 @@ export default function AdminProductsPage() {
     };
 
     if (isCombo) {
+      const comboOriginalPrice = calculateAdminComboOriginalPrice();
+      const comboDiscountedPrice = Math.round(comboOriginalPrice * (1 - formDiscountPercent / 100));
+
       variants.push({
         id: findExistingVariantId("M") as any,
         productId: editingProduct?.id || 0,
         size: "M",
-        price: priceM,
+        price: comboDiscountedPrice,
         status: "active",
       });
     } else {
@@ -509,18 +526,26 @@ export default function AdminProductsPage() {
                 </div>
               </div>
             ) : (
-              <div className="space-y-1 text-left">
-                <label className="text-[10px] font-bold text-muted-foreground uppercase">Giá Combo (đặt cho Size M)</label>
-                <Input
-                  type="number"
-                  value={priceM || ""}
-                  onChange={(e) => {
-                    setPriceM(parseFloat(e.target.value) || 0);
-                    setPriceS(0);
-                    setPriceL(0);
-                  }}
-                  className="h-9 text-xs border-border bg-background"
-                />
+              <div className="space-y-2 text-left">
+                {(() => {
+                  const originalTotal = calculateAdminComboOriginalPrice();
+                  const discounted = Math.round(originalTotal * (1 - formDiscountPercent / 100));
+                  return (
+                    <div className="bg-amber-500/5 rounded-lg border border-amber-500/10 p-2.5 space-y-2">
+                      <div className="flex justify-between items-center text-xs font-semibold text-zinc-700">
+                        <span>Tổng giá gốc các món:</span>
+                        <span className="font-bold text-zinc-900">{originalTotal.toLocaleString("vi-VN")}đ</span>
+                      </div>
+                      <div className="flex justify-between items-center text-xs font-semibold text-emerald-700">
+                        <span>Giá bán sau giảm giá ({formDiscountPercent}%):</span>
+                        <span className="font-extrabold text-sm text-emerald-800">{discounted.toLocaleString("vi-VN")}đ</span>
+                      </div>
+                      <p className="text-[9px] text-muted-foreground italic leading-normal">
+                        * Giá bán này sẽ tự động được lưu đồng bộ làm giá trị thực của Combo.
+                      </p>
+                    </div>
+                  );
+                })()}
               </div>
             )}
           </div>

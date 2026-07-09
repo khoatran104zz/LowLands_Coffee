@@ -453,8 +453,8 @@ export default function ProductDetailPage({ params }: Props) {
                               </span>
                             </div>
                             {selected ? (
-                              <div className="text-xs font-semibold text-muted-foreground">
-                                Size cố định: <span className="text-[#C8510A] font-bold">Size {selected.size}</span>
+                              <div className="text-xs font-bold text-[#C8510A]">
+                                Size {selected.size} - {formatPrice(Number(selected.price))}
                               </div>
                             ) : (
                               <span className="text-xs text-muted-foreground italic">Không có size khả dụng</span>
