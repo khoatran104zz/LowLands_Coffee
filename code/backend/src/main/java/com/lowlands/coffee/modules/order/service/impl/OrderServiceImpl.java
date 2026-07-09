@@ -293,6 +293,13 @@ public class OrderServiceImpl implements OrderService {
             throw new BadRequestException("Completed or cancelled order cannot be cancelled");
         }
         order.setStatus(CANCELLED);
+
+        // Mark payment as FAILED if it was not paid yet when cancelled
+        PaymentEntity payment = order.getPayment();
+        if (payment != null && "UNPAID".equals(payment.getPaymentStatus())) {
+            payment.setPaymentStatus("FAILED");
+        }
+
         String reason = request == null ? null : clean(request.getReason());
         if (hasText(reason)) {
             order.setNote(appendNote(order.getNote(), "Cancel reason: " + reason));
@@ -322,6 +329,14 @@ public class OrderServiceImpl implements OrderService {
 
         List<StockMovementEntity> movements = createOrderStockMovements(order, actor);
         order.setStatus(COMPLETED);
+
+        // Auto-pay unpaid payments when order is completed (e.g. for CASH payment method)
+        PaymentEntity payment = order.getPayment();
+        if (payment != null && !"PAID".equals(payment.getPaymentStatus())) {
+            payment.setPaymentStatus("PAID");
+            payment.setPaidAt(LocalDateTime.now());
+        }
+
         stockMovementRepository.saveAll(movements);
 
         if (order.getPromotion() != null) {
