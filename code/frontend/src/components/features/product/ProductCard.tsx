@@ -2,7 +2,7 @@
 
 import { Link } from "@/i18n/navigation";
 import { useTranslation } from "@/hooks/useTranslation";
-import { Product } from "@/types";
+import { Product, ComboSelection } from "@/types";
 import { ArrowRight, ShoppingBag, ShoppingCart, Sparkles, Tag, Gift } from "lucide-react";
 import Image from "next/image";
 import { useCartStore } from "@/store/cart.store";
@@ -11,29 +11,48 @@ import { PRODUCT_BADGES, BADGE_STYLES } from "@/lib/productBadges";
 
 interface ProductCardProps {
   product: Product;
+  allProducts?: Product[];
 }
 
-export function ProductCard({ product }: ProductCardProps) {
+export function ProductCard({ product, allProducts }: ProductCardProps) {
   const { t } = useTranslation();
   const addItem = useCartStore((state) => state.addItem);
 
   const isCombo = (product.comboProductIds && product.comboProductIds.length > 0) || false;
   const badge = PRODUCT_BADGES[product.id];
 
-  const startingPrice =
-    product.variants && product.variants.length > 0
-      ? Math.min(...product.variants.map((v) => Number(v.price)))
+  // Resolve discount percentage
+  const comboSavingPercent = isCombo ? Number(product.discountPercentage ?? 10) : 0;
+
+  // Resolve original price from components if available
+  const originalPrice = (() => {
+    if (!isCombo) return 0;
+    if (allProducts && product.comboProductIds) {
+      const items = allProducts.filter((p) => product.comboProductIds?.includes(p.id));
+      return items.reduce((sum, item) => {
+        const sizeMVariant = item.variants?.find((v) => v.size === "M" && v.status === "active");
+        const defaultVariant = sizeMVariant ?? item.variants?.find((v) => v.status === "active") ?? item.variants?.[0];
+        return sum + (defaultVariant ? Number(defaultVariant.price) : 0);
+      }, 0);
+    }
+    // Fallback to static variant price reverse math if allProducts not passed
+    const base = product.variants && product.variants.length > 0
+      ? Number(product.variants[0].price)
       : 0;
+    return Math.round((base * (1 + 15 / 100)) / 1000) * 1000;
+  })();
+
+  const startingPrice = isCombo
+    ? Math.round(originalPrice * (1 - comboSavingPercent / 100))
+    : (product.variants && product.variants.length > 0
+      ? Math.min(...product.variants.map((v) => Number(v.price)))
+      : 0);
 
   const formattedPrice = new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
   }).format(startingPrice);
 
-  const comboSavingPercent = 15;
-  const originalPrice = isCombo
-    ? Math.round((startingPrice * (1 + comboSavingPercent / 100)) / 1000) * 1000
-    : 0;
   const formattedOriginalPrice = new Intl.NumberFormat("vi-VN", {
     style: "currency",
     currency: "VND",
@@ -53,7 +72,24 @@ export function ProductCard({ product }: ProductCardProps) {
     }
     if (product.variants && product.variants.length > 0) {
       const defaultVariant = product.variants[0];
-      addItem(product, defaultVariant, 1, []);
+      
+      if (isCombo && allProducts) {
+        const comboProducts = allProducts.filter((p) => product.comboProductIds?.includes(p.id)) || [];
+        const comboSelectionsArr = comboProducts.map((cp) => {
+          const sizeMVariant = cp.variants?.find((v) => v.size === "M" && v.status === "active");
+          const variant = sizeMVariant ?? cp.variants?.find((v) => v.status === "active") ?? cp.variants?.[0];
+          return { product: cp, variant };
+        }).filter((s) => s.variant != null) as ComboSelection[];
+
+        const syntheticVariant = {
+          ...defaultVariant,
+          price: startingPrice
+        };
+
+        addItem(product, syntheticVariant, 1, [], "", comboSelectionsArr, comboSavingPercent);
+      } else {
+        addItem(product, defaultVariant, 1, []);
+      }
       toast.success(t("product.addedToCart"));
     } else {
       toast.error(t("product.outOfStock"));

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, Suspense } from "react";
 import { useTranslation } from "@/hooks/useTranslation";
 import { useSearchParams } from "next/navigation";
-import { usePathname, useRouter } from "@/i18n/navigation";
+import { Link, usePathname, useRouter } from "@/i18n/navigation";
 import { getProducts, getCategories } from "@/services/product.service";
 import { Product, Category } from "@/types";
 import { ProductCard } from "@/components/features/product/ProductCard";
@@ -274,6 +274,117 @@ function MenuPageInner() {
             </div>
           </div>
 
+          {/* ── HIGHLY EYE-CATCHING HERO COMBO BANNER (FE STATIC) ── */}
+          <motion.section
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            className="relative overflow-hidden bg-gradient-to-br from-[#1F1009] via-[#3B1F13] to-[#1F1009] border-b border-amber-500/10 py-12 sm:py-16 md:py-20 select-none text-left"
+          >
+            {/* Decorative glowing background gradients */}
+            <div className="absolute inset-0 pointer-events-none">
+              <div className="absolute top-1/2 left-1/4 w-[500px] h-[500px] rounded-full bg-amber-500/10 blur-[150px] -translate-y-1/2" />
+              <div className="absolute top-1/2 right-1/4 w-[400px] h-[400px] rounded-full bg-orange-600/12 blur-[120px] -translate-y-1/2" />
+            </div>
+
+            <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+                
+                {/* Left Column: Promotion Text Content */}
+                <motion.div
+                  initial={{ opacity: 0, x: -30 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                  className="lg:col-span-7 flex flex-col items-start gap-4 sm:gap-5"
+                >
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-[10px] font-black uppercase tracking-widest shadow-2xs">
+                    <Sparkles className="h-3 w-3 text-amber-400 animate-pulse" />
+                    <span>SIÊU COMBO TIẾT KIỆM</span>
+                  </div>
+                  
+                  <h1 className="font-heading font-black text-3xl sm:text-4xl md:text-5xl lg:text-6xl text-amber-100 tracking-tight leading-none uppercase">
+                    Combo Buổi Sáng
+                  </h1>
+                  
+                  <div className="flex items-center gap-3">
+                    <div className="h-0.5 w-10 bg-amber-500" />
+                    <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">
+                      Tiết kiệm ngay 10% so với mua lẻ
+                    </span>
+                  </div>
+                  
+                  <p className="text-xs sm:text-sm md:text-base text-amber-100/60 font-medium leading-relaxed max-w-2xl">
+                    Khởi đầu ngày mới tràn đầy hứng khởi với bộ đôi hoàn hảo: 1 Phin Sữa Đá truyền thống đậm đà và 1 Bánh Mì Que Pate giòn cay thơm ngon.
+                  </p>
+
+                  {/* Sub-item tags included in combo */}
+                  <div className="flex flex-wrap gap-2 mt-1 w-full">
+                    <div className="flex items-center gap-2 bg-amber-500/5 border border-amber-500/15 rounded-xl px-3 py-2">
+                      <div className="w-6 h-6 rounded-md overflow-hidden shrink-0 border border-amber-400/20 relative">
+                        <img src="/images/menu-coffee.png" alt="Phin Sữa Đá" className="w-full h-full object-cover" />
+                      </div>
+                      <span className="text-xs font-bold text-amber-200">Phin Sữa Đá (M)</span>
+                    </div>
+                    <div className="flex items-center gap-2 bg-amber-500/5 border border-amber-500/15 rounded-xl px-3 py-2">
+                      <div className="w-6 h-6 rounded-md overflow-hidden shrink-0 border border-amber-400/20 relative">
+                        <img src="/images/menu-other-cake.png" alt="Bánh Mì Que Pate" className="w-full h-full object-cover" />
+                      </div>
+                      <span className="text-xs font-bold text-amber-200">Bánh Mì Que Pate</span>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-4 mt-3">
+                    <Link href="/menu/23">
+                      <Button
+                        className="rounded-full bg-gradient-to-r from-amber-500 to-orange-500 text-[#1F1009] hover:from-amber-400 hover:to-orange-400 font-black text-xs px-8 py-3.5 shadow-lg shadow-orange-500/20 hover:shadow-xl hover:shadow-orange-500/35 transition-all duration-300 uppercase tracking-wider cursor-pointer"
+                      >
+                        Đặt combo ngay
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </Link>
+                    
+                    <div className="flex flex-col text-left">
+                      <span className="text-[10px] font-bold text-red-400/60 line-through leading-none mb-1">
+                        54.000đ
+                      </span>
+                      <span className="text-xl sm:text-2xl font-black text-amber-400 leading-none">
+                        48.600đ
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Right Column: Visual Showcase (Floating Graphic/Cards) */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                  animate={{ opacity: 1, scale: 1, y: 0 }}
+                  transition={{ duration: 0.8, delay: 0.15 }}
+                  className="lg:col-span-5 flex justify-center items-center relative"
+                >
+                  <div className="relative w-full max-w-[340px] sm:max-w-[380px] aspect-square rounded-3xl overflow-hidden border border-amber-400/25 bg-gradient-to-br from-[#2A1810] to-[#3D2015] p-1.5 shadow-[0_25px_60px_rgba(245,158,11,0.25)]">
+                    <img 
+                      src="/images/products/combo_buoi_sang.png" 
+                      alt="Combo Buổi Sáng" 
+                      className="w-full h-full object-cover rounded-[20px] brightness-90 hover:brightness-100 transition-all duration-500" 
+                    />
+                    {/* Glassmorphic floating card for savings overlay */}
+                    <div className="absolute bottom-4 left-4 right-4 bg-black/50 backdrop-blur-md border border-white/10 rounded-2xl p-3 sm:p-4 flex items-center justify-between text-left">
+                      <div>
+                        <p className="text-[10px] font-black text-amber-400 uppercase tracking-widest">🎁 Khuyến mãi đặc biệt</p>
+                        <p className="text-sm sm:text-base font-extrabold text-white mt-0.5">Combo Buổi Sáng</p>
+                      </div>
+                      <div className="bg-red-500 text-white rounded-xl px-3 py-1.5 text-center shadow-md">
+                        <p className="text-[8px] font-black uppercase tracking-widest leading-none">Giảm</p>
+                        <p className="text-lg font-black leading-none mt-0.5">-10%</p>
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+
+              </div>
+            </div>
+          </motion.section>
+
           {/* Featured Sections list with clean photo cards */}
           <div className="flex flex-col overflow-visible">
             {showcaseSections.map((section, idx) => {
@@ -297,95 +408,6 @@ function MenuPageInner() {
                 />
               );
             })}
-
-            {/* ── COMBO PROMO SHOWCASE SECTION ── */}
-            {(() => {
-              const comboCatId = getCategoryIdByName("combo");
-              return (
-                <section className="relative overflow-hidden bg-gradient-to-br from-[#1A0C07] via-[#2E160A] to-[#1A0C07] z-[30] py-20 md:py-28">
-                  {/* Animated background glows */}
-                  <div className="absolute inset-0 pointer-events-none">
-                    <div className="absolute top-1/4 left-1/3 w-72 h-72 rounded-full bg-amber-500/10 blur-[100px]" />
-                    <div className="absolute bottom-1/4 right-1/4 w-56 h-56 rounded-full bg-orange-600/12 blur-[80px]" />
-                  </div>
-
-                  <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
-                    <div className="grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
-
-                      {/* Text side */}
-                      <motion.div
-                        initial={{ opacity: 0, y: 25 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-100px" }}
-                        transition={{ duration: 0.8, ease: [0.16,1,0.3,1] as const }}
-                        className="md:col-span-6 flex flex-col items-start gap-5"
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="text-[9px] font-black tracking-widest text-amber-400 uppercase">🔥 Ưu đãi đặc biệt</span>
-                          <span className="bg-red-500 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase tracking-wide">HOT DEAL</span>
-                        </div>
-                        <h2 className="font-heading font-black text-4xl sm:text-5xl lg:text-6xl tracking-tight leading-none text-amber-100 uppercase">
-                          COMBO
-                        </h2>
-                        <div className="flex items-center gap-3">
-                          <div className="h-0.5 w-10 bg-amber-500" />
-                          <span className="text-xs font-bold text-amber-400 uppercase tracking-widest">Tiết kiệm đến 15%</span>
-                        </div>
-                        <p className="text-sm sm:text-base leading-relaxed font-medium text-amber-100/60 text-balance">
-                          Chọn ngay bộ đôi hoàn hảo — thức uống yêu thích kết hợp cùng món ăn nhẹ thơm ngon. Cùng một lúc, tiết kiệm hơn, trọn vẹn hơn!
-                        </p>
-                        <div className="flex items-center gap-3 mt-2">
-                          <Button
-                            onClick={() => handleCategorySelect(comboCatId)}
-                            className="rounded-full bg-amber-500 text-[#1A0C07] hover:bg-amber-400 font-black text-xs px-7 py-3 shadow-[0_8px_25px_rgba(245,158,11,0.4)] hover:shadow-[0_8px_35px_rgba(245,158,11,0.55)] transition-all duration-300 cursor-pointer"
-                          >
-                            <Gift className="mr-2 h-3.5 w-3.5" />
-                            Xem tất cả Combo
-                          </Button>
-                          <span className="text-xs font-bold text-amber-400/70">10 Combo có sẵn</span>
-                        </div>
-                      </motion.div>
-
-                      {/* Visual side - floating deal cards */}
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.9, y: 30 }}
-                        whileInView={{ opacity: 1, scale: 1, y: 0 }}
-                        viewport={{ once: true, margin: "-100px" }}
-                        transition={{ duration: 0.8, ease: [0.16,1,0.3,1] as const }}
-                        className="md:col-span-6 flex justify-center items-center"
-                      >
-                        <div className="relative w-full max-w-[380px]">
-                          {/* Main visual card */}
-                          <div className="relative aspect-square rounded-3xl overflow-hidden border border-amber-400/20 shadow-[0_20px_60px_rgba(245,158,11,0.25)] bg-gradient-to-br from-[#2A1810] to-[#3D2015]">
-                            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 p-8 text-center">
-                              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-amber-500/20 border border-amber-400/30">
-                                <Gift className="h-8 w-8 text-amber-400" />
-                              </div>
-                              <div>
-                                <p className="text-3xl font-black text-amber-300">-15%</p>
-                                <p className="text-sm font-bold text-amber-100/60 mt-1">So với mua lẻ từng món</p>
-                              </div>
-                              <div className="grid grid-cols-2 gap-2 w-full mt-2">
-                                {["☕ + 🥖", "🧋 + 🍰", "🍵 + 🥐", "🥤 + 🍞"].map((pair, i) => (
-                                  <div key={i} className="bg-amber-500/10 border border-amber-400/20 rounded-xl py-2 px-3 text-center">
-                                    <span className="text-base">{pair}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                          {/* Floating badge */}
-                          <div className="absolute -top-3 -right-3 bg-red-500 text-white text-[10px] font-black px-3 py-1.5 rounded-full shadow-lg uppercase tracking-wide">
-                            GIÁ HỜI!
-                          </div>
-                        </div>
-                      </motion.div>
-
-                    </div>
-                  </div>
-                </section>
-              );
-            })()}
           </div>
         </div>
       )}

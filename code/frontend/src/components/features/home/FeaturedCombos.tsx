@@ -52,7 +52,7 @@ export function FeaturedCombos() {
     }).format(amount);
   };
 
-  if (loading || comboProducts.length === 0) {
+  if (!loading && comboProducts.length === 0) {
     return null;
   }
 
@@ -86,33 +86,50 @@ export function FeaturedCombos() {
 
         {/* Combos Grid: 3 columns on large screens */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {comboProducts.map((combo, idx) => {
-            const discount = combo.discountPercentage || 10;
-            
-            // Find component products inside the combo
-            const items = allProducts.filter((p) =>
-              combo.comboProductIds?.includes(p.id)
-            );
-
-            // Compute default original price (sum of default M variants)
-            const originalPrice = items.reduce((sum, item) => {
-              const defaultVariant = item.variants?.find((v) => v.size === "M") || item.variants?.[0];
-              return sum + (defaultVariant ? Number(defaultVariant.price) : 0);
-            }, 0);
-
-            // Combo price
-            const comboPrice = Math.round(originalPrice * (1 - discount / 100));
-            const savedAmount = originalPrice - comboPrice;
-
-            return (
-              <motion.div
-                key={combo.id}
-                initial={{ opacity: 0, y: 40 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: "-100px" }}
-                transition={{ duration: 0.6, delay: idx * 0.15 }}
-                className="group relative rounded-3xl border border-amber-300/40 dark:border-amber-900/30 bg-card/60 dark:bg-card/20 backdrop-blur-md hover:bg-card dark:hover:bg-card/40 shadow-md hover:shadow-xl transition-all duration-500 overflow-hidden flex flex-col min-h-[460px]"
+          {loading ? (
+            Array.from({ length: 3 }).map((_, idx) => (
+              <div
+                key={idx}
+                className="relative rounded-3xl border border-amber-300/10 dark:border-amber-900/10 bg-card/45 dark:bg-card/10 animate-pulse flex flex-col min-h-[460px] p-6 justify-between text-left"
               >
+                <div className="space-y-4">
+                  <div className="aspect-[16/10] w-full bg-muted/65 dark:bg-muted/10 rounded-2xl" />
+                  <div className="h-6 w-1/2 bg-muted/65 dark:bg-muted/10 rounded-xl" />
+                  <div className="h-4 w-full bg-muted/65 dark:bg-muted/10 rounded-md" />
+                  <div className="h-4 w-2/3 bg-muted/65 dark:bg-muted/10 rounded-md" />
+                  <div className="h-10 w-full bg-muted/40 dark:bg-muted/10 rounded-xl pt-2 mt-4" />
+                </div>
+                <div className="h-12 w-full bg-muted/50 dark:bg-muted/10 rounded-xl mt-6" />
+              </div>
+            ))
+          ) : (
+            comboProducts.map((combo, idx) => {
+              const discount = combo.discountPercentage || 10;
+              
+              // Find component products inside the combo
+              const items = allProducts.filter((p) =>
+                combo.comboProductIds?.includes(p.id)
+              );
+
+              // Compute default original price (sum of default M variants)
+              const originalPrice = items.reduce((sum, item) => {
+                const defaultVariant = item.variants?.find((v) => v.size === "M") || item.variants?.[0];
+                return sum + (defaultVariant ? Number(defaultVariant.price) : 0);
+              }, 0);
+
+              // Combo price
+              const comboPrice = Math.round(originalPrice * (1 - discount / 100));
+              const savedAmount = originalPrice - comboPrice;
+
+              return (
+                <motion.div
+                  key={combo.id}
+                  initial={{ opacity: 0, y: 40 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: "-100px" }}
+                  transition={{ duration: 0.6, delay: idx * 0.15 }}
+                  className="group relative rounded-3xl border border-amber-300/40 dark:border-amber-900/30 bg-card/60 dark:bg-card/20 backdrop-blur-md hover:bg-card dark:hover:bg-card/40 shadow-md hover:shadow-xl transition-all duration-500 overflow-hidden flex flex-col min-h-[460px]"
+                >
                 {/* Sale tag */}
                 <div className="absolute top-4 left-4 z-20 flex flex-col gap-1.5">
                   <div className="bg-gradient-to-br from-red-500 to-orange-500 text-white text-xs font-black uppercase tracking-widest px-3 py-1 rounded-xl shadow-md flex items-center gap-1">
@@ -214,7 +231,8 @@ export function FeaturedCombos() {
                 </div>
               </motion.div>
             );
-          })}
+          })
+          )}
         </div>
       </div>
     </section>

@@ -382,7 +382,7 @@ export default function StaffOrdersPage() {
     const isOrderUpdating = order.id ? updatingOrderIds.has(order.id) : false;
 
     return (
-      <div className="flex flex-wrap justify-end gap-1.5">
+      <>
         {status === "pending" && (
           <Button
             type="button"
@@ -439,7 +439,7 @@ export default function StaffOrdersPage() {
             Hủy
           </Button>
         )}
-      </div>
+      </>
     );
   };
 
@@ -471,15 +471,6 @@ export default function StaffOrdersPage() {
               Sắp xếp theo trạng thái và thời gian tạo để xử lý đơn theo đúng thứ tự.
             </p>
           </div>
-
-          <Button
-            onClick={() => loadOrders()}
-            disabled={isLoading || !canLoadStaffOrders}
-            className="h-10 rounded-lg bg-[#C8510A] px-4 text-xs font-bold text-white hover:bg-[#a84408] self-start lg:self-auto"
-          >
-            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`} />
-            Làm mới
-          </Button>
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -629,7 +620,7 @@ export default function StaffOrdersPage() {
                         <StatusPill status={order.status} />
                       </td>
                       <td className="px-4 py-3 align-top text-right">
-                        <div className="flex items-center justify-end gap-1.5">
+                        <div className="flex items-center justify-end gap-1.5 flex-wrap">
                           {renderOrderActions(order, true)}
                           <Button
                             type="button"
