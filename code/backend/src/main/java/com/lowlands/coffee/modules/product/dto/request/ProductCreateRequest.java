@@ -38,4 +38,6 @@ public class ProductCreateRequest {
     private List<Long> toppingIds;
 
     private List<Long> comboProductIds;
+
+    private java.math.BigDecimal discountPercentage;
 }

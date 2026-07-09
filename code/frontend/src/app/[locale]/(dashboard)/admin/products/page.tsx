@@ -54,6 +54,7 @@ export default function AdminProductsPage() {
   const [priceM, setPriceM] = useState<number>(0);
   const [priceL, setPriceL] = useState<number>(0);
   const [formComboProductIds, setFormComboProductIds] = useState<number[]>([]);
+  const [formDiscountPercent, setFormDiscountPercent] = useState<number>(10);
 
   useEffect(() => {
     setIsMounted(true);
@@ -137,6 +138,7 @@ export default function AdminProductsPage() {
     setPriceM(35000);
     setPriceL(39000);
     setFormComboProductIds([]);
+    setFormDiscountPercent(10);
     setIsFormOpen(true);
   };
 
@@ -159,6 +161,7 @@ export default function AdminProductsPage() {
     setPriceM(mVar ? mVar.price : 0);
     setPriceL(lVar ? lVar.price : 0);
     setFormComboProductIds(product.comboProductIds || []);
+    setFormDiscountPercent(product.discountPercentage ? Number(product.discountPercentage) : 10);
     
     setIsFormOpen(true);
   };
@@ -304,6 +307,7 @@ export default function AdminProductsPage() {
           variants,
           toppings: targetToppings,
           comboProductIds: isCombo ? formComboProductIds : [],
+          discountPercentage: isCombo ? formDiscountPercent : undefined,
         });
         toast.success(t("admin.productsPage.successUpdate"));
       } else {
@@ -316,6 +320,7 @@ export default function AdminProductsPage() {
           variants,
           toppings: targetToppings,
           comboProductIds: isCombo ? formComboProductIds : [],
+          discountPercentage: isCombo ? formDiscountPercent : undefined,
         });
         toast.success(t("admin.productsPage.successCreate"));
       }
@@ -547,6 +552,29 @@ export default function AdminProductsPage() {
                     </label>
                   );
                 })}
+              </div>
+            </div>
+          )}
+
+          {/* Combo discount percentage */}
+          {isComboSelected && (
+            <div className="bg-emerald-50/60 dark:bg-emerald-950/20 border border-emerald-200/60 dark:border-emerald-800/40 rounded-lg p-3 space-y-2">
+              <span className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider block">
+                % Tiết kiệm cho khách khi mua combo
+              </span>
+              <div className="flex items-center gap-3">
+                <Input
+                  type="number"
+                  min={1}
+                  max={99}
+                  value={formDiscountPercent || ""}
+                  onChange={(e) => setFormDiscountPercent(parseFloat(e.target.value) || 10)}
+                  className="h-9 w-24 text-xs border-emerald-300/60 bg-background"
+                />
+                <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">%</span>
+                <span className="text-[11px] text-muted-foreground font-semibold">
+                  Khách sẽ thấy badge &quot;Tiết kiệm {formDiscountPercent}%&quot; khi xem và thêm vào giỏ hàng
+                </span>
               </div>
             </div>
           )}

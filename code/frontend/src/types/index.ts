@@ -47,6 +47,7 @@ export interface Product {
   variants?: ProductVariant[];
   toppings?: Topping[];
   comboProductIds?: number[];
+  discountPercentage?: number | null;
 }
 
 export interface ProductVariant {
@@ -85,6 +86,11 @@ export interface Promotion {
   updatedAt?: string;
 }
 
+export interface ComboSelection {
+  product: Product;
+  variant: ProductVariant;
+}
+
 export interface CartItem {
   id: string; // unique local client-side ID (variantId + sorted toppings IDs)
   product: Product;
@@ -95,6 +101,9 @@ export interface CartItem {
     topping: Topping;
     quantity: number;
   }[];
+  // Only for combo items:
+  comboSelections?: ComboSelection[];
+  comboDiscountPercent?: number;
 }
 
 export interface Order {

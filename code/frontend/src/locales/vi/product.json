@@ -47,7 +47,9 @@
     "applyPromo": "Áp dụng",
     "promoSuccess": "Áp dụng mã giảm giá thành công!",
     "promoInvalid": "Mã giảm giá không hợp lệ hoặc đã hết hạn.",
-    "note": "Ghi chú cho đồ uống..."
+    "note": "Ghi chú cho đơn hàng...",
+    "notePlaceholderDrink": "Ví dụ: ít đường, nhiều đá, không đá...",
+    "notePlaceholderCombo": "Ví dụ: ít đường cho cà phê, không đá cho trà..."
   },
   "checkout": {
     "title": "Thanh Toán",

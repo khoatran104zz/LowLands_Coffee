@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { CartItem, Product, ProductVariant, Topping, Promotion } from "@/types";
+import { CartItem, ComboSelection, Product, ProductVariant, Topping, Promotion } from "@/types";
 
 interface CartState {
   items: CartItem[];
@@ -16,7 +16,9 @@ interface CartState {
     variant: ProductVariant,
     quantity: number,
     toppings: { topping: Topping; quantity: number }[],
-    note?: string
+    note?: string,
+    comboSelections?: ComboSelection[],
+    comboDiscountPercent?: number
   ) => void;
   updateQuantity: (itemId: string, quantity: number) => void;
   removeItem: (itemId: string) => void;
@@ -35,13 +37,21 @@ interface CartState {
 // Helper to generate a unique ID for cart items based on product variant and toppings selection
 const generateCartItemId = (
   variantId: number,
-  toppings: { topping: Topping; quantity: number }[]
+  toppings: { topping: Topping; quantity: number }[],
+  comboSelections?: ComboSelection[]
 ): string => {
   const toppingParts = toppings
     .filter((t) => t.quantity > 0)
     .sort((a, b) => a.topping.id - b.topping.id)
     .map((t) => `${t.topping.id}_${t.quantity}`)
     .join("-");
+  if (comboSelections && comboSelections.length > 0) {
+    const comboPart = comboSelections
+      .sort((a, b) => a.product.id - b.product.id)
+      .map((s) => `${s.product.id}_${s.variant.id}`)
+      .join(":");
+    return `combo_${variantId}-${comboPart}`;
+  }
   return `${variantId}-${toppingParts}`;
 };
 
@@ -77,8 +87,8 @@ export const useCartStore = create<CartState>((set, get) => ({
     }
   },
 
-  addItem: (product, variant, quantity, toppings, note) => {
-    const itemId = generateCartItemId(variant.id, toppings);
+  addItem: (product, variant, quantity, toppings, note, comboSelections, comboDiscountPercent) => {
+    const itemId = generateCartItemId(variant.id, toppings, comboSelections);
     
     set((state) => {
       const existingItemIndex = state.items.findIndex((item) => item.id === itemId);
@@ -100,6 +110,8 @@ export const useCartStore = create<CartState>((set, get) => ({
           quantity,
           toppings,
           note,
+          comboSelections,
+          comboDiscountPercent,
         });
       }
       return { items: newItems };

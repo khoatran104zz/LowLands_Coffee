@@ -22,4 +22,5 @@ public class ProductResponse {
     private List<ProductVariantResponse> variants;
     private List<ToppingResponse> toppings;
     private List<Long> comboProductIds;
+    private java.math.BigDecimal discountPercentage;
 }

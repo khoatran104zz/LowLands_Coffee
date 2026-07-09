@@ -47,7 +47,9 @@
     "applyPromo": "Apply",
     "promoSuccess": "Promo code applied successfully!",
     "promoInvalid": "Invalid or expired promo code.",
-    "note": "Note for barista..."
+    "note": "Order note...",
+    "notePlaceholderDrink": "e.g. less sugar, extra ice, no ice...",
+    "notePlaceholderCombo": "e.g. less sugar for coffee, no ice for tea..."
   },
   "checkout": {
     "title": "Checkout",

@@ -63,6 +63,7 @@ public class ProductMapper {
                 .map(ProductEntity::getId)
                 .sorted()
                 .toList() : List.of());
+        response.setDiscountPercentage(entity.getDiscountPercentage());
         return response;
     }
 

@@ -65,6 +65,9 @@ public class ProductEntity {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<ProductToppingEntity> productToppings = new HashSet<>();
 
+    @Column(name = "discount_percentage", precision = 5, scale = 2)
+    private java.math.BigDecimal discountPercentage;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "combo_items",

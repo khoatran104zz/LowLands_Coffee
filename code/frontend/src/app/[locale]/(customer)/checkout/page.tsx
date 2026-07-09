@@ -12,6 +12,8 @@ import { createOrder } from "@/services/order.service";
 import { getStores } from "@/services/store.service";
 import { Order, OrderItemInput, Store, Promotion } from "@/types";
 import { getAvailablePromotions, validatePromotion } from "@/services/promotion.service";
+import { getMessages, getTranslations } from "next-intl/server";
+import { getVietnamProvinces, Province, District, Ward } from "@/services/address.service";
 import axiosInstance from "@/lib/axios";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -274,10 +276,21 @@ export default function CheckoutPage() {
   const [completedPaymentReceipt, setCompletedPaymentReceipt] = useState<PaymentReceipt | null>(null);
   const [checkoutStartedAt] = useState(() => Date.now());
 
+  // Vietnam geography dropdown states
+  const [provinces, setProvinces] = useState<Province[]>([]);
+  const [districts, setDistricts] = useState<District[]>([]);
+  const [wards, setWards] = useState<Ward[]>([]);
+  
+  const [selectedProvinceCode, setSelectedProvinceCode] = useState<string>("");
+  const [selectedDistrictCode, setSelectedDistrictCode] = useState<string>("");
+  const [selectedWardCode, setSelectedWardCode] = useState<string>("");
+  const [streetAddress, setStreetAddress] = useState<string>("");
+
   const {
     register,
     handleSubmit,
     control,
+    setValue,
     formState: { errors },
   } = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -291,6 +304,81 @@ export default function CheckoutPage() {
       paymentMethod: "cod",
     },
   });
+
+  // Load provinces from API or Fallback
+  useEffect(() => {
+    const fetchProvinces = async () => {
+      const data = await getVietnamProvinces();
+      setProvinces(data);
+    };
+    void fetchProvinces();
+  }, []);
+
+  // Auto-fill user profile info if logged in
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.fullName) {
+        setValue("receiverName", user.fullName);
+      }
+      if (user.phone) {
+        setValue("receiverPhone", user.phone);
+      }
+    }
+  }, [isAuthenticated, user, setValue]);
+
+  const handleProvinceChange = (provinceCodeStr: string) => {
+    setSelectedProvinceCode(provinceCodeStr);
+    setSelectedDistrictCode("");
+    setSelectedWardCode("");
+    setWards([]);
+    
+    if (provinceCodeStr) {
+      const provCode = parseInt(provinceCodeStr, 10);
+      const foundProv = provinces.find((p) => p.code === provCode);
+      setDistricts(foundProv ? foundProv.districts || [] : []);
+    } else {
+      setDistricts([]);
+    }
+    setValue("deliveryAddress", "");
+  };
+
+  const handleDistrictChange = (districtCodeStr: string) => {
+    setSelectedDistrictCode(districtCodeStr);
+    setSelectedWardCode("");
+    
+    if (districtCodeStr) {
+      const distCode = parseInt(districtCodeStr, 10);
+      const foundDist = districts.find((d) => d.code === distCode);
+      setWards(foundDist ? foundDist.wards || [] : []);
+    } else {
+      setWards([]);
+    }
+    setValue("deliveryAddress", "");
+  };
+
+  const handleWardChange = (wardCodeStr: string) => {
+    setSelectedWardCode(wardCodeStr);
+    updateFullAddress(selectedProvinceCode, selectedDistrictCode, wardCodeStr, streetAddress);
+  };
+
+  const handleStreetAddressChange = (val: string) => {
+    setStreetAddress(val);
+    updateFullAddress(selectedProvinceCode, selectedDistrictCode, selectedWardCode, val);
+  };
+
+  const updateFullAddress = (provCodeStr: string, distCodeStr: string, wardCodeStr: string, street: string) => {
+    if (!provCodeStr || !distCodeStr || !wardCodeStr || !street.trim()) {
+      setValue("deliveryAddress", "");
+      return;
+    }
+    
+    const provName = provinces.find((p) => p.code === parseInt(provCodeStr, 10))?.name || "";
+    const distName = districts.find((d) => d.code === parseInt(distCodeStr, 10))?.name || "";
+    const wardName = wards.find((w) => w.code === parseInt(wardCodeStr, 10))?.name || "";
+    
+    const fullAddr = `${street.trim()}, ${wardName}, ${distName}, ${provName}`;
+    setValue("deliveryAddress", fullAddr, { shouldValidate: true });
+  };
 
   const selectedPaymentMethod = useWatch({ control, name: "paymentMethod" }) || "cod";
   const selectedPaymentOption = PAYMENT_OPTIONS.find((option) => option.id === selectedPaymentMethod) || PAYMENT_OPTIONS[0];
@@ -494,6 +582,11 @@ export default function CheckoutPage() {
       setVoucherMessage(null);
       return;
     }
+    // Check if user is authenticated when applying WELCOME promotion
+    if (promoCodeSelected.toUpperCase().startsWith("WELCOME") && !isAuthenticated) {
+      toast.error("Mã giảm giá WELCOME chỉ áp dụng cho thành viên đã đăng ký tài khoản. Vui lòng đăng nhập hoặc đăng ký thành viên.");
+      return;
+    }
     try {
       const payloadItems = items.map((item) => ({
         productId: item.product.id,
@@ -522,6 +615,12 @@ export default function CheckoutPage() {
     const normalized = voucherCode.trim().toUpperCase();
     if (!normalized) {
       setVoucherMessage("Nhập mã khuyến mãi để kiểm tra.");
+      return;
+    }
+    // Check if user is authenticated when applying WELCOME promotion
+    if (normalized.startsWith("WELCOME") && !isAuthenticated) {
+      setVoucherMessage("Mã giảm giá WELCOME chỉ áp dụng cho thành viên đã đăng ký tài khoản. Vui lòng đăng nhập hoặc đăng ký.");
+      toast.error("Mã giảm giá WELCOME chỉ áp dụng cho thành viên đã đăng ký tài khoản. Vui lòng đăng nhập hoặc đăng ký.");
       return;
     }
     try {
@@ -727,15 +826,74 @@ export default function CheckoutPage() {
                   )}
                 </div>
 
-                <div className="flex flex-col gap-1.5 md:col-span-2">
-                  <label className="text-xs font-black uppercase tracking-wide text-[#7B655A]">
+                <div className="flex flex-col gap-4 md:col-span-2 border border-[#E5D8C8]/60 rounded-2xl p-4 bg-[#FFFCF8]/50">
+                  <span className="text-xs font-black uppercase tracking-wide text-[#7B655A]">
                     {t("product.checkout.addressLabel")} <span className="text-[#C8510A]">*</span>
-                  </label>
-                  <Input
-                    {...register("deliveryAddress")}
-                    className="h-11 rounded-xl border-[#E5D8C8] bg-[#FFFCF8] text-sm font-semibold placeholder:font-normal placeholder:text-muted-foreground/60"
-                    placeholder={t("product.checkout.addressPlaceholder")}
-                  />
+                  </span>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {/* Tỉnh/Thành phố */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-wide text-[#7B655A]">Tỉnh / Thành phố</label>
+                      <select
+                        value={selectedProvinceCode}
+                        onChange={(e) => handleProvinceChange(e.target.value)}
+                        className="w-full h-11 px-3 bg-[#FFFCF8] border border-[#E5D8C8] text-foreground rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-amber-800"
+                      >
+                        <option value="">-- Chọn Tỉnh / Thành phố --</option>
+                        {provinces.map((p) => (
+                          <option key={p.code} value={p.code}>{p.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Quận/Huyện */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-wide text-[#7B655A]">Quận / Huyện</label>
+                      <select
+                        value={selectedDistrictCode}
+                        onChange={(e) => handleDistrictChange(e.target.value)}
+                        disabled={!selectedProvinceCode}
+                        className="w-full h-11 px-3 bg-[#FFFCF8] border border-[#E5D8C8] text-foreground rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-amber-800 disabled:opacity-50"
+                      >
+                        <option value="">-- Chọn Quận / Huyện --</option>
+                        {districts.map((d) => (
+                          <option key={d.code} value={d.code}>{d.name}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* Phường/Xã */}
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] font-black uppercase tracking-wide text-[#7B655A]">Phường / Xã</label>
+                      <select
+                        value={selectedWardCode}
+                        onChange={(e) => handleWardChange(e.target.value)}
+                        disabled={!selectedDistrictCode}
+                        className="w-full h-11 px-3 bg-[#FFFCF8] border border-[#E5D8C8] text-foreground rounded-xl text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-amber-800 disabled:opacity-50"
+                      >
+                        <option value="">-- Chọn Phường / Xã --</option>
+                        {wards.map((w) => (
+                          <option key={w.code} value={w.code}>{w.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Địa chỉ chi tiết (Số nhà, tên đường) */}
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] font-black uppercase tracking-wide text-[#7B655A]">Số nhà, tên đường</label>
+                    <Input
+                      value={streetAddress}
+                      onChange={(e) => handleStreetAddressChange(e.target.value)}
+                      disabled={!selectedWardCode}
+                      className="h-11 rounded-xl border-[#E5D8C8] bg-[#FFFCF8] text-sm font-semibold placeholder:font-normal placeholder:text-muted-foreground/60"
+                      placeholder="Ví dụ: 123 Đường Nguyễn Trãi..."
+                    />
+                  </div>
+
+                  {/* Ẩn input gốc dùng cho react-hook-form validate */}
+                  <input type="hidden" {...register("deliveryAddress")} />
                   {errors.deliveryAddress && (
                     <span className="text-xs font-semibold text-destructive">{errors.deliveryAddress.message}</span>
                   )}

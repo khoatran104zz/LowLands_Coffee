@@ -19,7 +19,7 @@ import type { Recipe } from "@/services/recipe.service";
 import { Link, useRouter } from "@/i18n/navigation";
 import { useCartStore } from "@/store/cart.store";
 import { useAuthStore } from "@/store/auth.store";
-import { Product, ProductVariant, Topping } from "@/types";
+import { Product, ProductVariant, Topping, ComboSelection } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PRODUCT_BADGES, BADGE_STYLES } from "@/lib/productBadges";
@@ -64,6 +64,8 @@ export default function ProductDetailPage({ params }: Props) {
   const [reviewSubmitting, setReviewSubmitting] = useState(false);
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [recipesLoading, setRecipesLoading] = useState(false);
+  // Combo: per-item variant selections (keyed by product ID)
+  const [comboSelections, setComboSelections] = useState<Record<number, ProductVariant>>({});
 
   const addItemToCart = useCartStore((state) => state.addItem);
   const { isAuthenticated, hasHydrated } = useAuthStore();
@@ -94,6 +96,16 @@ export default function ProductDetailPage({ params }: Props) {
         setAllProducts(productsList || []);
         setSelectedVariant(data.variants?.[0] ?? null);
         setSelectedToppings(data.toppings?.map((topping) => ({ topping, quantity: 0 })) ?? []);
+        // Init combo selections: default to first variant of each combo product
+        if (data.comboProductIds && data.comboProductIds.length > 0) {
+          const comboProducts = productsList?.filter((p) => data.comboProductIds!.includes(p.id)) ?? [];
+          const defaultSelections: Record<number, ProductVariant> = {};
+          comboProducts.forEach((cp) => {
+            const firstVariant = cp.variants?.find((v) => v.status === "active") ?? cp.variants?.[0];
+            if (firstVariant) defaultSelections[cp.id] = firstVariant;
+          });
+          setComboSelections(defaultSelections);
+        }
         void loadReviews();
         // Load recipes
         setRecipesLoading(true);
@@ -162,7 +174,22 @@ export default function ProductDetailPage({ params }: Props) {
   const incrementQuantity = () => setQuantity((current) => current + 1);
   const decrementQuantity = () => setQuantity((current) => (current > 1 ? current - 1 : 1));
 
+  const isCombo = (product?.comboProductIds?.length ?? 0) > 0;
+
+  // Calculate combo price dynamically based on selected variants per item
+  const calculateComboPrice = (): { comboPrice: number; originalPrice: number; savingsPct: number } => {
+    if (!isCombo || !product) return { comboPrice: 0, originalPrice: 0, savingsPct: 0 };
+    const discount = Number(product.discountPercentage ?? 10);
+    const originalPrice = Object.values(comboSelections).reduce(
+      (sum, v) => sum + Number(v.price), 0
+    );
+    const comboPrice = Math.round(originalPrice * (1 - discount / 100));
+    const savingsPct = originalPrice > 0 ? Math.round(((originalPrice - comboPrice) / originalPrice) * 100) : 0;
+    return { comboPrice, originalPrice, savingsPct };
+  };
+
   const calculateSinglePrice = () => {
+    if (isCombo) return calculateComboPrice().comboPrice;
     if (!selectedVariant) return 0;
     const basePrice = Number(selectedVariant.price);
     const toppingsPrice = selectedToppings.reduce(
@@ -182,15 +209,45 @@ export default function ProductDetailPage({ params }: Props) {
   };
 
   const handleAddToCart = () => {
-    if (!product || !selectedVariant) return;
+    if (!product) return;
 
-    addItemToCart(
-      product,
-      selectedVariant,
-      quantity,
-      selectedToppings.filter((item) => item.quantity > 0),
-      note
-    );
+    if (isCombo) {
+      const { comboPrice, savingsPct } = calculateComboPrice();
+      const comboSelectionsArr: ComboSelection[] = Object.entries(comboSelections).map(
+        ([productIdStr, variant]) => ({
+          product: allProducts.find((p) => p.id === parseInt(productIdStr))!,
+          variant,
+        })
+      ).filter((s) => s.product != null);
+
+      // Synthetic variant to represent the combo price
+      const syntheticVariant: ProductVariant = {
+        id: product.variants?.[0]?.id ?? -1,
+        productId: product.id,
+        size: "M",
+        price: comboPrice,
+        status: "active",
+      };
+
+      addItemToCart(
+        product,
+        syntheticVariant,
+        quantity,
+        [],
+        note,
+        comboSelectionsArr,
+        savingsPct
+      );
+    } else {
+      if (!selectedVariant) return;
+      addItemToCart(
+        product,
+        selectedVariant,
+        quantity,
+        selectedToppings.filter((item) => item.quantity > 0),
+        note
+      );
+    }
 
     toast.success(t("product.addedToCart"));
     router.push("/cart");
@@ -337,64 +394,114 @@ export default function ProductDetailPage({ params }: Props) {
                 </div>
               )}
 
-              {product.comboProductIds && product.comboProductIds.length > 0 && (
-                <div className="w-full bg-secondary/10 border border-border/40 rounded-xl p-4">
-                  <h4 className="text-xs uppercase font-bold tracking-wider text-accent mb-2">
-                    {t("product.comboIncludes", { defaultValue: "Combo bao gồm:" })}
-                  </h4>
-                  <ul className="list-disc list-inside text-sm text-foreground space-y-1.5">
+              {isCombo && (
+                <div className="w-full space-y-4">
+                  {/* Savings badge */}
+                  {(() => {
+                    const { comboPrice, originalPrice, savingsPct } = calculateComboPrice();
+                    return (
+                      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-500/15 via-orange-400/10 to-yellow-400/15 border border-amber-400/40 p-4">
+                        {/* Shimmer animation */}
+                        <div className="absolute inset-0 -translate-x-full animate-[shimmer_2.5s_infinite] bg-gradient-to-r from-transparent via-white/10 to-transparent" style={{animation: 'shimmer 2.5s infinite'}} />
+                        <div className="flex items-center justify-between gap-3 flex-wrap">
+                          <div>
+                            <p className="text-[10px] font-black uppercase tracking-widest text-amber-700 dark:text-amber-400">🎁 Combo tiết kiệm</p>
+                            <div className="flex items-baseline gap-2 mt-1">
+                              <span className="text-2xl font-black text-primary">{formatPrice(comboPrice)}</span>
+                              {originalPrice > comboPrice && (
+                                <span className="text-sm text-muted-foreground line-through font-semibold">{formatPrice(originalPrice)}</span>
+                              )}
+                            </div>
+                          </div>
+                          {savingsPct > 0 && (
+                            <div className="flex flex-col items-center justify-center bg-gradient-to-br from-emerald-500 to-green-600 text-white rounded-2xl px-4 py-2 shadow-lg shadow-green-500/30">
+                              <span className="text-[10px] font-black uppercase tracking-widest">Tiết kiệm</span>
+                              <span className="text-2xl font-black leading-none">{savingsPct}%</span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })()}
+
+                  {/* Per-item size selectors */}
+                  <div className="space-y-3">
+                    <h4 className="text-xs uppercase font-bold tracking-wider text-muted-foreground">Chọn size cho từng món</h4>
                     {allProducts
                       .filter((p) => product.comboProductIds?.includes(p.id))
-                      .map((cp) => (
-                        <li key={cp.id} className="font-semibold">
-                          {t(`product.items.${cp.id}.name`, { defaultValue: cp.name })}
-                        </li>
-                      ))}
-                  </ul>
+                      .map((cp) => {
+                        const activeVariants = cp.variants?.filter((v) => v.status === "active") ?? [];
+                        const selected = comboSelections[cp.id];
+                        return (
+                          <div key={cp.id} className="border border-border/60 rounded-xl p-3 bg-card">
+                            <div className="flex items-center gap-2 mb-2">
+                              {cp.imageUrl && (
+                                <div className="w-8 h-8 rounded-lg overflow-hidden border border-border/40 shrink-0">
+                                  <img src={cp.imageUrl} alt={cp.name} className="w-full h-full object-cover" />
+                                </div>
+                              )}
+                              <span className="text-xs font-bold text-foreground">
+                                {t(`product.items.${cp.id}.name`, { defaultValue: cp.name })}
+                              </span>
+                            </div>
+                            {activeVariants.length > 0 ? (
+                              <div className="flex gap-2 flex-wrap">
+                                {activeVariants.map((variant) => (
+                                  <button
+                                    key={variant.id}
+                                    type="button"
+                                    onClick={() => setComboSelections((prev) => ({ ...prev, [cp.id]: variant }))}
+                                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-bold transition-all ${
+                                      selected?.id === variant.id
+                                        ? "border-primary bg-primary/10 text-primary shadow-sm"
+                                        : "border-border text-muted-foreground hover:border-primary/50"
+                                    }`}
+                                  >
+                                    <span>Size {variant.size}</span>
+                                    <span className="opacity-70">{formatPrice(Number(variant.price))}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            ) : (
+                              <span className="text-xs text-muted-foreground italic">Không có size khả dụng</span>
+                            )}
+                          </div>
+                        );
+                      })}
+                  </div>
                 </div>
               )}
 
-              {product.variants && product.variants.length > 0 && (
+              {!isCombo && product.variants && product.variants.length > 0 && (
                 <div className="w-full">
-                  {product.comboProductIds && product.comboProductIds.length > 0 ? (
-                    <div>
-                      <h4 className="text-xs uppercase font-bold tracking-wider text-muted-foreground mb-1.5">
-                        Giá Combo
-                      </h4>
-                      <span className="text-2xl font-black text-accent">
-                        {selectedVariant && formatPrice(Number(selectedVariant.price))}
-                      </span>
+                  <>
+                    <h4 className="text-xs uppercase font-bold tracking-wider text-muted-foreground mb-3">
+                      {t("product.menu.size")} ({t("product.sizeS")} / {t("product.sizeM")} / {t("product.sizeL")})
+                    </h4>
+                    <div className="flex gap-4">
+                      {product.variants.map((variant) => {
+                        const isSelected = selectedVariant?.id === variant.id;
+                        return (
+                          <button
+                            key={variant.id}
+                            onClick={() => setSelectedVariant(variant)}
+                            className={`flex-grow sm:flex-grow-0 min-w-[100px] border rounded-xl py-3 px-4 flex flex-col items-center justify-center gap-1 transition-all ${
+                              isSelected
+                                ? "border-primary bg-primary/5 text-primary font-bold shadow-sm"
+                                : "border-border hover:border-primary/50 text-foreground"
+                            }`}
+                          >
+                            <span className="text-xs font-bold uppercase">Size {variant.size}</span>
+                            <span className="text-xs font-semibold opacity-80">{formatPrice(Number(variant.price))}</span>
+                          </button>
+                        );
+                      })}
                     </div>
-                  ) : (
-                    <>
-                      <h4 className="text-xs uppercase font-bold tracking-wider text-muted-foreground mb-3">
-                        {t("product.menu.size")} ({t("product.sizeS")} / {t("product.sizeM")} / {t("product.sizeL")})
-                      </h4>
-                      <div className="flex gap-4">
-                        {product.variants.map((variant) => {
-                          const isSelected = selectedVariant?.id === variant.id;
-                          return (
-                            <button
-                              key={variant.id}
-                              onClick={() => setSelectedVariant(variant)}
-                              className={`flex-grow sm:flex-grow-0 min-w-[100px] border rounded-xl py-3 px-4 flex flex-col items-center justify-center gap-1 transition-all ${
-                                isSelected
-                                  ? "border-primary bg-primary/5 text-primary font-bold shadow-sm"
-                                  : "border-border hover:border-primary/50 text-foreground"
-                              }`}
-                            >
-                              <span className="text-xs font-bold uppercase">Size {variant.size}</span>
-                              <span className="text-xs font-semibold opacity-80">{formatPrice(Number(variant.price))}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </>
-                  )}
+                  </>
                 </div>
               )}
 
-              {selectedToppings.length > 0 && (
+              {!isCombo && selectedToppings.length > 0 && (
                 <div className="w-full border-t border-border/50 pt-6">
                   <h4 className="text-xs uppercase font-bold tracking-wider text-muted-foreground mb-3">
                     {t("product.menu.topping")} ({t("common.price")})
@@ -422,12 +529,16 @@ export default function ProductDetailPage({ params }: Props) {
 
               <div className="w-full border-t border-border/50 pt-6">
                 <h4 className="text-xs uppercase font-bold tracking-wider text-muted-foreground mb-2">
-                  {t("product.cart.note")}
+                  {isCombo ? "Ghi chú cho combo" : t("product.cart.note")}
                 </h4>
                 <textarea
                   value={note}
                   onChange={(event) => setNote(event.target.value)}
-                  placeholder={t("product.cart.note")}
+                  placeholder={
+                    isCombo
+                      ? t("product.cart.notePlaceholderCombo")
+                      : t("product.cart.notePlaceholderDrink")
+                  }
                   className="w-full min-h-[70px] border border-border rounded-xl p-3 text-xs focus:outline-primary/50 bg-card resize-none"
                 />
               </div>
@@ -463,7 +574,7 @@ export default function ProductDetailPage({ params }: Props) {
                     onClick={handleAddToCart}
                     size="lg"
                     className="w-full sm:w-auto rounded-full font-bold gap-2 text-sm"
-                    disabled={!selectedVariant}
+                    disabled={isCombo ? Object.keys(comboSelections).length === 0 : !selectedVariant}
                   >
                     <ShoppingBag className="h-4 w-4" />
                     <span>{t("common.addToCart")}</span>

@@ -127,6 +127,9 @@ public class ProductServiceImpl implements ProductService {
             List<ProductEntity> comboItems = productRepository.findAllById(request.getComboProductIds());
             product.setComboItems(new HashSet<>(comboItems));
         }
+        if (request.getDiscountPercentage() != null) {
+            product.setDiscountPercentage(request.getDiscountPercentage());
+        }
         return productMapper.toResponse(productRepository.save(product));
     }
 
@@ -153,6 +156,9 @@ public class ProductServiceImpl implements ProductService {
                 List<ProductEntity> comboItems = productRepository.findAllById(request.getComboProductIds());
                 product.setComboItems(new HashSet<>(comboItems));
             }
+        }
+        if (request.getDiscountPercentage() != null) {
+            product.setDiscountPercentage(request.getDiscountPercentage());
         }
         return productMapper.toResponse(productRepository.save(product));
     }

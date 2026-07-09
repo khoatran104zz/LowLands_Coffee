@@ -136,6 +136,7 @@ const toProductRequest = (product: Omit<Product, "id"> | Product, includeTopping
     })) ?? [],
     toppingIds: includeToppings ? product.toppings?.map((topping) => topping.id) : [],
     comboProductIds: product.comboProductIds,
+    discountPercentage: product.discountPercentage ?? undefined,
   };
 };
 
