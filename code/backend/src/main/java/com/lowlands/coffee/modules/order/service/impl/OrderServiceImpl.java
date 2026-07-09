@@ -387,6 +387,15 @@ public class OrderServiceImpl implements OrderService {
                         criteriaBuilder.like(criteriaBuilder.lower(root.get("receiverPhone")), keyword)
                 ));
             }
+
+            // Filter out unpaid/failed online payments (MOMO, BANKING) for staff/admin views
+            // Using Left Join to prevent filtering out orders that might not have a payment record (e.g. legacy test data)
+            jakarta.persistence.criteria.Join<OrderEntity, PaymentEntity> paymentJoin = root.join("payment", jakarta.persistence.criteria.JoinType.LEFT);
+            predicates.add(criteriaBuilder.or(
+                    criteriaBuilder.not(paymentJoin.get("paymentMethod").in("MOMO", "BANKING")),
+                    criteriaBuilder.equal(paymentJoin.get("paymentStatus"), "PAID")
+            ));
+
             return criteriaBuilder.and(predicates.toArray(Predicate[]::new));
         };
     }
